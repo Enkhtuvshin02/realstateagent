@@ -89,3 +89,820 @@
 2025-06-01 23:11:53,977 - main - INFO - ✅ Response generated in 25.55s
 2025-06-01 23:19:33,128 - services.initialization_service - INFO - 🧹 Property retriever closed
 2025-06-01 23:19:33,128 - main - INFO - 🧹 Services cleaned up successfully
+2025-06-01 23:50:06,614 - main - ERROR - ❌ WeasyPrint system dependencies missing!
+2025-06-01 23:50:06,614 - main - ERROR - Error: cannot load library 'libgobject-2.0-0': dlopen(libgobject-2.0-0, 0x0002): tried: 'libgobject-2.0-0' (no such file), '/System/Volumes/Preboot/Cryptexes/OSlibgobject-2.0-0' (no such file), '/usr/lib/libgobject-2.0-0' (no such file, not in dyld cache), 'libgobject-2.0-0' (no such file).  Additionally, ctypes.util.find_library() did not manage to locate a library called 'libgobject-2.0-0'
+2025-06-01 23:50:06,614 - main - INFO - 🔧 Fix on macOS:
+2025-06-01 23:50:06,614 - main - INFO -   1. Install Homebrew: /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+2025-06-01 23:50:06,614 - main - INFO -   2. Install dependencies: brew install pango gdk-pixbuf libffi
+2025-06-01 23:50:06,614 - main - INFO -   3. Reinstall WeasyPrint: pip uninstall weasyprint && pip install weasyprint
+2025-06-01 23:50:06,616 - main - INFO - 🚀 Starting Professional Real Estate Assistant v2.0...
+2025-06-01 23:50:06,616 - main - INFO - 📄 Using fallback PDF generation (ReportLab)
+2025-06-01 23:50:06,616 - main - WARNING - WeasyPrint issue: WeasyPrint system dependencies missing: cannot load library 'libgobject-2.0-0': dlopen(libgobject-2.0-0, 0x0002): tried: 'libgobject-2.0-0' (no such file), '/System/Volumes/Preboot/Cryptexes/OSlibgobject-2.0-0' (no such file), '/usr/lib/libgobject-2.0-0' (no such file, not in dyld cache), 'libgobject-2.0-0' (no such file).  Additionally, ctypes.util.find_library() did not manage to locate a library called 'libgobject-2.0-0'
+2025-06-01 23:50:06,616 - main - INFO - 💡 For professional PDFs, install WeasyPrint dependencies:
+2025-06-01 23:50:06,616 - main - INFO -   brew install pango gdk-pixbuf libffi
+2025-06-01 23:50:06,616 - main - INFO -   pip install weasyprint
+2025-06-01 23:50:06,616 - services.initialization_service - INFO - 🔧 Initializing services...
+2025-06-01 23:50:06,616 - services.initialization_service - INFO - 🤖 Initializing LLM...
+2025-06-01 23:50:06,774 - services.initialization_service - INFO - ✅ LLM initialized
+2025-06-01 23:50:06,774 - services.initialization_service - INFO - 🔍 Initializing search tool...
+2025-06-01 23:50:06,774 - services.initialization_service - INFO - ✅ Search tool initialized
+2025-06-01 23:50:06,774 - services.initialization_service - INFO - 🏠 Initializing property retriever...
+2025-06-01 23:50:06,786 - services.initialization_service - INFO - ✅ Property retriever initialized
+2025-06-01 23:50:06,786 - services.initialization_service - INFO - 📊 Initializing district analyzer...
+2025-06-01 23:50:06,810 - agents.district_analyzer - INFO - 📅 Cached data is 1 days old, still fresh
+2025-06-01 23:50:06,810 - agents.district_analyzer - INFO - 📦 Loading cached vectorstore data...
+2025-06-01 23:50:08,394 - httpx - INFO - HTTP Request: POST https://api.together.xyz/v1/embeddings "HTTP/1.1 200 OK"
+2025-06-01 23:50:09,022 - httpx - INFO - HTTP Request: POST https://api.together.xyz/v1/embeddings "HTTP/1.1 200 OK"
+2025-06-01 23:50:09,649 - httpx - INFO - HTTP Request: POST https://api.together.xyz/v1/embeddings "HTTP/1.1 200 OK"
+2025-06-01 23:50:10,825 - httpx - INFO - HTTP Request: POST https://api.together.xyz/v1/embeddings "HTTP/1.1 200 OK"
+2025-06-01 23:50:11,328 - httpx - INFO - HTTP Request: POST https://api.together.xyz/v1/embeddings "HTTP/1.1 200 OK"
+2025-06-01 23:50:11,989 - httpx - INFO - HTTP Request: POST https://api.together.xyz/v1/embeddings "HTTP/1.1 200 OK"
+2025-06-01 23:50:12,445 - httpx - INFO - HTTP Request: POST https://api.together.xyz/v1/embeddings "HTTP/1.1 200 OK"
+2025-06-01 23:50:13,438 - httpx - INFO - HTTP Request: POST https://api.together.xyz/v1/embeddings "HTTP/1.1 200 OK"
+2025-06-01 23:50:13,626 - faiss.loader - INFO - Loading faiss.
+2025-06-01 23:50:13,648 - faiss.loader - INFO - Successfully loaded faiss.
+2025-06-01 23:50:13,650 - faiss - INFO - Failed to load GPU Faiss: name 'GpuIndexIVFFlat' is not defined. Will not load constructor refs for GPU indexes. This is only an error if you're trying to use GPU Faiss.
+2025-06-01 23:50:13,651 - agents.district_analyzer - INFO - 📦 Loaded 8 documents from cache
+2025-06-01 23:50:13,651 - agents.district_analyzer - INFO - ✅ Successfully loaded cached vectorstore data
+2025-06-01 23:50:13,651 - services.initialization_service - INFO - ✅ District analyzer initialized
+2025-06-01 23:50:13,651 - services.initialization_service - INFO - 📄 Initializing PDF generator (ReportLab)...
+2025-06-01 23:50:13,651 - utils.reportlab_pdf_generator - INFO - ✅ PDF generator (ReportLab) initialized.
+2025-06-01 23:50:13,651 - services.initialization_service - INFO - ✅ PDF generator (ReportLab) initialized
+2025-06-01 23:50:13,651 - services.initialization_service - INFO - 📚 Loading initial data...
+2025-06-01 23:50:13,651 - services.initialization_service - INFO - 📊 Cache status: {'cache_exists': True, 'last_update_exists': True, 'is_fresh': True, 'age_days': 1, 'last_update': '2025-05-31T20:32:29.681689'}
+2025-06-01 23:50:13,651 - services.initialization_service - INFO - 📅 Using cached data (fresh)
+2025-06-01 23:50:13,651 - main - INFO - ✅ All components initialized successfully!
+2025-06-01 23:50:13,651 - main - INFO - 🧠 Chain-of-Thought reasoning is active!
+2025-06-01 23:50:13,651 - main - INFO - 📋 Basic PDF reports enabled (upgrade to WeasyPrint for professional quality)
+2025-06-01 23:50:13,651 - main - INFO - 🔍 Available features:
+2025-06-01 23:50:13,651 - main - INFO -   • Property URL analysis with unegui.mn integration
+2025-06-01 23:50:13,651 - main - INFO -   • District comparison across 9 Ulaanbaatar districts
+2025-06-01 23:50:13,651 - main - INFO -   • Real-time market research with internet search
+2025-06-01 23:50:13,651 - main - INFO -   • Chain-of-Thought enhanced reasoning
+2025-06-01 23:50:13,651 - main - INFO -   • Basic PDF report generation
+2025-06-01 23:50:16,082 - services.initialization_service - INFO - 🧹 Property retriever closed
+2025-06-01 23:50:16,082 - main - INFO - 🧹 Services cleaned up successfully
+2025-06-01 23:50:16,950 - main - INFO - 🚀 Starting Professional Real Estate Assistant v2.1 (with ReportLab)...
+2025-06-01 23:50:16,950 - main - INFO - 📄 PDF generation will use ReportLab.
+2025-06-01 23:50:16,950 - main - INFO - 💡 Ensure a Mongolian-supporting TTF font is in static/fonts/ and configured in reportlab_pdf_generator.py for proper text rendering.
+2025-06-01 23:50:16,950 - services.initialization_service - INFO - 🔧 Initializing services...
+2025-06-01 23:50:16,950 - services.initialization_service - INFO - 🤖 Initializing LLM...
+2025-06-01 23:50:17,036 - services.initialization_service - INFO - ✅ LLM initialized
+2025-06-01 23:50:17,036 - services.initialization_service - INFO - 🔍 Initializing search tool...
+2025-06-01 23:50:17,036 - services.initialization_service - INFO - ✅ Search tool initialized
+2025-06-01 23:50:17,036 - services.initialization_service - INFO - 🏠 Initializing property retriever...
+2025-06-01 23:50:17,048 - services.initialization_service - INFO - ✅ Property retriever initialized
+2025-06-01 23:50:17,048 - services.initialization_service - INFO - 📊 Initializing district analyzer...
+2025-06-01 23:50:17,071 - agents.district_analyzer - INFO - 📅 Cached data is 1 days old, still fresh
+2025-06-01 23:50:17,071 - agents.district_analyzer - INFO - 📦 Loading cached vectorstore data...
+2025-06-01 23:50:17,515 - httpx - INFO - HTTP Request: POST https://api.together.xyz/v1/embeddings "HTTP/1.1 200 OK"
+2025-06-01 23:50:17,912 - httpx - INFO - HTTP Request: POST https://api.together.xyz/v1/embeddings "HTTP/1.1 200 OK"
+2025-06-01 23:50:18,443 - httpx - INFO - HTTP Request: POST https://api.together.xyz/v1/embeddings "HTTP/1.1 200 OK"
+2025-06-01 23:50:19,005 - httpx - INFO - HTTP Request: POST https://api.together.xyz/v1/embeddings "HTTP/1.1 200 OK"
+2025-06-01 23:50:19,479 - httpx - INFO - HTTP Request: POST https://api.together.xyz/v1/embeddings "HTTP/1.1 200 OK"
+2025-06-01 23:50:19,887 - httpx - INFO - HTTP Request: POST https://api.together.xyz/v1/embeddings "HTTP/1.1 200 OK"
+2025-06-01 23:50:20,287 - httpx - INFO - HTTP Request: POST https://api.together.xyz/v1/embeddings "HTTP/1.1 200 OK"
+2025-06-01 23:50:20,717 - httpx - INFO - HTTP Request: POST https://api.together.xyz/v1/embeddings "HTTP/1.1 200 OK"
+2025-06-01 23:50:20,732 - faiss.loader - INFO - Loading faiss.
+2025-06-01 23:50:20,744 - faiss.loader - INFO - Successfully loaded faiss.
+2025-06-01 23:50:20,746 - faiss - INFO - Failed to load GPU Faiss: name 'GpuIndexIVFFlat' is not defined. Will not load constructor refs for GPU indexes. This is only an error if you're trying to use GPU Faiss.
+2025-06-01 23:50:20,747 - agents.district_analyzer - INFO - 📦 Loaded 8 documents from cache
+2025-06-01 23:50:20,747 - agents.district_analyzer - INFO - ✅ Successfully loaded cached vectorstore data
+2025-06-01 23:50:20,747 - services.initialization_service - INFO - ✅ District analyzer initialized
+2025-06-01 23:50:20,747 - services.initialization_service - INFO - 📄 Initializing PDF generator (ReportLab)...
+2025-06-01 23:50:20,747 - utils.reportlab_pdf_generator - INFO - ✅ PDF generator (ReportLab) initialized.
+2025-06-01 23:50:20,747 - services.initialization_service - INFO - ✅ PDF generator (ReportLab) initialized
+2025-06-01 23:50:20,747 - services.initialization_service - INFO - 📚 Loading initial data...
+2025-06-01 23:50:20,747 - services.initialization_service - INFO - 📊 Cache status: {'cache_exists': True, 'last_update_exists': True, 'is_fresh': True, 'age_days': 1, 'last_update': '2025-05-31T20:32:29.681689'}
+2025-06-01 23:50:20,747 - services.initialization_service - INFO - 📅 Using cached data (fresh)
+2025-06-01 23:50:20,747 - main - INFO - ✅ All components initialized successfully!
+2025-06-01 23:50:20,747 - main - INFO - 🧠 Chain-of-Thought reasoning is active!
+2025-06-01 23:50:20,747 - main - INFO - 📋 PDF reports using ReportLab are enabled!
+2025-06-01 23:50:20,747 - main - INFO - 🔍 Available features:
+2025-06-01 23:50:20,747 - main - INFO -   • Property URL analysis with unegui.mn integration
+2025-06-01 23:50:20,747 - main - INFO -   • District comparison across 9 Ulaanbaatar districts
+2025-06-01 23:50:20,747 - main - INFO -   • Real-time market research with internet search
+2025-06-01 23:50:20,747 - main - INFO -   • Chain-of-Thought enhanced reasoning
+2025-06-01 23:50:20,747 - main - INFO -   • PDF report generation (ReportLab)
+2025-06-01 23:50:59,509 - main - INFO - 📝 Chat message received: Бүх дүүргийн үнэ харьцуулах
+2025-06-01 23:50:59,509 - services.chat_service - INFO - 🔄 Processing message: Бүх дүүргийн үнэ харьцуулах
+2025-06-01 23:50:59,510 - services.chat_service - INFO - 📋 Message classified as: district_query
+2025-06-01 23:50:59,510 - services.chat_service - INFO - 🧠 CoT application decision: True
+2025-06-01 23:50:59,510 - services.chat_service - INFO - 📍 Processing district query
+2025-06-01 23:50:59,510 - agents.district_analyzer - INFO - 🔍 Analyzing district for location: 'ALL_DISTRICTS_COMPARISON'
+2025-06-01 23:50:59,510 - agents.district_analyzer - INFO - 📅 Cached data is 1 days old, still fresh
+2025-06-01 23:50:59,510 - agents.district_analyzer - INFO - 📊 Using cached data (fresh)
+2025-06-01 23:50:59,510 - agents.district_analyzer - INFO - 📊 Available districts in vectorstore: Баянзүрх, Сүхбаатар, Баянгол, Чингэлтэй, Хан-Уул, Сонгинохайрхан, Багануур, Налайх
+2025-06-01 23:51:00,552 - httpx - INFO - HTTP Request: POST https://api.together.xyz/v1/embeddings "HTTP/1.1 200 OK"
+2025-06-01 23:51:00,569 - agents.district_analyzer - WARNING - ❌ No exact district information found in vectorstore for: 'ALL_DISTRICTS_COMPARISON'. Providing available districts list.
+2025-06-01 23:51:12,965 - httpx - INFO - HTTP Request: POST https://api.together.xyz/v1/chat/completions "HTTP/1.1 200 OK"
+2025-06-01 23:51:12,968 - agents.district_analyzer - INFO - District analysis LLM raw response (first 100 chars): Таны хүсэлтийг хүлээн авлаа. Улаанбаатар хотын дүүргүүдийн жилийн дүнгээр таныг мэдээлж байна.
+
+Одоо...
+2025-06-01 23:51:23,222 - httpx - INFO - HTTP Request: POST https://api.together.xyz/v1/chat/completions "HTTP/1.1 200 OK"
+2025-06-01 23:51:23,227 - services.chat_service - INFO - 🧠 Applying CoT enhancement to district analysis...
+2025-06-01 23:51:34,275 - httpx - INFO - HTTP Request: POST https://api.together.xyz/v1/chat/completions "HTTP/1.1 200 OK"
+2025-06-01 23:51:34,276 - main - INFO - ✅ Response generated in 34.77s
+2025-06-01 23:51:34,276 - main - INFO - 🚀 Applied enhancements: Chain-of-Thought reasoning
+2025-06-01 23:52:16,201 - main - INFO - 📝 Chat message received: Тиймээ
+2025-06-01 23:52:16,201 - services.chat_service - INFO - 🔄 Processing message: Тиймээ
+2025-06-01 23:52:16,201 - services.report_service - INFO - 📊 Generating district report with search integration
+2025-06-01 23:52:16,203 - agents.district_analyzer - INFO - 📅 Cached data is 1 days old, still fresh
+2025-06-01 23:52:16,203 - agents.district_analyzer - INFO - 📊 Using cached data (fresh)
+2025-06-01 23:52:16,203 - services.report_service - INFO - Extracting data from 8 documents...
+2025-06-01 23:52:16,203 - services.report_service - INFO - Added district: Баянзүрх with price 1
+2025-06-01 23:52:16,203 - services.report_service - INFO - Added district: Сүхбаатар with price 1
+2025-06-01 23:52:16,203 - services.report_service - INFO - Added district: Баянгол with price 1
+2025-06-01 23:52:16,203 - services.report_service - INFO - Added district: Чингэлтэй with price 1
+2025-06-01 23:52:16,203 - services.report_service - INFO - Added district: Хан-Уул with price 1
+2025-06-01 23:52:16,203 - services.report_service - INFO - Added district: Сонгинохайрхан with price 1
+2025-06-01 23:52:16,203 - services.report_service - INFO - Added district: Багануур with price 1
+2025-06-01 23:52:16,203 - services.report_service - INFO - Added district: Налайх with price 1
+2025-06-01 23:52:16,203 - services.report_service - INFO - Successfully extracted 8 districts with valid data
+2025-06-01 23:52:16,203 - services.report_service - INFO - 🔍 Searching for market trends: Улаанбаатар орон сууцны зах зээл үнэ чиглэл 2024 2025 дүүрэг харьцуулалт
+2025-06-01 23:52:25,533 - httpx - INFO - HTTP Request: POST https://api.together.xyz/v1/chat/completions "HTTP/1.1 200 OK"
+2025-06-01 23:52:25,535 - services.report_service - INFO - ✅ Search results processed for district report
+2025-06-01 23:52:34,166 - httpx - INFO - HTTP Request: POST https://api.together.xyz/v1/chat/completions "HTTP/1.1 200 OK"
+2025-06-01 23:52:34,184 - utils.reportlab_pdf_generator - INFO - ReportLab PDF report generated: reports/district_summary_reportlab_20250601_235234.pdf
+2025-06-01 23:52:34,184 - main - INFO - ✅ Response generated in 17.98s
+2025-06-01 23:52:34,184 - main - INFO - 🚀 Applied enhancements: ReportLab PDF report
+2025-06-01 23:52:44,391 - main - INFO - 📥 Downloading report: district_summary_reportlab_20250601_235234.pdf (4505 bytes)
+2025-06-02 00:01:30,873 - services.initialization_service - INFO - 🧹 Property retriever closed
+2025-06-02 00:01:30,874 - main - INFO - 🧹 Services cleaned up successfully
+2025-06-02 00:01:32,447 - main - INFO - 🚀 Starting Professional Real Estate Assistant v2.1 (with ReportLab)...
+2025-06-02 00:01:32,447 - main - INFO - 📄 PDF generation will use ReportLab.
+2025-06-02 00:01:32,447 - main - INFO - 💡 Ensure a Mongolian-supporting TTF font is in static/fonts/ and configured in xhtml2pdf_generator.py for proper text rendering.
+2025-06-02 00:01:32,447 - services.initialization_service - INFO - 🔧 Initializing services...
+2025-06-02 00:01:32,447 - services.initialization_service - INFO - 🤖 Initializing LLM...
+2025-06-02 00:01:32,739 - services.initialization_service - INFO - ✅ LLM initialized
+2025-06-02 00:01:32,739 - services.initialization_service - INFO - 🔍 Initializing search tool...
+2025-06-02 00:01:32,739 - services.initialization_service - INFO - ✅ Search tool initialized
+2025-06-02 00:01:32,739 - services.initialization_service - INFO - 🏠 Initializing property retriever...
+2025-06-02 00:01:32,794 - services.initialization_service - INFO - ✅ Property retriever initialized
+2025-06-02 00:01:32,794 - services.initialization_service - INFO - 📊 Initializing district analyzer...
+2025-06-02 00:01:32,906 - agents.district_analyzer - INFO - 📅 Cached data is 1 days old, still fresh
+2025-06-02 00:01:32,906 - agents.district_analyzer - INFO - 📦 Loading cached vectorstore data...
+2025-06-02 00:01:32,972 - openai._base_client - INFO - Retrying request to /embeddings in 0.480501 seconds
+2025-06-02 00:01:33,459 - openai._base_client - INFO - Retrying request to /embeddings in 0.783830 seconds
+2025-06-02 00:01:34,249 - agents.district_analyzer - ERROR - ❌ Error loading cached documents: Connection error.
+2025-06-02 00:01:34,249 - agents.district_analyzer - WARNING - ⚠️  Failed to load cached data, falling back to static data
+2025-06-02 00:01:34,250 - agents.district_analyzer - INFO - 📚 Initializing with static fallback data...
+2025-06-02 00:01:34,253 - openai._base_client - INFO - Retrying request to /embeddings in 0.461906 seconds
+2025-06-02 00:01:34,723 - openai._base_client - INFO - Retrying request to /embeddings in 0.856366 seconds
+2025-06-02 00:01:35,589 - main - ERROR - ❌ Failed to initialize services: Connection error.
+Traceback (most recent call last):
+  File "/Users/enkhtuvshin/PycharmProjects/RealStateAssistant/.venv/lib/python3.12/site-packages/httpx/_transports/default.py", line 101, in map_httpcore_exceptions
+    yield
+  File "/Users/enkhtuvshin/PycharmProjects/RealStateAssistant/.venv/lib/python3.12/site-packages/httpx/_transports/default.py", line 250, in handle_request
+    resp = self._pool.handle_request(req)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/enkhtuvshin/PycharmProjects/RealStateAssistant/.venv/lib/python3.12/site-packages/httpcore/_sync/connection_pool.py", line 256, in handle_request
+    raise exc from None
+  File "/Users/enkhtuvshin/PycharmProjects/RealStateAssistant/.venv/lib/python3.12/site-packages/httpcore/_sync/connection_pool.py", line 236, in handle_request
+    response = connection.handle_request(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/enkhtuvshin/PycharmProjects/RealStateAssistant/.venv/lib/python3.12/site-packages/httpcore/_sync/connection.py", line 101, in handle_request
+    raise exc
+  File "/Users/enkhtuvshin/PycharmProjects/RealStateAssistant/.venv/lib/python3.12/site-packages/httpcore/_sync/connection.py", line 78, in handle_request
+    stream = self._connect(request)
+             ^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/enkhtuvshin/PycharmProjects/RealStateAssistant/.venv/lib/python3.12/site-packages/httpcore/_sync/connection.py", line 124, in _connect
+    stream = self._network_backend.connect_tcp(**kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/enkhtuvshin/PycharmProjects/RealStateAssistant/.venv/lib/python3.12/site-packages/httpcore/_backends/sync.py", line 207, in connect_tcp
+    with map_exceptions(exc_map):
+         ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/contextlib.py", line 158, in __exit__
+    self.gen.throw(value)
+  File "/Users/enkhtuvshin/PycharmProjects/RealStateAssistant/.venv/lib/python3.12/site-packages/httpcore/_exceptions.py", line 14, in map_exceptions
+    raise to_exc(exc) from exc
+httpcore.ConnectError: [Errno 8] nodename nor servname provided, or not known
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/Users/enkhtuvshin/PycharmProjects/RealStateAssistant/.venv/lib/python3.12/site-packages/openai/_base_client.py", line 969, in request
+    response = self._client.send(
+               ^^^^^^^^^^^^^^^^^^
+  File "/Users/enkhtuvshin/PycharmProjects/RealStateAssistant/.venv/lib/python3.12/site-packages/httpx/_client.py", line 914, in send
+    response = self._send_handling_auth(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/enkhtuvshin/PycharmProjects/RealStateAssistant/.venv/lib/python3.12/site-packages/httpx/_client.py", line 942, in _send_handling_auth
+    response = self._send_handling_redirects(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/enkhtuvshin/PycharmProjects/RealStateAssistant/.venv/lib/python3.12/site-packages/httpx/_client.py", line 979, in _send_handling_redirects
+    response = self._send_single_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/enkhtuvshin/PycharmProjects/RealStateAssistant/.venv/lib/python3.12/site-packages/httpx/_client.py", line 1014, in _send_single_request
+    response = transport.handle_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/enkhtuvshin/PycharmProjects/RealStateAssistant/.venv/lib/python3.12/site-packages/httpx/_transports/default.py", line 249, in handle_request
+    with map_httpcore_exceptions():
+         ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/contextlib.py", line 158, in __exit__
+    self.gen.throw(value)
+  File "/Users/enkhtuvshin/PycharmProjects/RealStateAssistant/.venv/lib/python3.12/site-packages/httpx/_transports/default.py", line 118, in map_httpcore_exceptions
+    raise mapped_exc(message) from exc
+httpx.ConnectError: [Errno 8] nodename nor servname provided, or not known
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/Users/enkhtuvshin/PycharmProjects/RealStateAssistant/main.py", line 55, in startup_event
+    await initialization_service.initialize() # This will initialize ReportLabPDFGenerator
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/enkhtuvshin/PycharmProjects/RealStateAssistant/services/initialization_service.py", line 59, in initialize
+    self.district_analyzer_agent = DistrictAnalyzer(
+                                   ^^^^^^^^^^^^^^^^^
+  File "/Users/enkhtuvshin/PycharmProjects/RealStateAssistant/agents/district_analyzer.py", line 31, in __init__
+    self._initialize_vectorstore()
+  File "/Users/enkhtuvshin/PycharmProjects/RealStateAssistant/agents/district_analyzer.py", line 77, in _initialize_vectorstore
+    self.vectorstore = FAISS.from_documents(static_district_data, self.embeddings_model)
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/enkhtuvshin/PycharmProjects/RealStateAssistant/.venv/lib/python3.12/site-packages/langchain_core/vectorstores/base.py", line 848, in from_documents
+    return cls.from_texts(texts, embedding, metadatas=metadatas, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/enkhtuvshin/PycharmProjects/RealStateAssistant/.venv/lib/python3.12/site-packages/langchain_community/vectorstores/faiss.py", line 1043, in from_texts
+    embeddings = embedding.embed_documents(texts)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/enkhtuvshin/PycharmProjects/RealStateAssistant/.venv/lib/python3.12/site-packages/langchain_together/embeddings.py", line 260, in embed_documents
+    response = self.client.create(input=text, **params)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/enkhtuvshin/PycharmProjects/RealStateAssistant/.venv/lib/python3.12/site-packages/openai/resources/embeddings.py", line 129, in create
+    return self._post(
+           ^^^^^^^^^^^
+  File "/Users/enkhtuvshin/PycharmProjects/RealStateAssistant/.venv/lib/python3.12/site-packages/openai/_base_client.py", line 1239, in post
+    return cast(ResponseT, self.request(cast_to, opts, stream=stream, stream_cls=stream_cls))
+                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/enkhtuvshin/PycharmProjects/RealStateAssistant/.venv/lib/python3.12/site-packages/openai/_base_client.py", line 1001, in request
+    raise APIConnectionError(request=request) from err
+openai.APIConnectionError: Connection error.
+2025-06-02 00:01:35,606 - main - ERROR - 🔧 Please check your environment variables and dependencies (including ReportLab and required fonts)
+2025-06-02 00:06:54,334 - main - INFO - 🚀 Starting Professional Real Estate Assistant v2.1 (with ReportLab)...
+2025-06-02 00:06:54,334 - main - INFO - 📄 PDF generation will use ReportLab.
+2025-06-02 00:06:54,334 - main - INFO - 💡 Ensure a Mongolian-supporting TTF font is in static/fonts/ and configured in xhtml2pdf_generator.py for proper text rendering.
+2025-06-02 00:06:54,334 - services.initialization_service - INFO - 🔧 Initializing services...
+2025-06-02 00:06:54,334 - services.initialization_service - INFO - 🤖 Initializing LLM...
+2025-06-02 00:06:54,447 - services.initialization_service - INFO - ✅ LLM initialized
+2025-06-02 00:06:54,447 - services.initialization_service - INFO - 🔍 Initializing search tool...
+2025-06-02 00:06:54,447 - services.initialization_service - INFO - ✅ Search tool initialized
+2025-06-02 00:06:54,447 - services.initialization_service - INFO - 🏠 Initializing property retriever...
+2025-06-02 00:06:54,458 - services.initialization_service - INFO - ✅ Property retriever initialized
+2025-06-02 00:06:54,458 - services.initialization_service - INFO - 📊 Initializing district analyzer...
+2025-06-02 00:06:54,481 - agents.district_analyzer - INFO - 📅 Cached data is 1 days old, still fresh
+2025-06-02 00:06:54,481 - agents.district_analyzer - INFO - 📦 Loading cached vectorstore data...
+2025-06-02 00:06:56,344 - httpx - INFO - HTTP Request: POST https://api.together.xyz/v1/embeddings "HTTP/1.1 200 OK"
+2025-06-02 00:06:57,088 - httpx - INFO - HTTP Request: POST https://api.together.xyz/v1/embeddings "HTTP/1.1 200 OK"
+2025-06-02 00:06:57,827 - httpx - INFO - HTTP Request: POST https://api.together.xyz/v1/embeddings "HTTP/1.1 200 OK"
+2025-06-02 00:06:58,713 - httpx - INFO - HTTP Request: POST https://api.together.xyz/v1/embeddings "HTTP/1.1 200 OK"
+2025-06-02 00:06:59,141 - httpx - INFO - HTTP Request: POST https://api.together.xyz/v1/embeddings "HTTP/1.1 200 OK"
+2025-06-02 00:06:59,619 - httpx - INFO - HTTP Request: POST https://api.together.xyz/v1/embeddings "HTTP/1.1 200 OK"
+2025-06-02 00:07:00,233 - httpx - INFO - HTTP Request: POST https://api.together.xyz/v1/embeddings "HTTP/1.1 200 OK"
+2025-06-02 00:07:00,866 - httpx - INFO - HTTP Request: POST https://api.together.xyz/v1/embeddings "HTTP/1.1 200 OK"
+2025-06-02 00:07:00,871 - faiss.loader - INFO - Loading faiss.
+2025-06-02 00:07:00,895 - faiss.loader - INFO - Successfully loaded faiss.
+2025-06-02 00:07:00,897 - faiss - INFO - Failed to load GPU Faiss: name 'GpuIndexIVFFlat' is not defined. Will not load constructor refs for GPU indexes. This is only an error if you're trying to use GPU Faiss.
+2025-06-02 00:07:00,898 - agents.district_analyzer - INFO - 📦 Loaded 8 documents from cache
+2025-06-02 00:07:00,898 - agents.district_analyzer - INFO - ✅ Successfully loaded cached vectorstore data
+2025-06-02 00:07:00,898 - services.initialization_service - INFO - ✅ District analyzer initialized
+2025-06-02 00:07:00,898 - services.initialization_service - INFO - 📄 Initializing PDF generator (ReportLab)...
+2025-06-02 00:07:00,898 - utils.xhtml2pdf_generator - INFO - XHTML2PDFGenerator initialized. Font expected at: file:///Users/enkhtuvshin/PycharmProjects/RealStateAssistant/static/fonts/NotoSans-Regular.ttf
+2025-06-02 00:07:00,898 - utils.xhtml2pdf_generator - INFO - ✅ PDF generator (xhtml2pdf) initialized for Mongolian Cyrillic.
+2025-06-02 00:07:00,898 - services.initialization_service - INFO - ✅ PDF generator (ReportLab) initialized
+2025-06-02 00:07:00,898 - services.initialization_service - INFO - 📚 Loading initial data...
+2025-06-02 00:07:00,899 - services.initialization_service - INFO - 📊 Cache status: {'cache_exists': True, 'last_update_exists': True, 'is_fresh': True, 'age_days': 1, 'last_update': '2025-05-31T20:32:29.681689'}
+2025-06-02 00:07:00,899 - services.initialization_service - INFO - 📅 Using cached data (fresh)
+2025-06-02 00:07:00,899 - main - INFO - ✅ All components initialized successfully!
+2025-06-02 00:07:00,899 - main - INFO - 🧠 Chain-of-Thought reasoning is active!
+2025-06-02 00:07:00,899 - main - INFO - 📋 PDF reports using ReportLab are enabled!
+2025-06-02 00:07:00,899 - main - INFO - 🔍 Available features:
+2025-06-02 00:07:00,899 - main - INFO -   • Property URL analysis with unegui.mn integration
+2025-06-02 00:07:00,899 - main - INFO -   • District comparison across 9 Ulaanbaatar districts
+2025-06-02 00:07:00,899 - main - INFO -   • Real-time market research with internet search
+2025-06-02 00:07:00,899 - main - INFO -   • Chain-of-Thought enhanced reasoning
+2025-06-02 00:07:00,899 - main - INFO -   • PDF report generation (ReportLab)
+2025-06-02 00:07:21,698 - main - INFO - 📝 Chat message received: Бүх дүүргийн үнэ харьцуулах
+2025-06-02 00:07:21,699 - services.chat_service - INFO - 🔄 Processing message: Бүх дүүргийн үнэ харьцуулах
+2025-06-02 00:07:21,699 - services.chat_service - INFO - 📋 Message classified as: district_query
+2025-06-02 00:07:21,699 - services.chat_service - INFO - 🧠 CoT application decision: True
+2025-06-02 00:07:21,699 - services.chat_service - INFO - 📍 Processing district query
+2025-06-02 00:07:21,699 - agents.district_analyzer - INFO - 🔍 Analyzing district for location: 'ALL_DISTRICTS_COMPARISON'
+2025-06-02 00:07:21,699 - agents.district_analyzer - INFO - 📅 Cached data is 1 days old, still fresh
+2025-06-02 00:07:21,699 - agents.district_analyzer - INFO - 📊 Using cached data (fresh)
+2025-06-02 00:07:21,699 - agents.district_analyzer - INFO - 📊 Available districts in vectorstore: Баянзүрх, Сүхбаатар, Баянгол, Чингэлтэй, Хан-Уул, Сонгинохайрхан, Багануур, Налайх
+2025-06-02 00:07:22,352 - httpx - INFO - HTTP Request: POST https://api.together.xyz/v1/embeddings "HTTP/1.1 200 OK"
+2025-06-02 00:07:22,360 - agents.district_analyzer - WARNING - ❌ No exact district information found in vectorstore for: 'ALL_DISTRICTS_COMPARISON'. Providing available districts list.
+2025-06-02 00:07:35,196 - httpx - INFO - HTTP Request: POST https://api.together.xyz/v1/chat/completions "HTTP/1.1 200 OK"
+2025-06-02 00:07:35,212 - agents.district_analyzer - INFO - District analysis LLM raw response (first 100 chars): Таны хүсэлтийг хүлээж байна. Улаанбаатар хотын дүүргүүдийн жилийн болон улирлын мэдээлэлээр дүүргүүд...
+2025-06-02 00:07:46,421 - httpx - INFO - HTTP Request: POST https://api.together.xyz/v1/chat/completions "HTTP/1.1 200 OK"
+2025-06-02 00:07:46,427 - services.chat_service - INFO - 🧠 Applying CoT enhancement to district analysis...
+2025-06-02 00:07:52,203 - httpx - INFO - HTTP Request: POST https://api.together.xyz/v1/chat/completions "HTTP/1.1 200 OK"
+2025-06-02 00:07:52,204 - main - INFO - ✅ Response generated in 30.51s
+2025-06-02 00:07:52,205 - main - INFO - 🚀 Applied enhancements: Chain-of-Thought reasoning
+2025-06-02 00:07:55,963 - main - INFO - 📝 Chat message received: Тиймээ
+2025-06-02 00:07:55,963 - services.chat_service - INFO - 🔄 Processing message: Тиймээ
+2025-06-02 00:07:55,963 - services.report_service - INFO - 📊 Generating district report with search integration
+2025-06-02 00:07:55,964 - agents.district_analyzer - INFO - 📅 Cached data is 1 days old, still fresh
+2025-06-02 00:07:55,964 - agents.district_analyzer - INFO - 📊 Using cached data (fresh)
+2025-06-02 00:07:55,964 - services.report_service - INFO - Extracting data from 8 documents...
+2025-06-02 00:07:55,964 - services.report_service - INFO - Added district: Баянзүрх with price 1
+2025-06-02 00:07:55,964 - services.report_service - INFO - Added district: Сүхбаатар with price 1
+2025-06-02 00:07:55,964 - services.report_service - INFO - Added district: Баянгол with price 1
+2025-06-02 00:07:55,964 - services.report_service - INFO - Added district: Чингэлтэй with price 1
+2025-06-02 00:07:55,964 - services.report_service - INFO - Added district: Хан-Уул with price 1
+2025-06-02 00:07:55,964 - services.report_service - INFO - Added district: Сонгинохайрхан with price 1
+2025-06-02 00:07:55,964 - services.report_service - INFO - Added district: Багануур with price 1
+2025-06-02 00:07:55,964 - services.report_service - INFO - Added district: Налайх with price 1
+2025-06-02 00:07:55,964 - services.report_service - INFO - Successfully extracted 8 districts with valid data
+2025-06-02 00:07:55,964 - services.report_service - INFO - 🔍 Searching for market trends: Улаанбаатар орон сууцны зах зээл үнэ чиглэл 2024 2025 дүүрэг харьцуулалт
+2025-06-02 00:08:05,396 - httpx - INFO - HTTP Request: POST https://api.together.xyz/v1/chat/completions "HTTP/1.1 200 OK"
+2025-06-02 00:08:05,397 - services.report_service - INFO - ✅ Search results processed for district report
+2025-06-02 00:08:16,931 - httpx - INFO - HTTP Request: POST https://api.together.xyz/v1/chat/completions "HTTP/1.1 200 OK"
+2025-06-02 00:08:16,969 - utils.xhtml2pdf_generator - INFO - xhtml2pdf report generated successfully: reports/district_summary_xhtml2pdf_20250602_000816.pdf
+2025-06-02 00:08:16,969 - main - INFO - ✅ Response generated in 21.01s
+2025-06-02 00:08:16,969 - main - INFO - 🚀 Applied enhancements: ReportLab PDF report
+2025-06-02 00:08:19,142 - main - INFO - 📥 Downloading report: district_summary_xhtml2pdf_20250602_000816.pdf (20400 bytes)
+2025-06-02 00:14:27,091 - services.initialization_service - INFO - 🧹 Property retriever closed
+2025-06-02 00:14:27,091 - main - INFO - 🧹 Services cleaned up successfully
+2025-06-02 00:14:28,968 - main - INFO - 🚀 Starting Professional Real Estate Assistant v2.1 (with ReportLab)...
+2025-06-02 00:14:28,969 - main - INFO - 📄 PDF generation will use ReportLab.
+2025-06-02 00:14:28,969 - main - INFO - 💡 Ensure a Mongolian-supporting TTF font is in static/fonts/ and configured in xhtml2pdf_generator.py for proper text rendering.
+2025-06-02 00:14:28,969 - services.initialization_service - INFO - 🔧 Initializing services...
+2025-06-02 00:14:28,969 - services.initialization_service - INFO - 🤖 Initializing LLM...
+2025-06-02 00:14:29,103 - services.initialization_service - INFO - ✅ LLM initialized
+2025-06-02 00:14:29,103 - services.initialization_service - INFO - 🔍 Initializing search tool...
+2025-06-02 00:14:29,103 - services.initialization_service - INFO - ✅ Search tool initialized
+2025-06-02 00:14:29,103 - services.initialization_service - INFO - 🏠 Initializing property retriever...
+2025-06-02 00:14:29,117 - services.initialization_service - INFO - ✅ Property retriever initialized
+2025-06-02 00:14:29,117 - services.initialization_service - INFO - 📊 Initializing district analyzer...
+2025-06-02 00:14:29,143 - agents.district_analyzer - INFO - 📅 Cached data is 1 days old, still fresh
+2025-06-02 00:14:29,143 - agents.district_analyzer - INFO - 📦 Loading cached vectorstore data...
+2025-06-02 00:15:41,179 - httpx - INFO - HTTP Request: POST https://api.together.xyz/v1/embeddings "HTTP/1.1 200 OK"
+2025-06-02 00:15:42,547 - httpx - INFO - HTTP Request: POST https://api.together.xyz/v1/embeddings "HTTP/1.1 200 OK"
+2025-06-02 00:15:43,498 - httpx - INFO - HTTP Request: POST https://api.together.xyz/v1/embeddings "HTTP/1.1 200 OK"
+2025-06-02 00:15:44,425 - httpx - INFO - HTTP Request: POST https://api.together.xyz/v1/embeddings "HTTP/1.1 200 OK"
+2025-06-02 00:15:45,034 - httpx - INFO - HTTP Request: POST https://api.together.xyz/v1/embeddings "HTTP/1.1 200 OK"
+2025-06-02 00:15:45,481 - httpx - INFO - HTTP Request: POST https://api.together.xyz/v1/embeddings "HTTP/1.1 200 OK"
+2025-06-02 00:15:45,990 - httpx - INFO - HTTP Request: POST https://api.together.xyz/v1/embeddings "HTTP/1.1 200 OK"
+2025-06-02 00:15:46,565 - httpx - INFO - HTTP Request: POST https://api.together.xyz/v1/embeddings "HTTP/1.1 200 OK"
+2025-06-02 00:15:46,571 - faiss.loader - INFO - Loading faiss.
+2025-06-02 00:15:46,597 - faiss.loader - INFO - Successfully loaded faiss.
+2025-06-02 00:15:46,601 - faiss - INFO - Failed to load GPU Faiss: name 'GpuIndexIVFFlat' is not defined. Will not load constructor refs for GPU indexes. This is only an error if you're trying to use GPU Faiss.
+2025-06-02 00:15:46,602 - agents.district_analyzer - INFO - 📦 Loaded 8 documents from cache
+2025-06-02 00:15:46,603 - agents.district_analyzer - INFO - ✅ Successfully loaded cached vectorstore data
+2025-06-02 00:15:46,603 - services.initialization_service - INFO - ✅ District analyzer initialized
+2025-06-02 00:15:46,603 - services.initialization_service - INFO - 📄 Initializing PDF generator (ReportLab)...
+2025-06-02 00:15:46,603 - utils.xhtml2pdf_generator - INFO - ImprovedXHTML2PDFGenerator initialized. Font path: file:///Users/enkhtuvshin/PycharmProjects/RealStateAssistant/static/fonts/NotoSans-Regular.ttf
+2025-06-02 00:15:46,603 - utils.xhtml2pdf_generator - INFO - ✅ Enhanced PDF generator initialized
+2025-06-02 00:15:46,603 - services.initialization_service - INFO - ✅ PDF generator (ReportLab) initialized
+2025-06-02 00:15:46,603 - services.initialization_service - INFO - 📚 Loading initial data...
+2025-06-02 00:15:46,603 - services.initialization_service - INFO - 📊 Cache status: {'cache_exists': True, 'last_update_exists': True, 'is_fresh': True, 'age_days': 1, 'last_update': '2025-05-31T20:32:29.681689'}
+2025-06-02 00:15:46,604 - services.initialization_service - INFO - 📅 Using cached data (fresh)
+2025-06-02 00:15:46,604 - main - INFO - ✅ All components initialized successfully!
+2025-06-02 00:15:46,604 - main - INFO - 🧠 Chain-of-Thought reasoning is active!
+2025-06-02 00:15:46,604 - main - INFO - 📋 PDF reports using ReportLab are enabled!
+2025-06-02 00:15:46,604 - main - INFO - 🔍 Available features:
+2025-06-02 00:15:46,604 - main - INFO -   • Property URL analysis with unegui.mn integration
+2025-06-02 00:15:46,604 - main - INFO -   • District comparison across 9 Ulaanbaatar districts
+2025-06-02 00:15:46,604 - main - INFO -   • Real-time market research with internet search
+2025-06-02 00:15:46,604 - main - INFO -   • Chain-of-Thought enhanced reasoning
+2025-06-02 00:15:46,604 - main - INFO -   • PDF report generation (ReportLab)
+2025-06-02 00:16:36,960 - main - INFO - 🚀 Starting Professional Real Estate Assistant v2.1 (with ReportLab)...
+2025-06-02 00:16:36,960 - main - INFO - 📄 PDF generation will use ReportLab.
+2025-06-02 00:16:36,960 - main - INFO - 💡 Ensure a Mongolian-supporting TTF font is in static/fonts/ and configured in xhtml2pdf_generator.py for proper text rendering.
+2025-06-02 00:16:36,960 - services.initialization_service - INFO - 🔧 Initializing services...
+2025-06-02 00:16:36,960 - services.initialization_service - INFO - 🤖 Initializing LLM...
+2025-06-02 00:16:37,124 - services.initialization_service - INFO - ✅ LLM initialized
+2025-06-02 00:16:37,124 - services.initialization_service - INFO - 🔍 Initializing search tool...
+2025-06-02 00:16:37,124 - services.initialization_service - INFO - ✅ Search tool initialized
+2025-06-02 00:16:37,124 - services.initialization_service - INFO - 🏠 Initializing property retriever...
+2025-06-02 00:16:37,151 - services.initialization_service - INFO - ✅ Property retriever initialized
+2025-06-02 00:16:37,151 - services.initialization_service - INFO - 📊 Initializing district analyzer...
+2025-06-02 00:16:37,181 - agents.district_analyzer - INFO - 📅 Cached data is 1 days old, still fresh
+2025-06-02 00:16:37,181 - agents.district_analyzer - INFO - 📦 Loading cached vectorstore data...
+2025-06-02 00:16:38,551 - httpx - INFO - HTTP Request: POST https://api.together.xyz/v1/embeddings "HTTP/1.1 200 OK"
+2025-06-02 00:16:39,002 - httpx - INFO - HTTP Request: POST https://api.together.xyz/v1/embeddings "HTTP/1.1 200 OK"
+2025-06-02 00:16:39,511 - httpx - INFO - HTTP Request: POST https://api.together.xyz/v1/embeddings "HTTP/1.1 200 OK"
+2025-06-02 00:16:40,128 - httpx - INFO - HTTP Request: POST https://api.together.xyz/v1/embeddings "HTTP/1.1 200 OK"
+2025-06-02 00:16:40,638 - httpx - INFO - HTTP Request: POST https://api.together.xyz/v1/embeddings "HTTP/1.1 200 OK"
+2025-06-02 00:16:41,146 - httpx - INFO - HTTP Request: POST https://api.together.xyz/v1/embeddings "HTTP/1.1 200 OK"
+2025-06-02 00:16:41,763 - httpx - INFO - HTTP Request: POST https://api.together.xyz/v1/embeddings "HTTP/1.1 200 OK"
+2025-06-02 00:16:42,363 - httpx - INFO - HTTP Request: POST https://api.together.xyz/v1/embeddings "HTTP/1.1 200 OK"
+2025-06-02 00:16:42,492 - faiss.loader - INFO - Loading faiss.
+2025-06-02 00:16:42,517 - faiss.loader - INFO - Successfully loaded faiss.
+2025-06-02 00:16:42,520 - faiss - INFO - Failed to load GPU Faiss: name 'GpuIndexIVFFlat' is not defined. Will not load constructor refs for GPU indexes. This is only an error if you're trying to use GPU Faiss.
+2025-06-02 00:16:42,521 - agents.district_analyzer - INFO - 📦 Loaded 8 documents from cache
+2025-06-02 00:16:42,521 - agents.district_analyzer - INFO - ✅ Successfully loaded cached vectorstore data
+2025-06-02 00:16:42,521 - services.initialization_service - INFO - ✅ District analyzer initialized
+2025-06-02 00:16:42,521 - services.initialization_service - INFO - 📄 Initializing PDF generator (ReportLab)...
+2025-06-02 00:16:42,521 - utils.xhtml2pdf_generator - INFO - ImprovedXHTML2PDFGenerator initialized. Font path: file:///Users/enkhtuvshin/PycharmProjects/RealStateAssistant/static/fonts/NotoSans-Regular.ttf
+2025-06-02 00:16:42,521 - utils.xhtml2pdf_generator - INFO - ✅ Enhanced PDF generator initialized
+2025-06-02 00:16:42,521 - services.initialization_service - INFO - ✅ PDF generator (ReportLab) initialized
+2025-06-02 00:16:42,521 - services.initialization_service - INFO - 📚 Loading initial data...
+2025-06-02 00:16:42,521 - services.initialization_service - INFO - 📊 Cache status: {'cache_exists': True, 'last_update_exists': True, 'is_fresh': True, 'age_days': 1, 'last_update': '2025-05-31T20:32:29.681689'}
+2025-06-02 00:16:42,521 - services.initialization_service - INFO - 📅 Using cached data (fresh)
+2025-06-02 00:16:42,521 - main - INFO - ✅ All components initialized successfully!
+2025-06-02 00:16:42,521 - main - INFO - 🧠 Chain-of-Thought reasoning is active!
+2025-06-02 00:16:42,521 - main - INFO - 📋 PDF reports using ReportLab are enabled!
+2025-06-02 00:16:42,521 - main - INFO - 🔍 Available features:
+2025-06-02 00:16:42,521 - main - INFO -   • Property URL analysis with unegui.mn integration
+2025-06-02 00:16:42,521 - main - INFO -   • District comparison across 9 Ulaanbaatar districts
+2025-06-02 00:16:42,521 - main - INFO -   • Real-time market research with internet search
+2025-06-02 00:16:42,521 - main - INFO -   • Chain-of-Thought enhanced reasoning
+2025-06-02 00:16:42,521 - main - INFO -   • PDF report generation (ReportLab)
+2025-06-02 00:16:59,546 - main - INFO - 📝 Chat message received: Бүх дүүргийн үнэ харьцуулах
+2025-06-02 00:16:59,546 - services.chat_service - INFO - 🔄 Processing message: Бүх дүүргийн үнэ харьцуулах
+2025-06-02 00:16:59,546 - services.chat_service - INFO - 📋 Message classified as: district_query
+2025-06-02 00:16:59,546 - services.chat_service - INFO - 🧠 CoT application decision: True
+2025-06-02 00:16:59,546 - services.chat_service - INFO - 📍 Processing district query
+2025-06-02 00:16:59,546 - agents.district_analyzer - INFO - 🔍 Analyzing district for location: 'ALL_DISTRICTS_COMPARISON'
+2025-06-02 00:16:59,547 - agents.district_analyzer - INFO - 📅 Cached data is 1 days old, still fresh
+2025-06-02 00:16:59,547 - agents.district_analyzer - INFO - 📊 Using cached data (fresh)
+2025-06-02 00:16:59,547 - agents.district_analyzer - INFO - 📊 Available districts in vectorstore: Баянзүрх, Сүхбаатар, Баянгол, Чингэлтэй, Хан-Уул, Сонгинохайрхан, Багануур, Налайх
+2025-06-02 00:17:02,319 - httpx - INFO - HTTP Request: POST https://api.together.xyz/v1/embeddings "HTTP/1.1 200 OK"
+2025-06-02 00:17:02,326 - agents.district_analyzer - WARNING - ❌ No exact district information found in vectorstore for: 'ALL_DISTRICTS_COMPARISON'. Providing available districts list.
+2025-06-02 00:17:08,398 - httpx - INFO - HTTP Request: POST https://api.together.xyz/v1/chat/completions "HTTP/1.1 200 OK"
+2025-06-02 00:17:08,402 - agents.district_analyzer - INFO - District analysis LLM raw response (first 100 chars): Өөрийн сонирхолтой дүүргийн мэдээлэл авахыг хүсж байна уу? Тодорхой дүүргийн нэрийг дурдаж асуулт ас...
+2025-06-02 00:17:21,397 - httpx - INFO - HTTP Request: POST https://api.together.xyz/v1/chat/completions "HTTP/1.1 200 OK"
+2025-06-02 00:17:21,402 - services.chat_service - INFO - 🧠 Applying CoT enhancement to district analysis...
+2025-06-02 00:17:29,075 - httpx - INFO - HTTP Request: POST https://api.together.xyz/v1/chat/completions "HTTP/1.1 200 OK"
+2025-06-02 00:17:29,077 - main - INFO - ✅ Response generated in 29.53s
+2025-06-02 00:17:29,077 - main - INFO - 🚀 Applied enhancements: Chain-of-Thought reasoning
+2025-06-02 00:17:43,517 - main - INFO - 📝 Chat message received: Тиймээ
+2025-06-02 00:17:43,517 - services.chat_service - INFO - 🔄 Processing message: Тиймээ
+2025-06-02 00:17:43,517 - services.report_service - INFO - 📊 Generating enhanced district report
+2025-06-02 00:17:43,518 - agents.district_analyzer - INFO - 📅 Cached data is 1 days old, still fresh
+2025-06-02 00:17:43,518 - agents.district_analyzer - INFO - 📊 Using cached data (fresh)
+2025-06-02 00:17:43,518 - services.report_service - INFO - Extracting data from 8 documents...
+2025-06-02 00:17:43,518 - services.report_service - INFO - ✅ Added district: Баянзүрх - 4,847,425 ₮/м²
+2025-06-02 00:17:43,518 - services.report_service - INFO - ✅ Added district: Сүхбаатар - 4,989,778 ₮/м²
+2025-06-02 00:17:43,518 - services.report_service - INFO - ✅ Added district: Баянгол - 4,047,748 ₮/м²
+2025-06-02 00:17:43,518 - services.report_service - INFO - ✅ Added district: Чингэлтэй - 5,428,707 ₮/м²
+2025-06-02 00:17:43,518 - services.report_service - INFO - ✅ Added district: Хан-Уул - 5,591,695 ₮/м²
+2025-06-02 00:17:43,518 - services.report_service - INFO - ✅ Added district: Сонгинохайрхан - 2,920,822 ₮/м²
+2025-06-02 00:17:43,518 - services.report_service - INFO - ✅ Added district: Багануур - 4,049,021 ₮/м²
+2025-06-02 00:17:43,518 - services.report_service - INFO - ✅ Added district: Налайх - 4,091,655 ₮/м²
+2025-06-02 00:17:43,518 - services.report_service - INFO - Successfully extracted 8 districts with valid data
+2025-06-02 00:17:43,518 - services.report_service - INFO - 🔍 Searching for market trends: Улаанбаатар орон сууцны зах зээл үнэ чиглэл 2024 2025 дүүрэг харьцуулалт
+2025-06-02 00:17:57,801 - httpx - INFO - HTTP Request: POST https://api.together.xyz/v1/chat/completions "HTTP/1.1 200 OK"
+2025-06-02 00:17:57,803 - services.report_service - INFO - ✅ Search results processed for district report
+2025-06-02 00:18:09,012 - httpx - INFO - HTTP Request: POST https://api.together.xyz/v1/chat/completions "HTTP/1.1 200 OK"
+2025-06-02 00:18:09,017 - xhtml2pdf.util - WARNING - getSize: Not a float '100%'
+2025-06-02 00:18:09,058 - utils.xhtml2pdf_generator - INFO - PDF generated successfully: reports/district_summary_20250602_001809.pdf
+2025-06-02 00:18:09,059 - main - INFO - ✅ Response generated in 25.54s
+2025-06-02 00:18:09,059 - main - INFO - 🚀 Applied enhancements: ReportLab PDF report
+2025-06-02 00:18:35,533 - main - INFO - 📥 Downloading report: district_summary_20250602_001809.pdf (8277 bytes)
+2025-06-02 00:19:10,378 - main - INFO - 📝 Chat message received: Сүхбаатар дүүрэг
+2025-06-02 00:19:10,379 - services.chat_service - INFO - 🔄 Processing message: Сүхбаатар дүүрэг
+2025-06-02 00:19:10,379 - services.chat_service - INFO - 📋 Message classified as: district_query
+2025-06-02 00:19:10,380 - services.chat_service - INFO - 🧠 CoT application decision: True
+2025-06-02 00:19:10,380 - services.chat_service - INFO - 📍 Processing district query
+2025-06-02 00:19:10,380 - agents.district_analyzer - INFO - 🔍 Analyzing district for location: 'сүхбаатар'
+2025-06-02 00:19:10,382 - agents.district_analyzer - INFO - 📅 Cached data is 1 days old, still fresh
+2025-06-02 00:19:10,382 - agents.district_analyzer - INFO - 📊 Using cached data (fresh)
+2025-06-02 00:19:10,382 - agents.district_analyzer - INFO - 📊 Available districts in vectorstore: Баянзүрх, Сүхбаатар, Баянгол, Чингэлтэй, Хан-Уул, Сонгинохайрхан, Багануур, Налайх
+2025-06-02 00:19:12,198 - httpx - INFO - HTTP Request: POST https://api.together.xyz/v1/embeddings "HTTP/1.1 200 OK"
+2025-06-02 00:19:12,412 - agents.district_analyzer - INFO - ✅ Found direct match for 'сүхбаатар' with score 16.4025.
+2025-06-02 00:19:12,412 - agents.district_analyzer - INFO - 📊 Using REAL-TIME scraped data for analysis
+2025-06-02 00:19:12,412 - agents.district_analyzer - INFO - Retrieved district info: Дүүрэг: Сүхбаатар...
+2025-06-02 00:19:22,504 - httpx - INFO - HTTP Request: POST https://api.together.xyz/v1/chat/completions "HTTP/1.1 200 OK"
+2025-06-02 00:19:22,506 - agents.district_analyzer - INFO - District analysis LLM raw response (first 100 chars): Сүхбаатар дүүрэгийн эдийн засгийн шинжилгээ:
+
+1. Дүүрэгийн нэр ба байрлал: Сүхбаатар дүүрэг нь Улаан...
+2025-06-02 00:19:33,215 - httpx - INFO - HTTP Request: POST https://api.together.xyz/v1/chat/completions "HTTP/1.1 200 OK"
+2025-06-02 00:19:33,216 - services.chat_service - INFO - 🧠 Applying CoT enhancement to district analysis...
+2025-06-02 00:19:40,047 - httpx - INFO - HTTP Request: POST https://api.together.xyz/v1/chat/completions "HTTP/1.1 200 OK"
+2025-06-02 00:19:40,048 - main - INFO - ✅ Response generated in 29.67s
+2025-06-02 00:19:40,048 - main - INFO - 🚀 Applied enhancements: Chain-of-Thought reasoning
+2025-06-02 00:19:43,143 - main - INFO - 📝 Chat message received: Тиймээ
+2025-06-02 00:19:43,143 - services.chat_service - INFO - 🔄 Processing message: Тиймээ
+2025-06-02 00:19:43,143 - services.report_service - INFO - 📊 Generating enhanced district report
+2025-06-02 00:19:43,144 - agents.district_analyzer - INFO - 📅 Cached data is 1 days old, still fresh
+2025-06-02 00:19:43,144 - agents.district_analyzer - INFO - 📊 Using cached data (fresh)
+2025-06-02 00:19:43,144 - services.report_service - INFO - Extracting data from 8 documents...
+2025-06-02 00:19:43,144 - services.report_service - INFO - ✅ Added district: Баянзүрх - 4,847,425 ₮/м²
+2025-06-02 00:19:43,144 - services.report_service - INFO - ✅ Added district: Сүхбаатар - 4,989,778 ₮/м²
+2025-06-02 00:19:43,144 - services.report_service - INFO - ✅ Added district: Баянгол - 4,047,748 ₮/м²
+2025-06-02 00:19:43,144 - services.report_service - INFO - ✅ Added district: Чингэлтэй - 5,428,707 ₮/м²
+2025-06-02 00:19:43,144 - services.report_service - INFO - ✅ Added district: Хан-Уул - 5,591,695 ₮/м²
+2025-06-02 00:19:43,144 - services.report_service - INFO - ✅ Added district: Сонгинохайрхан - 2,920,822 ₮/м²
+2025-06-02 00:19:43,144 - services.report_service - INFO - ✅ Added district: Багануур - 4,049,021 ₮/м²
+2025-06-02 00:19:43,144 - services.report_service - INFO - ✅ Added district: Налайх - 4,091,655 ₮/м²
+2025-06-02 00:19:43,144 - services.report_service - INFO - Successfully extracted 8 districts with valid data
+2025-06-02 00:19:43,144 - services.report_service - INFO - 🔍 Searching for market trends: Улаанбаатар орон сууцны зах зээл үнэ чиглэл 2024 2025 дүүрэг харьцуулалт
+2025-06-02 00:19:51,209 - httpx - INFO - HTTP Request: POST https://api.together.xyz/v1/chat/completions "HTTP/1.1 200 OK"
+2025-06-02 00:19:51,211 - services.report_service - INFO - ✅ Search results processed for district report
+2025-06-02 00:19:58,486 - httpx - INFO - HTTP Request: POST https://api.together.xyz/v1/chat/completions "HTTP/1.1 200 OK"
+2025-06-02 00:19:58,529 - utils.xhtml2pdf_generator - INFO - PDF generated successfully: reports/district_summary_20250602_001958.pdf
+2025-06-02 00:19:58,530 - main - INFO - ✅ Response generated in 15.39s
+2025-06-02 00:19:58,530 - main - INFO - 🚀 Applied enhancements: ReportLab PDF report
+2025-06-02 00:20:01,731 - main - INFO - 📥 Downloading report: district_summary_20250602_001958.pdf (7710 bytes)
+2025-06-02 00:23:59,263 - services.initialization_service - INFO - 🧹 Property retriever closed
+2025-06-02 00:23:59,264 - main - INFO - 🧹 Services cleaned up successfully
+2025-06-02 00:24:00,565 - main - INFO - 🚀 Starting Professional Real Estate Assistant v2.1 (with ReportLab)...
+2025-06-02 00:24:00,565 - main - INFO - 📄 PDF generation will use ReportLab.
+2025-06-02 00:24:00,565 - main - INFO - 💡 Ensure a Mongolian-supporting TTF font is in static/fonts/ and configured in xhtml2pdf_generator.py for proper text rendering.
+2025-06-02 00:24:00,565 - services.initialization_service - INFO - 🔧 Initializing services...
+2025-06-02 00:24:00,565 - services.initialization_service - INFO - 🤖 Initializing LLM...
+2025-06-02 00:24:00,702 - services.initialization_service - INFO - ✅ LLM initialized
+2025-06-02 00:24:00,702 - services.initialization_service - INFO - 🔍 Initializing search tool...
+2025-06-02 00:24:00,702 - services.initialization_service - INFO - ✅ Search tool initialized
+2025-06-02 00:24:00,702 - services.initialization_service - INFO - 🏠 Initializing property retriever...
+2025-06-02 00:24:00,714 - services.initialization_service - INFO - ✅ Property retriever initialized
+2025-06-02 00:24:00,714 - services.initialization_service - INFO - 📊 Initializing district analyzer...
+2025-06-02 00:24:00,737 - agents.district_analyzer - INFO - 📅 Cached data is 1 days old, still fresh
+2025-06-02 00:24:00,737 - agents.district_analyzer - INFO - 📦 Loading cached vectorstore data...
+2025-06-02 00:24:02,191 - httpx - INFO - HTTP Request: POST https://api.together.xyz/v1/embeddings "HTTP/1.1 200 OK"
+2025-06-02 00:24:02,907 - httpx - INFO - HTTP Request: POST https://api.together.xyz/v1/embeddings "HTTP/1.1 200 OK"
+2025-06-02 00:24:03,377 - httpx - INFO - HTTP Request: POST https://api.together.xyz/v1/embeddings "HTTP/1.1 200 OK"
+2025-06-02 00:24:04,033 - httpx - INFO - HTTP Request: POST https://api.together.xyz/v1/embeddings "HTTP/1.1 200 OK"
+2025-06-02 00:24:04,651 - httpx - INFO - HTTP Request: POST https://api.together.xyz/v1/embeddings "HTTP/1.1 200 OK"
+2025-06-02 00:24:05,162 - httpx - INFO - HTTP Request: POST https://api.together.xyz/v1/embeddings "HTTP/1.1 200 OK"
+2025-06-02 00:24:05,776 - httpx - INFO - HTTP Request: POST https://api.together.xyz/v1/embeddings "HTTP/1.1 200 OK"
+2025-06-02 00:24:06,491 - httpx - INFO - HTTP Request: POST https://api.together.xyz/v1/embeddings "HTTP/1.1 200 OK"
+2025-06-02 00:24:06,497 - faiss.loader - INFO - Loading faiss.
+2025-06-02 00:24:06,507 - faiss.loader - INFO - Successfully loaded faiss.
+2025-06-02 00:24:06,509 - faiss - INFO - Failed to load GPU Faiss: name 'GpuIndexIVFFlat' is not defined. Will not load constructor refs for GPU indexes. This is only an error if you're trying to use GPU Faiss.
+2025-06-02 00:24:06,510 - agents.district_analyzer - INFO - 📦 Loaded 8 documents from cache
+2025-06-02 00:24:06,510 - agents.district_analyzer - INFO - ✅ Successfully loaded cached vectorstore data
+2025-06-02 00:24:06,510 - services.initialization_service - INFO - ✅ District analyzer initialized
+2025-06-02 00:24:06,510 - services.initialization_service - INFO - 📄 Initializing PDF generator (ReportLab)...
+2025-06-02 00:24:06,510 - utils.xhtml2pdf_generator - INFO - SimpleReadablePDFGenerator initialized - prioritizing text readability
+2025-06-02 00:24:06,510 - utils.xhtml2pdf_generator - INFO - ✅ Simple readable PDF generator initialized
+2025-06-02 00:24:06,510 - services.initialization_service - INFO - ✅ PDF generator (ReportLab) initialized
+2025-06-02 00:24:06,510 - services.initialization_service - INFO - 📚 Loading initial data...
+2025-06-02 00:24:06,510 - services.initialization_service - INFO - 📊 Cache status: {'cache_exists': True, 'last_update_exists': True, 'is_fresh': True, 'age_days': 1, 'last_update': '2025-05-31T20:32:29.681689'}
+2025-06-02 00:24:06,510 - services.initialization_service - INFO - 📅 Using cached data (fresh)
+2025-06-02 00:24:06,510 - main - INFO - ✅ All components initialized successfully!
+2025-06-02 00:24:06,510 - main - INFO - 🧠 Chain-of-Thought reasoning is active!
+2025-06-02 00:24:06,510 - main - INFO - 📋 PDF reports using ReportLab are enabled!
+2025-06-02 00:24:06,510 - main - INFO - 🔍 Available features:
+2025-06-02 00:24:06,510 - main - INFO -   • Property URL analysis with unegui.mn integration
+2025-06-02 00:24:06,510 - main - INFO -   • District comparison across 9 Ulaanbaatar districts
+2025-06-02 00:24:06,510 - main - INFO -   • Real-time market research with internet search
+2025-06-02 00:24:06,510 - main - INFO -   • Chain-of-Thought enhanced reasoning
+2025-06-02 00:24:06,510 - main - INFO -   • PDF report generation (ReportLab)
+2025-06-02 00:24:26,538 - services.initialization_service - INFO - 🧹 Property retriever closed
+2025-06-02 00:24:26,538 - main - INFO - 🧹 Services cleaned up successfully
+2025-06-02 00:24:27,672 - main - INFO - 🚀 Starting Professional Real Estate Assistant v2.1 (with ReportLab)...
+2025-06-02 00:24:27,672 - main - INFO - 📄 PDF generation will use ReportLab.
+2025-06-02 00:24:27,672 - main - INFO - 💡 Ensure a Mongolian-supporting TTF font is in static/fonts/ and configured in xhtml2pdf_generator.py for proper text rendering.
+2025-06-02 00:24:27,672 - services.initialization_service - INFO - 🔧 Initializing services...
+2025-06-02 00:24:27,672 - services.initialization_service - INFO - 🤖 Initializing LLM...
+2025-06-02 00:24:27,784 - services.initialization_service - INFO - ✅ LLM initialized
+2025-06-02 00:24:27,784 - services.initialization_service - INFO - 🔍 Initializing search tool...
+2025-06-02 00:24:27,784 - services.initialization_service - INFO - ✅ Search tool initialized
+2025-06-02 00:24:27,784 - services.initialization_service - INFO - 🏠 Initializing property retriever...
+2025-06-02 00:24:27,795 - services.initialization_service - INFO - ✅ Property retriever initialized
+2025-06-02 00:24:27,795 - services.initialization_service - INFO - 📊 Initializing district analyzer...
+2025-06-02 00:24:27,817 - agents.district_analyzer - INFO - 📅 Cached data is 1 days old, still fresh
+2025-06-02 00:24:27,817 - agents.district_analyzer - INFO - 📦 Loading cached vectorstore data...
+2025-06-02 00:24:28,511 - httpx - INFO - HTTP Request: POST https://api.together.xyz/v1/embeddings "HTTP/1.1 200 OK"
+2025-06-02 00:24:28,921 - httpx - INFO - HTTP Request: POST https://api.together.xyz/v1/embeddings "HTTP/1.1 200 OK"
+2025-06-02 00:24:29,829 - httpx - INFO - HTTP Request: POST https://api.together.xyz/v1/embeddings "HTTP/1.1 200 OK"
+2025-06-02 00:24:30,507 - httpx - INFO - HTTP Request: POST https://api.together.xyz/v1/embeddings "HTTP/1.1 200 OK"
+2025-06-02 00:24:30,983 - httpx - INFO - HTTP Request: POST https://api.together.xyz/v1/embeddings "HTTP/1.1 200 OK"
+2025-06-02 00:24:31,683 - httpx - INFO - HTTP Request: POST https://api.together.xyz/v1/embeddings "HTTP/1.1 200 OK"
+2025-06-02 00:24:32,097 - httpx - INFO - HTTP Request: POST https://api.together.xyz/v1/embeddings "HTTP/1.1 200 OK"
+2025-06-02 00:24:33,119 - httpx - INFO - HTTP Request: POST https://api.together.xyz/v1/embeddings "HTTP/1.1 200 OK"
+2025-06-02 00:24:33,261 - faiss.loader - INFO - Loading faiss.
+2025-06-02 00:24:33,279 - faiss.loader - INFO - Successfully loaded faiss.
+2025-06-02 00:24:33,282 - faiss - INFO - Failed to load GPU Faiss: name 'GpuIndexIVFFlat' is not defined. Will not load constructor refs for GPU indexes. This is only an error if you're trying to use GPU Faiss.
+2025-06-02 00:24:33,283 - agents.district_analyzer - INFO - 📦 Loaded 8 documents from cache
+2025-06-02 00:24:33,283 - agents.district_analyzer - INFO - ✅ Successfully loaded cached vectorstore data
+2025-06-02 00:24:33,283 - services.initialization_service - INFO - ✅ District analyzer initialized
+2025-06-02 00:24:33,283 - services.initialization_service - INFO - 📄 Initializing PDF generator (ReportLab)...
+2025-06-02 00:24:33,283 - utils.xhtml2pdf_generator - INFO - SimpleReadablePDFGenerator initialized - prioritizing text readability
+2025-06-02 00:24:33,283 - utils.xhtml2pdf_generator - INFO - ✅ Simple readable PDF generator initialized
+2025-06-02 00:24:33,283 - services.initialization_service - INFO - ✅ PDF generator (ReportLab) initialized
+2025-06-02 00:24:33,283 - services.initialization_service - INFO - 📚 Loading initial data...
+2025-06-02 00:24:33,283 - services.initialization_service - INFO - 📊 Cache status: {'cache_exists': True, 'last_update_exists': True, 'is_fresh': True, 'age_days': 1, 'last_update': '2025-05-31T20:32:29.681689'}
+2025-06-02 00:24:33,283 - services.initialization_service - INFO - 📅 Using cached data (fresh)
+2025-06-02 00:24:33,284 - main - INFO - ✅ All components initialized successfully!
+2025-06-02 00:24:33,284 - main - INFO - 🧠 Chain-of-Thought reasoning is active!
+2025-06-02 00:24:33,284 - main - INFO - 📋 PDF reports using ReportLab are enabled!
+2025-06-02 00:24:33,284 - main - INFO - 🔍 Available features:
+2025-06-02 00:24:33,284 - main - INFO -   • Property URL analysis with unegui.mn integration
+2025-06-02 00:24:33,284 - main - INFO -   • District comparison across 9 Ulaanbaatar districts
+2025-06-02 00:24:33,284 - main - INFO -   • Real-time market research with internet search
+2025-06-02 00:24:33,284 - main - INFO -   • Chain-of-Thought enhanced reasoning
+2025-06-02 00:24:33,284 - main - INFO -   • PDF report generation (ReportLab)
+2025-06-02 00:24:34,506 - main - INFO - 🚀 Starting Professional Real Estate Assistant v2.1 (with ReportLab)...
+2025-06-02 00:24:34,506 - main - INFO - 📄 PDF generation will use ReportLab.
+2025-06-02 00:24:34,506 - main - INFO - 💡 Ensure a Mongolian-supporting TTF font is in static/fonts/ and configured in xhtml2pdf_generator.py for proper text rendering.
+2025-06-02 00:24:34,506 - services.initialization_service - INFO - 🔧 Initializing services...
+2025-06-02 00:24:34,506 - services.initialization_service - INFO - 🤖 Initializing LLM...
+2025-06-02 00:24:34,612 - services.initialization_service - INFO - ✅ LLM initialized
+2025-06-02 00:24:34,612 - services.initialization_service - INFO - 🔍 Initializing search tool...
+2025-06-02 00:24:34,613 - services.initialization_service - INFO - ✅ Search tool initialized
+2025-06-02 00:24:34,613 - services.initialization_service - INFO - 🏠 Initializing property retriever...
+2025-06-02 00:24:34,624 - services.initialization_service - INFO - ✅ Property retriever initialized
+2025-06-02 00:24:34,624 - services.initialization_service - INFO - 📊 Initializing district analyzer...
+2025-06-02 00:24:34,647 - agents.district_analyzer - INFO - 📅 Cached data is 1 days old, still fresh
+2025-06-02 00:24:34,647 - agents.district_analyzer - INFO - 📦 Loading cached vectorstore data...
+2025-06-02 00:24:35,371 - httpx - INFO - HTTP Request: POST https://api.together.xyz/v1/embeddings "HTTP/1.1 200 OK"
+2025-06-02 00:24:35,982 - httpx - INFO - HTTP Request: POST https://api.together.xyz/v1/embeddings "HTTP/1.1 200 OK"
+2025-06-02 00:24:36,399 - httpx - INFO - HTTP Request: POST https://api.together.xyz/v1/embeddings "HTTP/1.1 200 OK"
+2025-06-02 00:24:37,109 - httpx - INFO - HTTP Request: POST https://api.together.xyz/v1/embeddings "HTTP/1.1 200 OK"
+2025-06-02 00:24:37,621 - httpx - INFO - HTTP Request: POST https://api.together.xyz/v1/embeddings "HTTP/1.1 200 OK"
+2025-06-02 00:24:38,240 - httpx - INFO - HTTP Request: POST https://api.together.xyz/v1/embeddings "HTTP/1.1 200 OK"
+2025-06-02 00:24:38,747 - httpx - INFO - HTTP Request: POST https://api.together.xyz/v1/embeddings "HTTP/1.1 200 OK"
+2025-06-02 00:24:39,181 - httpx - INFO - HTTP Request: POST https://api.together.xyz/v1/embeddings "HTTP/1.1 200 OK"
+2025-06-02 00:24:39,573 - faiss.loader - INFO - Loading faiss.
+2025-06-02 00:24:39,582 - faiss.loader - INFO - Successfully loaded faiss.
+2025-06-02 00:24:39,584 - faiss - INFO - Failed to load GPU Faiss: name 'GpuIndexIVFFlat' is not defined. Will not load constructor refs for GPU indexes. This is only an error if you're trying to use GPU Faiss.
+2025-06-02 00:24:39,584 - agents.district_analyzer - INFO - 📦 Loaded 8 documents from cache
+2025-06-02 00:24:39,584 - agents.district_analyzer - INFO - ✅ Successfully loaded cached vectorstore data
+2025-06-02 00:24:39,584 - services.initialization_service - INFO - ✅ District analyzer initialized
+2025-06-02 00:24:39,584 - services.initialization_service - INFO - 📄 Initializing PDF generator (ReportLab)...
+2025-06-02 00:24:39,584 - utils.xhtml2pdf_generator - INFO - SimpleReadablePDFGenerator initialized - prioritizing text readability
+2025-06-02 00:24:39,584 - utils.xhtml2pdf_generator - INFO - ✅ Simple readable PDF generator initialized
+2025-06-02 00:24:39,584 - services.initialization_service - INFO - ✅ PDF generator (ReportLab) initialized
+2025-06-02 00:24:39,584 - services.initialization_service - INFO - 📚 Loading initial data...
+2025-06-02 00:24:39,585 - services.initialization_service - INFO - 📊 Cache status: {'cache_exists': True, 'last_update_exists': True, 'is_fresh': True, 'age_days': 1, 'last_update': '2025-05-31T20:32:29.681689'}
+2025-06-02 00:24:39,585 - services.initialization_service - INFO - 📅 Using cached data (fresh)
+2025-06-02 00:24:39,585 - main - INFO - ✅ All components initialized successfully!
+2025-06-02 00:24:39,585 - main - INFO - 🧠 Chain-of-Thought reasoning is active!
+2025-06-02 00:24:39,585 - main - INFO - 📋 PDF reports using ReportLab are enabled!
+2025-06-02 00:24:39,585 - main - INFO - 🔍 Available features:
+2025-06-02 00:24:39,585 - main - INFO -   • Property URL analysis with unegui.mn integration
+2025-06-02 00:24:39,585 - main - INFO -   • District comparison across 9 Ulaanbaatar districts
+2025-06-02 00:24:39,585 - main - INFO -   • Real-time market research with internet search
+2025-06-02 00:24:39,585 - main - INFO -   • Chain-of-Thought enhanced reasoning
+2025-06-02 00:24:39,585 - main - INFO -   • PDF report generation (ReportLab)
+2025-06-02 00:27:09,253 - main - INFO - 📝 Chat message received: Сүхбаатар дүүрэг
+2025-06-02 00:27:09,253 - services.chat_service - INFO - 🔄 Processing message: Сүхбаатар дүүрэг
+2025-06-02 00:27:09,254 - services.chat_service - INFO - 📋 Message classified as: district_query
+2025-06-02 00:27:09,254 - services.chat_service - INFO - 🧠 CoT application decision: True
+2025-06-02 00:27:09,254 - services.chat_service - INFO - 📍 Processing district query
+2025-06-02 00:27:09,254 - agents.district_analyzer - INFO - 🔍 Analyzing district for location: 'сүхбаатар'
+2025-06-02 00:27:09,254 - agents.district_analyzer - INFO - 📅 Cached data is 1 days old, still fresh
+2025-06-02 00:27:09,254 - agents.district_analyzer - INFO - 📊 Using cached data (fresh)
+2025-06-02 00:27:09,254 - agents.district_analyzer - INFO - 📊 Available districts in vectorstore: Баянзүрх, Сүхбаатар, Баянгол, Чингэлтэй, Хан-Уул, Сонгинохайрхан, Багануур, Налайх
+2025-06-02 00:27:10,406 - httpx - INFO - HTTP Request: POST https://api.together.xyz/v1/embeddings "HTTP/1.1 200 OK"
+2025-06-02 00:27:10,454 - agents.district_analyzer - INFO - ✅ Found direct match for 'сүхбаатар' with score 16.4025.
+2025-06-02 00:27:10,455 - agents.district_analyzer - INFO - 📊 Using REAL-TIME scraped data for analysis
+2025-06-02 00:27:10,455 - agents.district_analyzer - INFO - Retrieved district info: Дүүрэг: Сүхбаатар...
+2025-06-02 00:27:18,859 - httpx - INFO - HTTP Request: POST https://api.together.xyz/v1/chat/completions "HTTP/1.1 200 OK"
+2025-06-02 00:27:18,864 - agents.district_analyzer - INFO - District analysis LLM raw response (first 100 chars): Сүхбаатар дүүрэгийн элсэлтийн шинжилгээ:
+
+1. Дүүрэгийн нэр ба байрлал: Сүхбаатар дүүрэг нь Улаанбаат...
+2025-06-02 00:27:27,561 - httpx - INFO - HTTP Request: POST https://api.together.xyz/v1/chat/completions "HTTP/1.1 200 OK"
+2025-06-02 00:27:27,562 - services.chat_service - INFO - 🧠 Applying CoT enhancement to district analysis...
+2025-06-02 00:27:33,852 - httpx - INFO - HTTP Request: POST https://api.together.xyz/v1/chat/completions "HTTP/1.1 200 OK"
+2025-06-02 00:27:33,858 - main - INFO - ✅ Response generated in 24.60s
+2025-06-02 00:27:33,858 - main - INFO - 🚀 Applied enhancements: Chain-of-Thought reasoning
+2025-06-02 00:27:41,682 - main - INFO - 📝 Chat message received: Тиймээ
+2025-06-02 00:27:41,682 - services.chat_service - INFO - 🔄 Processing message: Тиймээ
+2025-06-02 00:27:41,682 - services.report_service - INFO - 📊 Generating simple district report
+2025-06-02 00:27:41,682 - agents.district_analyzer - INFO - 📅 Cached data is 1 days old, still fresh
+2025-06-02 00:27:41,682 - agents.district_analyzer - INFO - 📊 Using cached data (fresh)
+2025-06-02 00:27:41,682 - services.report_service - INFO - Extracting data from 8 documents...
+2025-06-02 00:27:41,682 - services.report_service - INFO - ✅ Added: Баянзүрх - 4,847,425 ₮/m²
+2025-06-02 00:27:41,683 - services.report_service - INFO - ✅ Added: Сүхбаатар - 4,989,778 ₮/m²
+2025-06-02 00:27:41,683 - services.report_service - INFO - ✅ Added: Баянгол - 4,047,748 ₮/m²
+2025-06-02 00:27:41,683 - services.report_service - INFO - ✅ Added: Чингэлтэй - 5,428,707 ₮/m²
+2025-06-02 00:27:41,683 - services.report_service - INFO - ✅ Added: Хан-Уул - 5,591,695 ₮/m²
+2025-06-02 00:27:41,683 - services.report_service - INFO - ✅ Added: Сонгинохайрхан - 2,920,822 ₮/m²
+2025-06-02 00:27:41,683 - services.report_service - INFO - ✅ Added: Багануур - 4,049,021 ₮/m²
+2025-06-02 00:27:41,683 - services.report_service - INFO - ✅ Added: Налайх - 4,091,655 ₮/m²
+2025-06-02 00:27:41,683 - services.report_service - INFO - Extracted 8 valid districts
+2025-06-02 00:27:50,941 - httpx - INFO - HTTP Request: POST https://api.together.xyz/v1/chat/completions "HTTP/1.1 200 OK"
+2025-06-02 00:27:56,488 - httpx - INFO - HTTP Request: POST https://api.together.xyz/v1/chat/completions "HTTP/1.1 200 OK"
+2025-06-02 00:27:56,544 - utils.xhtml2pdf_generator - INFO - PDF generated successfully: reports/district_report_20250602_002756.pdf
+2025-06-02 00:27:56,544 - main - INFO - ✅ Response generated in 14.86s
+2025-06-02 00:27:56,544 - main - INFO - 🚀 Applied enhancements: ReportLab PDF report
+2025-06-02 00:29:30,309 - main - INFO - 📥 Downloading report: district_report_20250602_002756.pdf (5512 bytes)
+2025-06-02 00:34:18,991 - services.initialization_service - INFO - 🧹 Property retriever closed
+2025-06-02 00:34:18,992 - main - INFO - 🧹 Services cleaned up successfully
+2025-06-02 00:35:15,567 - main - INFO - 🚀 Starting Professional Real Estate Assistant v2.1 (with ReportLab)...
+2025-06-02 00:35:15,567 - main - INFO - 📄 PDF generation will use ReportLab.
+2025-06-02 00:35:15,567 - main - INFO - 💡 Ensure a Mongolian-supporting TTF font is in static/fonts/ and configured in xhtml2pdf_generator.py for proper text rendering.
+2025-06-02 00:35:15,567 - services.initialization_service - INFO - 🔧 Initializing services...
+2025-06-02 00:35:15,567 - services.initialization_service - INFO - 🤖 Initializing LLM...
+2025-06-02 00:35:15,683 - services.initialization_service - INFO - ✅ LLM initialized
+2025-06-02 00:35:15,686 - services.initialization_service - INFO - 🔍 Initializing search tool...
+2025-06-02 00:35:15,686 - services.initialization_service - INFO - ✅ Search tool initialized
+2025-06-02 00:35:15,686 - services.initialization_service - INFO - 🏠 Initializing property retriever...
+2025-06-02 00:35:15,697 - services.initialization_service - INFO - ✅ Property retriever initialized
+2025-06-02 00:35:15,697 - services.initialization_service - INFO - 📊 Initializing district analyzer...
+2025-06-02 00:35:15,721 - agents.district_analyzer - INFO - 📅 Cached data is 1 days old, still fresh
+2025-06-02 00:35:15,721 - agents.district_analyzer - INFO - 📦 Loading cached vectorstore data...
+2025-06-02 00:35:17,421 - httpx - INFO - HTTP Request: POST https://api.together.xyz/v1/embeddings "HTTP/1.1 200 OK"
+2025-06-02 00:35:36,878 - httpx - INFO - HTTP Request: POST https://api.together.xyz/v1/embeddings "HTTP/1.1 200 OK"
+2025-06-02 00:35:37,393 - httpx - INFO - HTTP Request: POST https://api.together.xyz/v1/embeddings "HTTP/1.1 200 OK"
+2025-06-02 00:35:38,018 - httpx - INFO - HTTP Request: POST https://api.together.xyz/v1/embeddings "HTTP/1.1 200 OK"
+2025-06-02 00:35:38,498 - httpx - INFO - HTTP Request: POST https://api.together.xyz/v1/embeddings "HTTP/1.1 200 OK"
+2025-06-02 00:35:38,941 - httpx - INFO - HTTP Request: POST https://api.together.xyz/v1/embeddings "HTTP/1.1 200 OK"
+2025-06-02 00:35:39,539 - httpx - INFO - HTTP Request: POST https://api.together.xyz/v1/embeddings "HTTP/1.1 200 OK"
+2025-06-02 00:35:40,154 - httpx - INFO - HTTP Request: POST https://api.together.xyz/v1/embeddings "HTTP/1.1 200 OK"
+2025-06-02 00:35:40,166 - faiss.loader - INFO - Loading faiss.
+2025-06-02 00:35:40,201 - faiss.loader - INFO - Successfully loaded faiss.
+2025-06-02 00:35:40,204 - faiss - INFO - Failed to load GPU Faiss: name 'GpuIndexIVFFlat' is not defined. Will not load constructor refs for GPU indexes. This is only an error if you're trying to use GPU Faiss.
+2025-06-02 00:35:40,205 - agents.district_analyzer - INFO - 📦 Loaded 8 documents from cache
+2025-06-02 00:35:40,205 - agents.district_analyzer - INFO - ✅ Successfully loaded cached vectorstore data
+2025-06-02 00:35:40,206 - services.initialization_service - INFO - ✅ District analyzer initialized
+2025-06-02 00:35:40,206 - services.initialization_service - INFO - 📄 Initializing PDF generator (ReportLab)...
+2025-06-02 00:35:40,206 - utils.xhtml2pdf_generator - INFO - SimpleReadablePDFGenerator initialized - prioritizing text readability
+2025-06-02 00:35:40,206 - utils.xhtml2pdf_generator - INFO - ✅ Simple readable PDF generator initialized
+2025-06-02 00:35:40,206 - services.initialization_service - INFO - ✅ PDF generator (ReportLab) initialized
+2025-06-02 00:35:40,206 - services.initialization_service - INFO - 📚 Loading initial data...
+2025-06-02 00:35:40,206 - services.initialization_service - INFO - 📊 Cache status: {'cache_exists': True, 'last_update_exists': True, 'is_fresh': True, 'age_days': 1, 'last_update': '2025-05-31T20:32:29.681689'}
+2025-06-02 00:35:40,206 - services.initialization_service - INFO - 📅 Using cached data (fresh)
+2025-06-02 00:35:40,206 - main - INFO - ✅ All components initialized successfully!
+2025-06-02 00:35:40,206 - main - INFO - 🧠 Chain-of-Thought reasoning is active!
+2025-06-02 00:35:40,206 - main - INFO - 📋 PDF reports using ReportLab are enabled!
+2025-06-02 00:35:40,206 - main - INFO - 🔍 Available features:
+2025-06-02 00:35:40,206 - main - INFO -   • Property URL analysis with unegui.mn integration
+2025-06-02 00:35:40,206 - main - INFO -   • District comparison across 9 Ulaanbaatar districts
+2025-06-02 00:35:40,206 - main - INFO -   • Real-time market research with internet search
+2025-06-02 00:35:40,206 - main - INFO -   • Chain-of-Thought enhanced reasoning
+2025-06-02 00:35:40,206 - main - INFO -   • PDF report generation (ReportLab)
+2025-06-02 00:35:40,970 - main - INFO - 🚀 Starting Professional Real Estate Assistant v2.1 (with ReportLab)...
+2025-06-02 00:35:40,971 - main - INFO - 📄 PDF generation will use ReportLab.
+2025-06-02 00:35:40,971 - main - INFO - 💡 Ensure a Mongolian-supporting TTF font is in static/fonts/ and configured in xhtml2pdf_generator.py for proper text rendering.
+2025-06-02 00:35:40,971 - services.initialization_service - INFO - 🔧 Initializing services...
+2025-06-02 00:35:40,971 - services.initialization_service - INFO - 🤖 Initializing LLM...
+2025-06-02 00:35:41,049 - services.initialization_service - INFO - ✅ LLM initialized
+2025-06-02 00:35:41,049 - services.initialization_service - INFO - 🔍 Initializing search tool...
+2025-06-02 00:35:41,049 - services.initialization_service - INFO - ✅ Search tool initialized
+2025-06-02 00:35:41,049 - services.initialization_service - INFO - 🏠 Initializing property retriever...
+2025-06-02 00:35:41,060 - services.initialization_service - INFO - ✅ Property retriever initialized
+2025-06-02 00:35:41,060 - services.initialization_service - INFO - 📊 Initializing district analyzer...
+2025-06-02 00:35:41,083 - agents.district_analyzer - INFO - 📅 Cached data is 1 days old, still fresh
+2025-06-02 00:35:41,083 - agents.district_analyzer - INFO - 📦 Loading cached vectorstore data...
+2025-06-02 00:35:41,735 - httpx - INFO - HTTP Request: POST https://api.together.xyz/v1/embeddings "HTTP/1.1 200 OK"
+2025-06-02 00:35:42,782 - httpx - INFO - HTTP Request: POST https://api.together.xyz/v1/embeddings "HTTP/1.1 200 OK"
+2025-06-02 00:35:43,732 - httpx - INFO - HTTP Request: POST https://api.together.xyz/v1/embeddings "HTTP/1.1 200 OK"
+2025-06-02 00:35:44,196 - httpx - INFO - HTTP Request: POST https://api.together.xyz/v1/embeddings "HTTP/1.1 200 OK"
+2025-06-02 00:35:44,656 - httpx - INFO - HTTP Request: POST https://api.together.xyz/v1/embeddings "HTTP/1.1 200 OK"
+2025-06-02 00:35:45,272 - httpx - INFO - HTTP Request: POST https://api.together.xyz/v1/embeddings "HTTP/1.1 200 OK"
+2025-06-02 00:35:45,704 - httpx - INFO - HTTP Request: POST https://api.together.xyz/v1/embeddings "HTTP/1.1 200 OK"
+2025-06-02 00:35:46,197 - httpx - INFO - HTTP Request: POST https://api.together.xyz/v1/embeddings "HTTP/1.1 200 OK"
+2025-06-02 00:35:46,212 - faiss.loader - INFO - Loading faiss.
+2025-06-02 00:35:46,222 - faiss.loader - INFO - Successfully loaded faiss.
+2025-06-02 00:35:46,224 - faiss - INFO - Failed to load GPU Faiss: name 'GpuIndexIVFFlat' is not defined. Will not load constructor refs for GPU indexes. This is only an error if you're trying to use GPU Faiss.
+2025-06-02 00:35:46,224 - agents.district_analyzer - INFO - 📦 Loaded 8 documents from cache
+2025-06-02 00:35:46,225 - agents.district_analyzer - INFO - ✅ Successfully loaded cached vectorstore data
+2025-06-02 00:35:46,225 - services.initialization_service - INFO - ✅ District analyzer initialized
+2025-06-02 00:35:46,225 - services.initialization_service - INFO - 📄 Initializing PDF generator (ReportLab)...
+2025-06-02 00:35:46,225 - utils.xhtml2pdf_generator - INFO - XHTML2PDFGenerator initialized. Font expected at: file:///Users/enkhtuvshin/PycharmProjects/RealStateAssistant/static/fonts/NotoSans-Regular.ttf
+2025-06-02 00:35:46,225 - utils.xhtml2pdf_generator - INFO - ✅ PDF generator (xhtml2pdf) initialized for Mongolian Cyrillic.
+2025-06-02 00:35:46,225 - services.initialization_service - INFO - ✅ PDF generator (ReportLab) initialized
+2025-06-02 00:35:46,225 - services.initialization_service - INFO - 📚 Loading initial data...
+2025-06-02 00:35:46,225 - services.initialization_service - INFO - 📊 Cache status: {'cache_exists': True, 'last_update_exists': True, 'is_fresh': True, 'age_days': 1, 'last_update': '2025-05-31T20:32:29.681689'}
+2025-06-02 00:35:46,225 - services.initialization_service - INFO - 📅 Using cached data (fresh)
+2025-06-02 00:35:46,225 - main - INFO - ✅ All components initialized successfully!
+2025-06-02 00:35:46,225 - main - INFO - 🧠 Chain-of-Thought reasoning is active!
+2025-06-02 00:35:46,225 - main - INFO - 📋 PDF reports using ReportLab are enabled!
+2025-06-02 00:35:46,225 - main - INFO - 🔍 Available features:
+2025-06-02 00:35:46,225 - main - INFO -   • Property URL analysis with unegui.mn integration
+2025-06-02 00:35:46,225 - main - INFO -   • District comparison across 9 Ulaanbaatar districts
+2025-06-02 00:35:46,225 - main - INFO -   • Real-time market research with internet search
+2025-06-02 00:35:46,225 - main - INFO -   • Chain-of-Thought enhanced reasoning
+2025-06-02 00:35:46,225 - main - INFO -   • PDF report generation (ReportLab)
+2025-06-02 00:36:05,298 - main - INFO - 📝 Chat message received: Сүхбаатар дүүрэг
+2025-06-02 00:36:05,298 - services.chat_service - INFO - 🔄 Processing message: Сүхбаатар дүүрэг
+2025-06-02 00:36:05,298 - services.chat_service - INFO - 📋 Message classified as: district_query
+2025-06-02 00:36:05,298 - services.chat_service - INFO - 🧠 CoT application decision: True
+2025-06-02 00:36:05,298 - services.chat_service - INFO - 📍 Processing district query
+2025-06-02 00:36:05,298 - agents.district_analyzer - INFO - 🔍 Analyzing district for location: 'сүхбаатар'
+2025-06-02 00:36:05,298 - agents.district_analyzer - INFO - 📅 Cached data is 1 days old, still fresh
+2025-06-02 00:36:05,298 - agents.district_analyzer - INFO - 📊 Using cached data (fresh)
+2025-06-02 00:36:05,298 - agents.district_analyzer - INFO - 📊 Available districts in vectorstore: Баянзүрх, Сүхбаатар, Баянгол, Чингэлтэй, Хан-Уул, Сонгинохайрхан, Багануур, Налайх
+2025-06-02 00:37:14,568 - httpx - INFO - HTTP Request: POST https://api.together.xyz/v1/embeddings "HTTP/1.1 200 OK"
+2025-06-02 00:37:14,741 - agents.district_analyzer - INFO - ✅ Found direct match for 'сүхбаатар' with score 16.4025.
+2025-06-02 00:37:14,741 - agents.district_analyzer - INFO - 📊 Using REAL-TIME scraped data for analysis
+2025-06-02 00:37:14,741 - agents.district_analyzer - INFO - Retrieved district info: Дүүрэг: Сүхбаатар...
+2025-06-02 00:37:22,451 - httpx - INFO - HTTP Request: POST https://api.together.xyz/v1/chat/completions "HTTP/1.1 200 OK"
+2025-06-02 00:37:22,455 - agents.district_analyzer - INFO - District analysis LLM raw response (first 100 chars): Сүхбаатар дүүрэгийн элсэлтийн шинжилгээ:
+
+1. Дүүрэгийн нэр ба байрлал: Сүхбаатар дүүрэг нь Улаанбаат...
+2025-06-02 00:37:32,930 - httpx - INFO - HTTP Request: POST https://api.together.xyz/v1/chat/completions "HTTP/1.1 200 OK"
+2025-06-02 00:37:32,934 - services.chat_service - INFO - 🧠 Applying CoT enhancement to district analysis...
+2025-06-02 00:37:38,837 - httpx - INFO - HTTP Request: POST https://api.together.xyz/v1/chat/completions "HTTP/1.1 200 OK"
+2025-06-02 00:37:38,838 - main - INFO - ✅ Response generated in 93.54s
+2025-06-02 00:37:38,839 - main - INFO - 🚀 Applied enhancements: Chain-of-Thought reasoning
+2025-06-02 00:37:50,569 - main - INFO - 📝 Chat message received: Тиймээ
+2025-06-02 00:37:50,570 - services.chat_service - INFO - 🔄 Processing message: Тиймээ
+2025-06-02 00:37:50,570 - services.report_service - INFO - 📊 Generating simple district report
+2025-06-02 00:37:50,571 - agents.district_analyzer - INFO - 📅 Cached data is 1 days old, still fresh
+2025-06-02 00:37:50,571 - agents.district_analyzer - INFO - 📊 Using cached data (fresh)
+2025-06-02 00:37:50,571 - services.report_service - INFO - Extracting data from 8 documents...
+2025-06-02 00:37:50,571 - services.report_service - INFO - ✅ Added: Баянзүрх - 4,847,425 ₮/m²
+2025-06-02 00:37:50,571 - services.report_service - INFO - ✅ Added: Сүхбаатар - 4,989,778 ₮/m²
+2025-06-02 00:37:50,571 - services.report_service - INFO - ✅ Added: Баянгол - 4,047,748 ₮/m²
+2025-06-02 00:37:50,572 - services.report_service - INFO - ✅ Added: Чингэлтэй - 5,428,707 ₮/m²
+2025-06-02 00:37:50,572 - services.report_service - INFO - ✅ Added: Хан-Уул - 5,591,695 ₮/m²
+2025-06-02 00:37:50,572 - services.report_service - INFO - ✅ Added: Сонгинохайрхан - 2,920,822 ₮/m²
+2025-06-02 00:37:50,572 - services.report_service - INFO - ✅ Added: Багануур - 4,049,021 ₮/m²
+2025-06-02 00:37:50,572 - services.report_service - INFO - ✅ Added: Налайх - 4,091,655 ₮/m²
+2025-06-02 00:37:50,572 - services.report_service - INFO - Extracted 8 valid districts
+2025-06-02 00:37:56,346 - httpx - INFO - HTTP Request: POST https://api.together.xyz/v1/chat/completions "HTTP/1.1 200 OK"
+2025-06-02 00:38:03,907 - httpx - INFO - HTTP Request: POST https://api.together.xyz/v1/chat/completions "HTTP/1.1 200 OK"
+2025-06-02 00:38:03,949 - utils.xhtml2pdf_generator - INFO - xhtml2pdf report generated successfully: reports/district_summary_xhtml2pdf_20250602_003803.pdf
+2025-06-02 00:38:03,949 - main - INFO - ✅ Response generated in 13.38s
+2025-06-02 00:38:03,949 - main - INFO - 🚀 Applied enhancements: ReportLab PDF report
+2025-06-02 00:38:06,450 - main - INFO - 📥 Downloading report: district_summary_xhtml2pdf_20250602_003803.pdf (18668 bytes)
+2025-06-02 00:38:39,062 - services.initialization_service - INFO - 🧹 Property retriever closed
+2025-06-02 00:38:39,062 - main - INFO - 🧹 Services cleaned up successfully
