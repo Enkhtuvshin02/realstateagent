@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="mn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Үл хөдлөх хөрөнгийн туслах</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .chat-container {
+            width: 90%;
+            max-width: 800px;
+            height: 80vh;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .chat-header {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            padding: 20px;
+            text-align: center;
+            border-radius: 20px 20px 0 0;
+        }
+
+        .chat-header h1 {
+            font-size: 24px;
+            margin-bottom: 5px;
+        }
+
+        .chat-header p {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .status-bar {
+            background: #f8f9fa;
+            padding: 10px 20px;
+            border-bottom: 1px solid #e9ecef;
+            font-size: 12px;
+            color: #6c757d;
+        }
+
+        .features-info {
+            background: #e3f2fd;
+            padding: 15px 20px;
+            border-bottom: 1px solid #bbdefb;
+            font-size: 13px;
+            color: #1565c0;
+        }
+
+        .features-info ul {
+            list-style: none;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .features-info li {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .features-info li::before {
+            content: "✓";
+            color: #4caf50;
+            font-weight: bold;
+        }
+
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            background: #f8f9fa;
+        }
+
+        .message {
+            margin-bottom: 15px;
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+        }
+
+        .message.user {
+            flex-direction: row-reverse;
+        }
+
+        .message-content {
+            max-width: 70%;
+            padding: 12px 16px;
+            border-radius: 18px;
+            font-size: 14px;
+            line-height: 1.4;
+        }
+
+        .message.user .message-content {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-bottom-right-radius: 4px;
+        }
+
+        .message.assistant .message-content {
+            background: white;
+            color: #333;
+            border: 1px solid #e9ecef;
+            border-bottom-left-radius: 4px;
+        }
+
+        .message-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        .message.user .message-avatar {
+            background: #667eea;
+            color: white;
+        }
+
+        .message.assistant .message-avatar {
+            background: #4caf50;
+            color: white;
+        }
+
+        .report-offer {
+            background: linear-gradient(135deg, #ffeaa7 0%, #fab1a0 100%);
+            border: 1px solid #fdcb6e;
+            border-radius: 10px;
+            padding: 15px;
+            margin: 10px 0;
+            font-size: 14px;
+            color: #2d3436;
+        }
+
+        .report-offer strong {
+            font-size: 16px;
+            display: block;
+            margin-bottom: 8px;
+        }
+
+        .report-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 12px;
+        }
+
+        .report-button {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 20px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .report-button.accept {
+            background: #4caf50;
+            color: white;
+        }
+
+        .report-button.accept:hover {
+            background: #45a049;
+            transform: translateY(-2px);
+        }
+
+        .report-button.decline {
+            background: #f44336;
+            color: white;
+        }
+
+        .report-button.decline:hover {
+            background: #e53935;
+            transform: translateY(-2px);
+        }
+
+        .download-link {
+            background: #4caf50;
+            color: white;
+            padding: 8px 12px;
+            border-radius: 8px;
+            text-decoration: none;
+            display: inline-block;
+            margin: 5px 0;
+            font-size: 13px;
+        }
+
+        .download-link:hover {
+            background: #45a049;
+        }
+
+        .chat-input-container {
+            padding: 20px;
+            border-top: 1px solid #e9ecef;
+            background: white;
+        }
+
+        .chat-form {
+            display: flex;
+            gap: 10px;
+            align-items: flex-end;
+        }
+
+        .chat-input {
+            flex: 1;
+            padding: 12px 16px;
+            border: 2px solid #e9ecef;
+            border-radius: 25px;
+            font-size: 14px;
+            resize: none;
+            min-height: 50px;
+            max-height: 100px;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+
+        .chat-input:focus {
+            border-color: #667eea;
+        }
+
+        .send-button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
+            transition: transform 0.2s;
+        }
+
+        .send-button:hover {
+            transform: translateY(-2px);
+        }
+
+        .send-button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .quick-actions {
+            margin-top: 10px;
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .quick-action {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            padding: 6px 12px;
+            border-radius: 15px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .quick-action:hover {
+            background: #e9ecef;
+            border-color: #adb5bd;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+            color: #6c757d;
+        }
+
+        .loading.active {
+            display: block;
+        }
+
+        .loading-dots {
+            display: inline-block;
+            animation: loading 1.4s infinite linear;
+        }
+
+        @keyframes loading {
+            0%, 80%, 100% { transform: scale(0); }
+            40% { transform: scale(1); }
+        }
+
+        .error-message {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+            border-radius: 8px;
+            padding: 10px;
+            margin: 10px 0;
+            font-size: 13px;
+        }
+
+        .success-message {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+            border-radius: 8px;
+            padding: 10px;
+            margin: 10px 0;
+            font-size: 13px;
+        }
+
+        @media (max-width: 768px) {
+            .chat-container {
+                width: 95%;
+                height: 90vh;
+            }
+
+            .message-content {
+                max-width: 85%;
+            }
+
+            .quick-actions {
+                overflow-x: auto;
+                flex-wrap: nowrap;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="chat-container">
+        <div class="chat-header">
+            <h1>🏠 Үл хөдлөх хөрөнгийн туслах</h1>
+            <p>Орон сууцны мэдээлэл, дүүргийн харьцуулалт, зах зээлийн шинжилгээ</p>
+        </div>
+
+        <div class="status-bar">
+            <span id="status">Бэлэн байна</span> |
+            <span id="cache-status">Кэш: Шалгаж байна...</span>
+        </div>
+
+        <div class="features-info">
+            <ul>
+                <li>Unegui.mn сайтын орон сууц шинжилнэ</li>
+                <li>9 дүүргийн үнэ харьцуулна</li>
+                <li>Интернэт хайлт ашиглана</li>
+                <li>PDF тайлан үүсгэнэ</li>
+                <li>FAISS векторын сан ашиглана</li>
+            </ul>
+        </div>
+
+        <div class="chat-messages" id="chat-messages">
+            <div class="message assistant">
+                <div class="message-avatar">🤖</div>
+                <div class="message-content">
+                    Сайн байна уу! Би Улаанбаатар хотын үл хөдлөх хөрөнгийн туслах.
+                    <br><br>
+                    <strong>Миний чадварууд:</strong><br>
+                    🏠 Unegui.mn-ээс орон сууцны мэдээлэл татах<br>
+                    📊 Дүүргүүдийн үнэ харьцуулах<br>
+                    🔍 Интернэтээс зах зээлийн мэдээлэл хайх<br>
+                    📄 Дэлгэрэнгүй PDF тайлан үүсгэх<br><br>
+
+                    <strong>Та дараах зүйлсийг хийж болно:</strong><br>
+                    • Unegui.mn орон сууцны холбоос илгээх<br>
+                    • "Сүхбаатар дүүрэг" гэж асуух<br>
+                    • "Орон сууцны зах зээлийн нөхцөл" гэж асуух<br>
+                    • Миний хариулт бүрийн дараа PDF тайлан авах боломжтой!
+                </div>
+            </div>
+        </div>
+
+        <div class="loading" id="loading">
+            <span class="loading-dots">●●●</span> Боловсруулж байна...
+        </div>
+
+        <div class="chat-input-container">
+            <form class="chat-form" id="chat-form">
+                <textarea
+                    class="chat-input"
+                    id="user-input"
+                    placeholder="Орон сууцны холбоос эсвэл асуулт бичнэ үү..."
+                    rows="1"
+                ></textarea>
+                <button type="submit" class="send-button" id="send-button">Илгээх</button>
+            </form>
+
+            <div class="quick-actions">
+                <div class="quick-action" onclick="sendQuickMessage('Сүхбаатар дүүрэг')">Сүхбаатар дүүрэг</div>
+                <div class="quick-action" onclick="sendQuickMessage('Бүх дүүргийн үнэ харьцуулах')">Дүүрэг харьцуулах</div>
+                <div class="quick-action" onclick="sendQuickMessage('Орон сууцны зах зээлийн нөхцөл')">Зах зээлийн нөхцөл</div>
+                <div class="quick-action" onclick="sendQuickMessage('дүүргийн тайлан үүсгэх')">Тайлан үүсгэх</div>
+                <div class="quick-action" onclick="refreshCache()">Мэдээлэл шинэчлэх</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const chatForm = document.getElementById('chat-form');
+        const userInput = document.getElementById('user-input');
+        const sendButton = document.getElementById('send-button');
+        const chatMessages = document.getElementById('chat-messages');
+        const loading = document.getElementById('loading');
+        const statusSpan = document.getElementById('status');
+        const cacheStatusSpan = document.getElementById('cache-status');
+
+        // Auto-resize textarea
+        userInput.addEventListener('input', function() {
+            this.style.height = 'auto';
+            this.style.height = this.scrollHeight + 'px';
+        });
+
+        // Handle form submission
+        chatForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const message = userInput.value.trim();
+            if (!message) return;
+
+            await sendMessage(message);
+        });
+
+        // Send message function
+        async function sendMessage(message) {
+            // Add user message to chat
+            addMessage(message, 'user');
+
+            // Clear input and disable form
+            userInput.value = '';
+            userInput.style.height = 'auto';
+            setFormEnabled(false);
+            showLoading(true);
+
+            try {
+                statusSpan.textContent = 'Боловсруулж байна...';
+
+                const formData = new FormData();
+                formData.append('user_message', message);
+
+                const response = await fetch('/chat', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+
+                // Add assistant response
+                if (data.response) {
+                    addMessage(data.response, 'assistant', data);
+                } else {
+                    addMessage('Алдаа гарлаа. Дахин оролдоно уу.', 'assistant');
+                }
+
+                statusSpan.textContent = 'Бэлэн байна';
+
+            } catch (error) {
+                console.error('Error:', error);
+                addMessage('Серверт холбогдоход алдаа гарлаа. Дахин оролдоно уу.', 'assistant');
+                statusSpan.textContent = 'Алдаа';
+            } finally {
+                setFormEnabled(true);
+                showLoading(false);
+                userInput.focus();
+            }
+        }
+
+        // Add message to chat
+        function addMessage(content, sender, data = {}) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${sender}`;
+
+            const avatarDiv = document.createElement('div');
+            avatarDiv.className = 'message-avatar';
+            avatarDiv.textContent = sender === 'user' ? '👤' : '🤖';
+
+            const contentDiv = document.createElement('div');
+            contentDiv.className = 'message-content';
+
+            // Check if content contains report offer
+            if (content.includes('**Тайлан авах уу?**')) {
+                // Split content at the report offer
+                const parts = content.split('**Тайлан авах уу?**');
+
+                // Add the main content
+                const mainContent = parts[0].replace(/\n/g, '<br>');
+                contentDiv.innerHTML = mainContent;
+
+                // Add the report offer box
+                const reportOfferDiv = document.createElement('div');
+                reportOfferDiv.className = 'report-offer';
+                reportOfferDiv.innerHTML = `
+                    <strong>📋 Тайлан авах уу?</strong>
+                    ${parts[1].replace(/\n/g, '<br>')}
+                    <div class="report-buttons">
+                        <button class="report-button accept" onclick="sendMessage('Тиймээ')">Тиймээ, тайлан авъя</button>
+                        <button class="report-button decline" onclick="sendMessage('Үгүй, баярлалаа')">Үгүй, баярлалаа</button>
+                    </div>
+                `;
+                contentDiv.appendChild(reportOfferDiv);
+            } else {
+                // Format content with line breaks
+                const formattedContent = content.replace(/\n/g, '<br>');
+                contentDiv.innerHTML = formattedContent;
+            }
+
+            // Add download link if report was generated
+            if (data.download_url) {
+                const downloadDiv = document.createElement('div');
+                downloadDiv.style.marginTop = '10px';
+
+                const downloadLink = document.createElement('a');
+                downloadLink.href = data.download_url;
+                downloadLink.className = 'download-link';
+                downloadLink.textContent = '📥 PDF Тайлан татаж авах';
+                downloadLink.target = '_blank';
+
+                downloadDiv.appendChild(downloadLink);
+                contentDiv.appendChild(downloadDiv);
+            }
+
+            messageDiv.appendChild(avatarDiv);
+            messageDiv.appendChild(contentDiv);
+
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        // Quick message function
+        function sendQuickMessage(message) {
+            sendMessage(message);
+        }
+
+        // Set form enabled/disabled
+        function setFormEnabled(enabled) {
+            sendButton.disabled = !enabled;
+            userInput.disabled = !enabled;
+        }
+
+        // Show/hide loading
+        function showLoading(show) {
+            loading.classList.toggle('active', show);
+        }
+
+        // Refresh cache function
+        async function refreshCache() {
+            try {
+                statusSpan.textContent = 'Мэдээлэл шинэчилж байна...';
+                cacheStatusSpan.textContent = 'Шинэчилж байна...';
+
+                const response = await fetch('/cache/refresh', { method: 'POST' });
+                const data = await response.json();
+
+                if (data.status === 'success') {
+                    cacheStatusSpan.textContent = 'Кэш: Шинэчлэгдсэн';
+                    addMessage('✅ Дүүргийн мэдээлэл амжилттай шинэчлэгдлээ!', 'assistant');
+                } else {
+                    cacheStatusSpan.textContent = 'Кэш: Алдаа';
+                    addMessage('❌ Мэдээлэл шинэчлэхэд алдаа гарлаа.', 'assistant');
+                }
+
+                statusSpan.textContent = 'Бэлэн байна';
+            } catch (error) {
+                console.error('Cache refresh error:', error);
+                cacheStatusSpan.textContent = 'Кэш: Алдаа';
+                statusSpan.textContent = 'Алдаа';
+            }
+        }
+
+
+
+        // Check initial status
+        async function checkStatus() {
+            try {
+                const [healthResponse, cacheResponse] = await Promise.all([
+                    fetch('/health'),
+                    fetch('/cache/status')
+                ]);
+
+                const healthData = await healthResponse.json();
+                const cacheData = await cacheResponse.json();
+
+                if (healthData.all_ready) {
+                    statusSpan.textContent = 'Бэлэн байна';
+                } else {
+                    statusSpan.textContent = 'Эхлүүлж байна...';
+                }
+
+                if (cacheData.status === 'success' && cacheData.cache.is_fresh) {
+                    cacheStatusSpan.textContent = `Кэш: Шинэ (${cacheData.cache.age_days || 0} өдөр)`;
+                } else {
+                    cacheStatusSpan.textContent = 'Кэш: Хуучирсан';
+                }
+
+            } catch (error) {
+                console.error('Status check error:', error);
+                statusSpan.textContent = 'Алдаа';
+                cacheStatusSpan.textContent = 'Кэш: Тодорхойгүй';
+            }
+        }
+
+        // Initialize
+        checkStatus();
+        userInput.focus();
+
+        // Periodic status check
+        setInterval(checkStatus, 30000); // Check every 30 seconds
+    </script>
+</body>
+</html>
