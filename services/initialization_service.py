@@ -5,7 +5,7 @@ from langchain_community.tools.tavily_search import TavilySearchResults
 
 from agents.property_retriever import PropertyRetriever
 from agents.district_analyzer import DistrictAnalyzer
-# Import the new ReportLab PDFReportGenerator
+# Шинэ ReportLab PDFReportGenerator-ийг импортлох
 from utils.xhtml2pdf_generator import PDFReportGenerator # Changed import
 
 logger = logging.getLogger(__name__)
@@ -19,10 +19,10 @@ class InitializationService:
         self.pdf_generator = None
 
     async def initialize(self):
-        """Initialize all components"""
+        """Бүх бүрэлдэхүүн хэсгүүдийг эхлүүлэх"""
         logger.info("🔧 Initializing services...")
 
-        # Check API keys
+        # API түлхүүрүүдийг шалгах
         together_api_key = os.getenv("TOGETHER_API_KEY")
         tavily_api_key = os.getenv("TAVILY_API_KEY")
 
@@ -31,7 +31,7 @@ class InitializationService:
         if not tavily_api_key:
             raise ValueError("TAVILY_API_KEY is not set in environment variables")
 
-        # Initialize LLM
+        # LLM-ийг эхлүүлэх
         logger.info("🤖 Initializing LLM...")
         self.llm = ChatTogether(
             together_api_key=together_api_key,
@@ -40,7 +40,7 @@ class InitializationService:
         )
         logger.info("✅ LLM initialized")
 
-        # Initialize search tool
+        # Хайлтын хэрэгслийг эхлүүлэх
         logger.info("🔍 Initializing search tool...")
         self.search_tool = TavilySearchResults(
             max_results=5,
@@ -48,31 +48,31 @@ class InitializationService:
             include_answer=True,
             tavily_api_key=tavily_api_key
         )
-        logger.info("✅ Search tool initialized")
+        logger.info("✅ Хайлтын хэрэгслийг эхлүүлсэн")
 
-        # Initialize agents
-        logger.info("🏠 Initializing property retriever...")
+        # Агентуудыг эхлүүлэх
+        logger.info("🏠 Агентуудыг эхлүүлэх...")
         self.property_retriever_agent = PropertyRetriever(llm=self.llm)
-        logger.info("✅ Property retriever initialized")
+        logger.info("✅ Property retriever агентийг эхлүүлсэн")
 
-        logger.info("📊 Initializing district analyzer...")
+        logger.info("📊 Дүүргийн шинжээчид зориулсан анхны өгөгдлийг ачаалах...")
         self.district_analyzer_agent = DistrictAnalyzer(
             llm=self.llm,
             property_retriever=self.property_retriever_agent
         )
-        logger.info("✅ District analyzer initialized")
+        logger.info("✅ District analyzer агентийг эхлүүлсэн")
 
-        # Initialize PDF generator using the ReportLab-based class
-        logger.info("📄 Initializing PDF generator (ReportLab)...") # Updated log message
+        # ReportLab-д суурилсан классыг ашиглан PDF үүсгэгчийг эхлүүлэх
+        logger.info("📄 PDF үүсгэгчийг эхлүүлэх...")
         self.pdf_generator = PDFReportGenerator() # This now uses ReportLabPDFGenerator internally
-        logger.info("✅ PDF generator (ReportLab) initialized") # Updated log message
+        logger.info("✅ PDF үүсгэгчийг эхлүүлсэн")
 
-        # Load initial data
+        # Анхны өгөгдлийг ачаалах
         await self._load_initial_data()
 
     async def _load_initial_data(self):
-        """Load initial data for district analyzer"""
-        logger.info("📚 Loading initial data...")
+        """Дүүргийн шинжээчид зориулсан анхны өгөгдлийг ачаалах"""
+        logger.info("📚 Анхны өгөгдлийг ачаалах...")
 
         try:
             cache_status = self.district_analyzer_agent.get_cache_status()
@@ -90,7 +90,7 @@ class InitializationService:
             logger.info("📚 Continuing with static fallback data")
 
     async def cleanup(self):
-        """Cleanup resources"""
+        """Нөөцүүдийг цэвэрлэх"""
         if self.property_retriever_agent:
             await self.property_retriever_agent.close()
-            logger.info("🧹 Property retriever closed")
+            logger.info("🧹 Property retriever агентийг хаасан")

@@ -1,4 +1,4 @@
-# real_estate_assistant/agents/district_analyzer.py
+# real_estate_assistant/agents/district_analyzer.py - Дүүргийн шинжилгээ
 import logging
 import os
 from datetime import datetime, timedelta
@@ -31,7 +31,7 @@ class DistrictAnalyzer:
         self._initialize_vectorstore()
 
     def _initialize_vectorstore(self):
-        """Initialize vectorstore with cached data if available and fresh, otherwise use static data"""
+        """# Хэрэв боломжтой ба шинэ бол кэш өгөгдөлтэй вектор санг эхлүүлэх, эсвэл статик өгөгдөл ашиглах"""
         # Check if we have valid cached data
         if self._should_use_cached_data():
             logger.info("📦 Loading cached vectorstore data...")
@@ -78,7 +78,7 @@ class DistrictAnalyzer:
         logger.info("FAISS vectorstore initialized with static data.")
 
     def _should_use_cached_data(self) -> bool:
-        """Check if cached data exists and is less than 7 days old"""
+        """# Кэш өгөгдөл байгаа эсэх ба 7 хоногоос бага настай эсэхийг шалгах"""
         if not self.documents_cache_file.exists() or not self.last_update_file.exists():
             logger.info("📊 No cached data found")
             return False
@@ -102,7 +102,7 @@ class DistrictAnalyzer:
             return False
 
     def _load_cached_vectorstore(self) -> bool:
-        """Load vectorstore from cached documents"""
+        """# Кэшлэгдсэн баримтуудаас вектор санг ачаалах"""
         try:
             with open(self.documents_cache_file, 'rb') as f:
                 cached_documents = pickle.load(f)
@@ -116,7 +116,7 @@ class DistrictAnalyzer:
             return False
 
     def _save_vectorstore_cache(self, documents):
-        """Save documents to cache file instead of vectorstore"""
+        """# Вектор сангийн оронд баримтуудыг кэш файлд хадгалах"""
         try:
             with open(self.documents_cache_file, 'wb') as f:
                 pickle.dump(documents, f)
@@ -131,7 +131,7 @@ class DistrictAnalyzer:
             return False
 
     async def update_with_realtime_data(self, force_update: bool = False):
-        """Update vectorstore with real-time scraped data only if needed"""
+        """# Зөвхөн шаардлагатай үед бодит цагийн цуглуулсан өгөгдлөөр вектор санг шинэчлэх"""
         if not self.property_retriever:
             logger.warning("No PropertyRetriever provided. Cannot update with real-time data.")
             return False
@@ -176,7 +176,7 @@ class DistrictAnalyzer:
             return False
 
     async def ensure_fresh_data(self):
-        """Ensure we have fresh data, but don't update on every request"""
+        """# Шинэ өгөгдөлтэй байхыг баталгаажуулах, гэхдээ хүсэлт болгонд шинэчлэхгүй"""
         if not self._should_use_cached_data():
             logger.info("🔄 Data is stale or missing, updating...")
             await self.update_with_realtime_data(force_update=True)
@@ -187,8 +187,8 @@ class DistrictAnalyzer:
 
     async def analyze_district(self, location: str) -> str:
         """
-        Analyzes district information based on the provided location,
-        leveraging cached or real-time data as appropriate.
+        Өгөгдсөн байршилд үндэслэн дүүргийн мэдээллийг шинжилж,
+        тохиромжтой үед кэшлэгдсэн эсвэл бодит цагийн өгөгдлийг ашиглана.
         """
         logger.info(f"🔍 Analyzing district for location: '{location}'")
 
@@ -316,7 +316,7 @@ class DistrictAnalyzer:
         return response
 
     def get_all_districts_summary(self) -> str:
-        """Get a summary of all districts in the vectorstore"""
+        """# Вектор сан дахь бүх дүүргийн товч мэдээллийг авах"""
         if not self.vectorstore:
             return "Дүүргийн мэдээлэл байхгүй."
 
@@ -332,7 +332,7 @@ class DistrictAnalyzer:
         return "\n".join(summary_parts) if summary_parts else "Дүүргийн мэдээлэл байхгүй."
 
     def get_cache_status(self) -> dict:
-        """Get information about cache status"""
+        """# Кэшийн төлвийн тухай мэдээлэл авах"""
         status = {
             "cache_exists": self.documents_cache_file.exists(),
             "last_update_exists": self.last_update_file.exists(),
@@ -359,5 +359,5 @@ class DistrictAnalyzer:
         return status
 
     async def force_update(self):
-        """Force an immediate update of the vectorstore data"""
+        """# Вектор сангийн өгөгдлийг нэн даруй шинэчлэх"""
         return await self.update_with_realtime_data(force_update=True)

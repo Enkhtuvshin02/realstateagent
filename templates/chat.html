@@ -4,66 +4,128 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Үл хөдлөх хөрөнгийн туслах</title>
-    <link rel="stylesheet" href="../static/style.css">
+    <!-- Үндсэн загварын CSS -->
+    <link rel="stylesheet" href="/static/css/chat.css">
+    
+    <!-- JavaScript функцууд -->
+    <script src="/static/js/chat.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+            // Кэшийг шинэчлэх
+            window.refreshCache = async function() {
+                try {
+                    statusSpan.textContent = 'Мэдээлэл шинэчилж байна...';
+                    cacheStatusSpan.textContent = 'Шинэчилж байна...';
+
+                    const response = await fetch('/cache/refresh', { method: 'POST' });
+                    const data = await response.json();
+
+                    if (data.status === 'success') {
+                        cacheStatusSpan.textContent = 'Шинэчлэгдсэн';
+                        addMessage('✅ Дүүргийн мэдээлэл амжилттай шинэчлэгдлээ!', 'assistant');
+                    } else {
+                        cacheStatusSpan.textContent = 'Алдаа';
+                        addMessage('❌ Мэдээлэл шинэчлэхэд алдаа гарлаа.', 'assistant');
+                    }
+
+                    statusSpan.textContent = 'Бэлэн байна';
+                } catch (error) {
+                    console.error('Cache refresh error:', error);
+                    cacheStatusSpan.textContent = 'Алдаа';
+                    statusSpan.textContent = 'Алдаа';
+                }
+            }
+
+            // Системийн статусыг шалгах
+            async function checkStatus() {
+                try {
+                    const [healthResponse, cacheResponse] = await Promise.all([
+                        fetch('/health'),
+                        fetch('/cache/status')
+                    ]);
+
+                    const healthData = await healthResponse.json();
+                    const cacheData = await cacheResponse.json();
+
+                    if (healthData.all_ready) {
+                        statusSpan.textContent = 'Бэлэн байна';
+                    } else {
+                        statusSpan.textContent = 'Эхлүүлж байна...';
+                    }
+
+                    if (cacheData.status === 'success' && cacheData.cache.is_fresh) {
+                        cacheStatusSpan.textContent = `Шинэ (${cacheData.cache.age_days || 0} өдөр)`;
+                    } else {
+                        cacheStatusSpan.textContent = 'Хуучирсан';
+                    }
+
+                } catch (error) {
+                    console.error('Status check error:', error);
+                    statusSpan.textContent = 'Алдаа';
+                    cacheStatusSpan.textContent = 'Тодорхойгүй';
+                }
+            }
+
+            // Эхлүүлэх
+            checkStatus();
+            userInput.focus();
+
+            // Тогтмол статус шалгах
+            setInterval(checkStatus, 30000);
+        });
+    </script>
 </head>
 <body>
     <div class="chat-container">
         <div class="chat-header">
-            <h1>🏠 Үл хөдлөх хөрөнгийн туслах</h1>
-            <p>🧠 Chain-of-Thought шинжилгээтэй орон сууц, дүүрэг, зах зээлийн мэргэжлийн шинжилгээ</p>
+            <h1>Үл хөдлөх хөрөнгийн туслах</h1>
+            <p>Орон сууц, дүүрэг, зах зээлийн мэргэжлийн шинжилгээ</p>
         </div>
 
         <div class="status-bar">
-            <div>
-                <span id="status">Бэлэн байна</span> |
-                <span id="cache-status">Кэш: Шалгаж байна...</span>
+            <div class="status-indicator">
+                <div class="status-dot"></div>
+                <span id="status">Бэлэн байна</span>
             </div>
-            <div class="cot-indicator">🧠 CoT идэвхтэй</div>
-        </div>
-
-        <div class="features-info">
-            <ul>
-                <li>Unegui.mn сайтын орон сууц шинжилнэ</li>
-                <li>9 дүүргийн үнэ харьцуулна</li>
-                <li>Интернэт хайлт ашиглана</li>
-                <li>PDF тайлан үүсгэнэ</li>
-                <li>🧠 Chain-of-Thought шинжилгээ</li>
-                <li>Алхам бүрийн тайлбартай</li>
-            </ul>
+            <div>
+                <span id="cache-status">Кэш шалгаж байна...</span>
+            </div>
         </div>
 
         <div class="chat-messages" id="chat-messages">
             <div class="message assistant">
-                <div class="message-avatar">🤖</div>
+                <div class="assistant-label">Туслах</div>
                 <div class="message-content">
-                    <div class="cot-badge">🧠 CoT Enhanced</div>
-                    Сайн байна уу! Би Улаанбаатар хотын үл хөдлөх хөрөнгийн туслах.
-                    <br><br>
-                    <strong>🧠 Chain-of-Thought шинжилгээний давуу тал:</strong><br>
-                    • Алхам бүрийн тодорхой тайлбар<br>
-                    • Логик дараалал<br>
-                    • Найдвартай байдлын үнэлгээ<br>
-                    • Гол дүгнэлтүүдийг тодрох<br><br>
+                    <p>Сайн байна уу! Би Улаанбаатар хотын үл хөдлөх хөрөнгийн туслах.</p>
+                    
+                    <p><strong>Миний чадварууд:</strong></p>
+                    <p>• Unegui.mn-ээс орон сууцны мэдээлэл татах<br>
+                    • Дүүргүүдийн үнэ харьцуулах<br>
+                    • Интернэтээс зах зээлийн мэдээлэл хайх<br>
+                    • Дэлгэрэнгүй PDF тайлан үүсгэх<br>
+                    • Алхам бүрийн шинжилгээтэй хариулт</p>
 
-                    <strong>Миний чадварууд:</strong><br>
-                    🏠 Unegui.mn-ээс орон сууцны мэдээлэл татах<br>
-                    📊 Дүүргүүдийн үнэ харьцуулах<br>
-                    🔍 Интернэтээс зах зээлийн мэдээлэл хайх<br>
-                    📄 Дэлгэрэнгүй PDF тайлан үүсгэх<br>
-                    🧠 Алхам бүрийн шинжилгээтэй хариулт<br><br>
-
-                    <strong>Та дараах зүйлсийг хийж болно:</strong><br>
-                    • Unegui.mn орон сууцны холбоос илгээх<br>
-                    • "Сүхбаатар дүүрэг" гэж асуух<br>
-                    • "Орон сууцны зах зээлийн нөхцөл" гэж асуух<br>
-                    • Миний хариулт бүрийн дараа PDF тайлан авах боломжтой!<br>
-                    • 🧠 Дэлгэрэнгүй шинжилгээний алхмуудыг харах боломжтой!
+                    <p>Та орон сууцны холбоос илгээх эсвэл дүүргийн талаар асуух боломжтой.</p>
                 </div>
             </div>
         </div>
 
         <div class="loading" id="loading">
-            <span class="loading-dots">●●●</span> 🧠 Алхам бүрийн шинжилгээ хийж байна...
+            <span class="loading-dots">Шинжилгээ хийж байна</span>
         </div>
 
         <div class="chat-input-container">
@@ -71,23 +133,19 @@
                 <textarea
                     class="chat-input"
                     id="user-input"
-                    placeholder="Орон сууцны холбоос эсвэл асуулт бичнэ үү... (🧠 CoT шинжилгээтэй хариулт авах боломжтой)"
+                    placeholder="Орон сууцны холбоос эсвэл асуулт бичнэ үү..."
                     rows="1"
                 ></textarea>
-                <button type="submit" class="send-button" id="send-button">🧠 Илгээх</button>
+                <button type="submit" class="send-button" id="send-button">Илгээх</button>
             </form>
 
             <div class="quick-actions">
-                <div class="quick-action cot-enhanced" onclick="sendQuickMessage('Сүхбаатар дүүрэг')">🧠 Сүхбаатар дүүрэг</div>
-                <div class="quick-action cot-enhanced" onclick="sendQuickMessage('Бүх дүүргийн үнэ харьцуулах')">🧠 Дүүрэг харьцуулах</div>
-                <div class="quick-action cot-enhanced" onclick="sendQuickMessage('Орон сууцны зах зээлийн нөхцөл')">🧠 Зах зээлийн нөхцөл</div>
-                <div class="quick-action" onclick="sendQuickMessage('дүүргийн тайлан үүсгэх')">Тайлан үүсгэх</div>
+                <div class="quick-action" onclick="sendQuickMessage('Сүхбаатар дүүрэг')">Сүхбаатар дүүрэг</div>
+                <div class="quick-action" onclick="sendQuickMessage('Бүх дүүргийн үнэ харьцуулах')">Дүүрэг харьцуулах</div>
+                <div class="quick-action" onclick="sendQuickMessage('Орон сууцны зах зээлийн нөхцөл')">Зах зээлийн нөхцөл</div>
                 <div class="quick-action" onclick="refreshCache()">Мэдээлэл шинэчлэх</div>
-                <div class="quick-action" onclick="showCotStats()">🧠 CoT статистик</div>
             </div>
         </div>
     </div>
-
-    <script src="../static/script.js"></script>
 </body>
 </html>

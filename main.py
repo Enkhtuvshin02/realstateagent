@@ -1,4 +1,4 @@
-# main.py - Updated for ReportLab PDF generation
+# main.py - ReportLab PDF үүсгэх шинэчлэлтэй
 import os
 import logging
 import asyncio
@@ -9,14 +9,14 @@ from fastapi import FastAPI, Request, Form
 from fastapi.responses import HTMLResponse, FileResponse, JSONResponse
 from fastapi.templating import Jinja2Templates
 
-# Import our services and agents
+# Сервис болон агентуудыг импортлох
 from services.chat_service import ChatService
-from services.initialization_service import InitializationService # This will init ReportLab generator
+from services.initialization_service import InitializationService # ReportLab генераторыг эхлүүлнэ
 
-# Load environment variables
+# Орчны хувьсагчдыг ачаалах
 load_dotenv()
 
-# Configure logging with better formatting
+# Логийг илүү сайн форматтай тохируулах
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
@@ -27,22 +27,22 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-# --- FastAPI App Setup ---
+# --- FastAPI Апп Тохиргоо ---
 app = FastAPI(
     title="Professional Real Estate Assistant",
     description="Enhanced Real Estate Assistant with PDF Reports (using ReportLab) and Chain-of-Thought Analysis",
-    version="2.1.0" # Version bump
+    version="2.1.0" # Хувилбарын шинэчлэл
 )
 templates = Jinja2Templates(directory="templates")
 
-# Global variables
+# Глобаль хувьсагчид
 initialization_service = None
 chat_service = None
 
 
 @app.on_event("startup")
 async def startup_event():
-    """Initialize everything on startup with better error handling"""
+    """# Эхлэхэд бүх зүйлийг илүү сайн алдааны мэдээлэлтэй эхлүүлэх"""
     global initialization_service, chat_service
 
     logger.info("🚀 Starting Professional Real Estate Assistant v2.1 (with ReportLab)...")
@@ -83,7 +83,7 @@ async def startup_event():
 
 @app.on_event("shutdown")
 async def shutdown_event():
-    """Cleanup on shutdown"""
+    """# Унтраахад цэвэрлэх"""
     if initialization_service:
         await initialization_service.cleanup()
         logger.info("🧹 Services cleaned up successfully")
@@ -91,7 +91,7 @@ async def shutdown_event():
 
 @app.get("/", response_class=HTMLResponse)
 async def get_chat_page(request: Request):
-    """Main chat page with improved UI"""
+    """# Сайжруулсан интерфэйстэй үндсэн чат хуудас"""
     # Removed WeasyPrint specific variables from template context
     return templates.TemplateResponse("chat.html", {
         "request": request,
@@ -102,7 +102,7 @@ async def get_chat_page(request: Request):
 
 @app.post("/chat")
 async def chat_endpoint(request: Request, user_message: str = Form(...)):
-    """Enhanced chat endpoint with PDF generation"""
+    """# PDF үүсгэх боломжтой сайжруулсан чат цэг"""
     logger.info(f"📝 Chat message received: {user_message[:100]}{'...' if len(user_message) > 100 else ''}")
 
     if not chat_service:
@@ -150,7 +150,7 @@ async def chat_endpoint(request: Request, user_message: str = Form(...)):
 
 @app.get("/download-report/{filename}")
 async def download_report(filename: str):
-    """Download PDF report with improved error handling"""
+    """# Сайжруулсан алдааны мэдээлэлтэй PDF тайлан татах"""
     try:
         file_path = Path("reports") / filename
         if not file_path.exists():
@@ -182,7 +182,7 @@ async def download_report(filename: str):
 
 @app.get("/health")
 async def health():
-    """Enhanced health check endpoint"""
+    """# Сайжруулсан эрүүл байдлыг шалгах цэг"""
     health_status = {
         "status": "ok",
         "timestamp": datetime.now().isoformat(),
@@ -217,8 +217,8 @@ async def health():
 
     return health_status
 
-# Removed WeasyPrint specific status endpoints (/weasyprint/status, /pdf/status)
-# as they were very WeasyPrint-centric. You can create a new /pdf/status for ReportLab if needed.
+# WeasyPrint-д зориулсан статус цэгүүдийг хассан (/weasyprint/status, /pdf/status)
+# учир нь тэд WeasyPrint-д маш их төвлөрсөн байсан. Шаардлагатай бол ReportLab-д зориулсан шинэ /pdf/status үүсгэж болно.
 
 @app.middleware("http")
 async def enhanced_logging_middleware(request: Request, call_next):
@@ -238,9 +238,9 @@ async def enhanced_logging_middleware(request: Request, call_next):
 if __name__ == "__main__":
     import uvicorn
 
-    directories = ["reports", "cache", "templates", "static/fonts", "logs"] # Added static/fonts
+    directories = ["reports", "cache", "templates", "static/fonts", "logs"] # static/fonts нэмсэн
     for directory in directories:
-        Path(directory).mkdir(parents=True, exist_ok=True) # Added parents=True
+        Path(directory).mkdir(parents=True, exist_ok=True) # parents=True нэмсэн
 
     logger.info("🚀 Starting Professional Real Estate Assistant Server v2.1 (ReportLab)...")
     logger.info("🧠 Enhanced Chain-of-Thought reasoning active!")

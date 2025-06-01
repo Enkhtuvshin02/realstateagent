@@ -1,4 +1,4 @@
-# real_estate_assistant/utils/property_parsers.py
+# real_estate_assistant/utils/property_parsers.py - Үл хөдлөх хөрөнгийн парсерүүд
 import re
 import logging
 from typing import Optional, List, Any
@@ -6,7 +6,7 @@ from typing import Optional, List, Any
 logger = logging.getLogger(__name__)
 
 def find_feature_in_list(li_list: List[Any], header: str) -> str:
-    """Finds a specific feature value within a list of Beautiful Soup li elements."""
+    """Элементүүдийн жагсаалтаас тодорхой шинж чанарын утгыг олох."""
     for li in li_list:
         key_chars_tag = li.find("span", class_="key-chars")
         value_chars_tag = li.find("span", class_="value-chars") or li.find("a", class_="value-chars")
@@ -18,7 +18,7 @@ def find_feature_in_list(li_list: List[Any], header: str) -> str:
     return 'N/A'
 
 def parse_area_string(area_str: str) -> Optional[float]:
-    """Parses an area string and returns a float representing square meters."""
+    """Талбайн текстийг задлаж метр квадратыг илэрхийлсэн float утга буцаана."""
     if not area_str or area_str == 'N/A':
         return None
     area_str = area_str.lower().replace('м²', '').replace('мк', '').replace('мкв', '').replace('мк2', '').strip()
@@ -31,7 +31,7 @@ def parse_area_string(area_str: str) -> Optional[float]:
     return None
 
 def parse_room_string(room_str: str) -> Optional[int]:
-    """Parses a room count string and returns an integer."""
+    """Өрөөний тооны текстийг задлаж бүхэл тоо буцаана."""
     if not room_str or room_str == 'N/A':
         return None
     match = re.search(r'(\d+)', room_str)
@@ -43,15 +43,13 @@ def parse_room_string(room_str: str) -> Optional[int]:
     return None
 
 def parse_price_from_text(price_text: str) -> Optional[float]:
-    """
-    Parses a price from text, handling different formats including 'сая' (million) and 'тэрбум' (billion).
-    """
+    """Үнийн текстийг задлаж, 'сая' ба 'тэрбум' зэрэг янз бүрийн форматуудыг боловсруулах."""
     if not price_text:
         return None
 
     price_cleaned = price_text.replace('₮', '').replace(',', '').replace(' ', '').strip()
 
-    # Handle million format (сая)
+    # Саяар илэрхийлсэн форматыг боловсруулах
     if 'сая' in price_cleaned.lower():
         match_million = re.search(r'(\d+\.?\d*)', price_cleaned)
         if match_million:
@@ -60,7 +58,7 @@ def parse_price_from_text(price_text: str) -> Optional[float]:
             except ValueError:
                 pass
 
-    # Handle billion format (тэрбум)
+    # Тэрбумаар илэрхийлсэн форматыг боловсруулах
     if 'тэрбум' in price_cleaned.lower():
         match_billion = re.search(r'(\d+\.?\d*)', price_cleaned)
         if match_billion:
@@ -69,7 +67,7 @@ def parse_price_from_text(price_text: str) -> Optional[float]:
             except ValueError:
                 pass
 
-    # Handle direct number format
+    # Шууд тоон форматыг боловсруулах
     match_direct = re.search(r'(\d+)', price_cleaned)
     if match_direct:
         try:
@@ -80,7 +78,7 @@ def parse_price_from_text(price_text: str) -> Optional[float]:
     return None
 
 def extract_area_from_title(title_lower: str) -> Optional[float]:
-    """Extracts area from a title string using various patterns."""
+    """Талбайг гарчгийн текстээс янз бүрийн хэв загваруудыг ашиглан авах."""
     area_patterns = [
         r'(\d+\.?\d*)\s*мкв', r'(\d+\.?\d*)\s*м²', r'(\d+\.?\d*)\s*мк\b',
         r'(\d+\.?\d*)\s*квм', r'(\d+\.?\d*)\s*м2', r'(\d+\.?\d*)\s*mkv',
@@ -92,16 +90,16 @@ def extract_area_from_title(title_lower: str) -> Optional[float]:
         area_match = re.search(pattern, title_lower)
         if area_match:
             try:
-                area_str = area_match.group(1).replace(',', '.') # Convert comma to dot
+                area_str = area_match.group(1).replace(',', '.') # Таслалыг цэгээр хөрвүүлэх
                 extracted_area = float(area_str)
-                if 10 <= extracted_area <= 1000: # Broad range for apartments
+                if 10 <= extracted_area <= 1000: # Орон сууцны өргөн хүрээ
                     return extracted_area
             except ValueError:
                 continue
     return None
 
 def extract_room_count_from_title(title_lower: str) -> Optional[int]:
-    """Extracts room count from a title string using various patterns."""
+    """Өрөөний тоог гарчгийн текстээс янз бүрийн хэв загваруудыг ашиглан авах."""
     room_patterns = [
         r'(\d+)\s*өрөө', r'(\d+)\s*room', r'(\d+)\s*oroo',
     ]
@@ -111,7 +109,7 @@ def extract_room_count_from_title(title_lower: str) -> Optional[int]:
         if room_match:
             try:
                 extracted_rooms = int(room_match.group(1))
-                if 1 <= extracted_rooms <= 10: # Reasonable room counts
+                if 1 <= extracted_rooms <= 10: # Өрөөний бодитой тоо
                     return extracted_rooms
             except ValueError:
                 continue

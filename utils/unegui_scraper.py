@@ -1,4 +1,4 @@
-# real_estate_assistant/scrapers/unegui_scraper.py
+# real_estate_assistant/scrapers/unegui_scraper.py - Унэгүй скрапер
 import logging
 import re
 import httpx
@@ -18,8 +18,8 @@ class UneguiScraper:
 
     async def retrieve_property_details(self, url: str) -> Dict[str, Any]:
         """
-        Retrieves and parses detailed property information from a Unegui.mn individual property page.
-        This extracts comprehensive data from the property detail page structure.
+        Unegui.mn-ийн үл хөдлөх хөрөнгийн хуудаснаас дэлгэрэнгүй мэдээллийг авч задлана.
+        Энэ нь хөрөнгийн дэлгэрэнгүй хуудасны бүтцээс өргөн хүрээтэй өгөгдлийг авдаг.
         """
         logger.debug(f"Fetching detailed property data from: {url}")
         if "unegui.mn" not in url:
@@ -32,18 +32,18 @@ class UneguiScraper:
             soup = BeautifulSoup(response.text, "html.parser")
             property_details = {"url": url, "price_numeric": None, "price_raw": "N/A"}
 
-            # Extract title from h1.title-announcement
+            # h1.title-announcement-аас гарчгийг авах
             title_tag = soup.find("h1", {"class": "title-announcement"})
             property_details['title'] = title_tag.text.strip() if title_tag else "N/A"
             logger.debug(f"Extracted title: {property_details['title']}")
 
-            # Extract location from span with itemprop="address"
+            # itemprop="address" атрибуттай span-аас байршлыг авах
             location_tag = soup.find("span", {"itemprop": "address"})
             if location_tag:
                 full_location_text = location_tag.text.strip()
                 property_details['full_location'] = full_location_text
 
-                # Parse district from location (format: "УБ — Сүхбаатар, 100 айл")
+                # Байршлаас дүүргийг ялгах (формат: "УБ — Сүхбаатар, 100 айл")
                 district_name = "N/A"
                 if "—" in full_location_text:
                     parts = full_location_text.split("—")
@@ -56,10 +56,10 @@ class UneguiScraper:
                 property_details['full_location'] = "N/A"
                 property_details['district'] = "N/A"
 
-            # Extract price from multiple sources
+            # Үнийг олон эх сурвалжаас авах
             price_text_found = "N/A"
 
-            # First, try to get price from data attribute (most reliable)
+            # Эхлээд үнийг data атрибутаас авахыг оролдох (хамгийн найдвартай)
             price_data_attr = soup.find("section", {"data-price": True})
             if price_data_attr:
                 try:
@@ -69,7 +69,7 @@ class UneguiScraper:
                 except (ValueError, TypeError):
                     pass
 
-            # If no data-price, try price containers
+            # Хэрэв data-price байхгүй бол үнийн агуулагчдыг турших
             if property_details['price_numeric'] is None:
                 price_containers = [
                     soup.find("div", {"class": "announcement-price__cost"}),
@@ -118,7 +118,7 @@ class UneguiScraper:
                     property_details[english_key.lower().replace(' ', '_')] = value
                     logger.debug(f"Extracted {mongolian_header}: {value}")
             else:
-                logger.warning(f"Could not find 'chars-column' on {url}")
+                logger.warning(f"Характеристикийн жагсаалтыг олж чадсангүй")
                 for english_key in self.feature_translations.values():
                     property_details[english_key.lower().replace(' ', '_')] = "N/A"
 
@@ -152,7 +152,7 @@ class UneguiScraper:
                 logger.warning(
                     f"❌ Cannot calculate price per sqm: price={property_details['price_numeric']}, area={property_details['area_sqm']}")
 
-            # Extract additional useful information
+            # Нэмэлт ашигтай мэдээллийг авах
             date_meta = soup.find("span", class_="date-meta")
             property_details['published_date'] = date_meta.text.strip() if date_meta else "N/A"
 
@@ -175,7 +175,7 @@ class UneguiScraper:
             return {"url": url, "error": f"Error parsing: {e}"}
 
     def extract_listing_data(self, listing_soup: Any) -> Dict[str, Any]:
-        """Extract data from a single listing element (from a search results page)"""
+        """Хайлтын үр дүнгийн хуудасны нэг жагсаалтын элементээс өгөгдөл авах"""
         prop_data = {}
 
         # Extract title
@@ -213,7 +213,7 @@ class UneguiScraper:
             prop_data['full_location'] = "N/A"
             prop_data['district'] = "N/A"
 
-        # Extract area and room count from title using helper functions
+        # Туслах функцуудыг ашиглан гарчгаас талбай ба өрөөний тоог авах
         title_lower = prop_data['title'].lower()
         prop_data['area_sqm'] = extract_area_from_title(title_lower)
         prop_data['room_count'] = extract_room_count_from_title(title_lower)
@@ -227,5 +227,5 @@ class UneguiScraper:
         return prop_data
 
     async def close(self):
-        """Close the async client"""
+        """Async клиентийг хаах"""
         await self.async_client.aclose()

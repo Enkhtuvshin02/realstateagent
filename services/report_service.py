@@ -1,4 +1,4 @@
-# services/simple_report_service.py - Simplified report service with readable PDFs
+# services/simple_report_service.py - Хялбаршуулсан тайлангийн үйлчилгээ уншихад хялбар PDF-тэй
 import logging
 import json
 import re
@@ -18,7 +18,7 @@ class ReportService:
         self.search_tool = search_tool
 
     def _extract_districts_data_simple(self) -> list:
-        """Extract district data with improved price parsing - prioritizing readability"""
+        """Үнийн задлалтыг сайжруулсан дүүргийн өгөгдлийг авах - уншихад хялбар байхыг чухалчилж байна"""
         if not self.district_analyzer.vectorstore:
             logger.warning("No vectorstore available, using fallback data")
             return self._get_simple_fallback_data()
@@ -40,13 +40,13 @@ class ReportService:
                 if not line:
                     continue
 
-                # Extract district name
+                # Дүүргийн нэр олох
                 if 'Дүүрэг:' in line:
                     district_name = line.replace('Дүүрэг:', '').strip()
                     district_info['name'] = district_name
                     logger.debug(f"Found district: {district_name}")
 
-                # Extract prices with simple parsing
+                # Энгийн задлалтаар үнэ олох
                 elif 'Нийт байрны 1м' in line and 'дундаж үнэ:' in line:
                     price_value = self._extract_price_simple(line)
                     if price_value > 0:
@@ -65,7 +65,7 @@ class ReportService:
                         district_info['three_room_avg'] = price_value
                         logger.debug(f"3-room price: {price_value:,.0f}")
 
-            # Add district if we have name and price
+            # Нэр болон үнэ байвал дүүргийг нэмэх
             if district_info.get('name') and district_info.get('overall_avg', 0) > 0:
                 districts_data.append(district_info)
                 logger.info(f"✅ Added: {district_info['name']} - {district_info['overall_avg']:,.0f} ₮/m²")
@@ -74,7 +74,7 @@ class ReportService:
 
         logger.info(f"Extracted {len(districts_data)} valid districts")
 
-        # Use fallback if extraction failed
+        # Задлал амжилтгүй бол нөөц өгөгдөл ашиглах
         if not districts_data:
             logger.warning("No valid data extracted, using fallback")
             return self._get_simple_fallback_data()
@@ -82,9 +82,9 @@ class ReportService:
         return districts_data
 
     def _extract_price_simple(self, line: str) -> float:
-        """Simple price extraction that handles common formats"""
+        """Түгээмэл форматуудыг боловсруулдаг энгийн үнийн задлалт"""
         try:
-            # Get the part after the colon
+            # Хоёр цэгийн дараахыг авах
             if ':' in line:
                 price_part = line.split(':', 1)[1].strip()
             else:
@@ -92,26 +92,26 @@ class ReportService:
 
             logger.debug(f"Extracting price from: '{price_part}'")
 
-            # Handle "no data" cases
+            # "мэдээлэл байхгүй" тохиолдлуудыг шийдэх
             if any(word in price_part.lower() for word in ['мэдээлэл байхгүй', 'байхгүй', 'n/a']):
                 return 0
 
-            # Remove currency words and symbols
+            # Валютын үг болон тэмдэгтүүдийг арилгах
             clean_text = price_part.replace('төгрөг', '').replace('₮', '').strip()
 
-            # Handle million format
+            # Сая форматыг боловсруулах
             if 'сая' in clean_text.lower():
                 numbers = re.findall(r'(\d+(?:\.\d+)?)', clean_text)
                 if numbers:
                     return float(numbers[0]) * 1_000_000
 
-            # Handle space-separated numbers (e.g., "4 000 323")
-            # Remove spaces and extract numbers
+            # Зайгаар тусгаарлагдсан тоонуудыг боловсруулах (жишээ нь: "4 000 323")
+            # Зайг арилгаж тоо задлах
             number_only = re.sub(r'[^\d]', '', clean_text)
             if number_only:
                 return float(number_only)
 
-            # Direct number extraction
+            # Шууд тоо задлах
             numbers = re.findall(r'(\d+)', clean_text)
             if numbers:
                 return float(numbers[0])
@@ -124,7 +124,7 @@ class ReportService:
             return 0
 
     def _get_simple_fallback_data(self) -> list:
-        """Simple fallback data with realistic prices"""
+        """Бодит үнэтэй энгийн нөөц өгөгдөл"""
         return [
             {'name': 'Сүхбаатар', 'overall_avg': 4500000, 'two_room_avg': 4600000, 'three_room_avg': 4400000},
             {'name': 'Хан-Уул', 'overall_avg': 4000000, 'two_room_avg': 4100000, 'three_room_avg': 3900000},
@@ -137,21 +137,21 @@ class ReportService:
         ]
 
     async def generate_property_report(self, analysis_data: dict) -> dict:
-        """Generate simple, readable property report"""
-        logger.info("📄 Generating simple property report")
+        """Энгийн, уншихад хялбар үл хөдлөх хөрөнгийн тайлан үүсгэх"""
+        logger.info("📄 Тайлан үүсгэж байна")
 
         try:
-            # Check recency
+            # Шинэлэг эсэхийг шалгах
             analysis_time = datetime.fromisoformat(analysis_data["timestamp"])
             time_diff = datetime.now() - analysis_time
 
-            if time_diff.total_seconds() > 600:  # 10 minutes
+            if time_diff.total_seconds() > 600:  # 10 минут
                 return {
                     "message": "Орон сууцны шинжилгээ хуучирсан байна. Дахин шинжилгээ хийнэ үү.",
                     "success": False
                 }
 
-            # Simple search
+            # Энгийн хайлт
             search_results = ""
             if self.search_tool:
                 try:
@@ -164,13 +164,13 @@ class ReportService:
                     logger.error(f"Search failed: {e}")
                     search_results = ""
 
-            # Generate simple analysis
+            # Энгийн шинжилгээ үүсгэх
             detailed_analysis = await self._simple_property_analysis(
                 analysis_data["property_details"],
                 analysis_data["district_analysis"]
             )
 
-            # Generate PDF
+            # PDF үүсгэх
             pdf_path = self.pdf_generator.generate_property_analysis_report(
                 property_data=analysis_data["property_details"],
                 district_analysis=analysis_data["district_analysis"],
@@ -196,14 +196,14 @@ class ReportService:
             }
 
     async def generate_district_report(self) -> dict:
-        """Generate simple, readable district report"""
-        logger.info("📊 Generating simple district report")
+        """Энгийн, уншихад хялбар дүүргийн тайлан үүсгэх"""
+        logger.info("📊 Дүүргийн тайлан үүсгэж байна")
 
         try:
-            # Get fresh data
+            # Шинэ өгөгдөл авах
             await self.district_analyzer.ensure_fresh_data()
 
-            # Extract data with simple parsing
+            # Энгийн задлалтаар өгөгдөл авах
             districts_data = self._extract_districts_data_simple()
 
             if not districts_data:
@@ -212,7 +212,7 @@ class ReportService:
                     "success": False
                 }
 
-            # Simple search
+            # Энгийн хайлт
             search_results = ""
             if self.search_tool:
                 try:
@@ -224,10 +224,10 @@ class ReportService:
                     logger.error(f"Search failed: {e}")
                     search_results = ""
 
-            # Generate simple market analysis
+            # Энгийн зах зээлийн шинжилгээ үүсгэх
             market_trends = await self._simple_market_analysis(districts_data)
 
-            # Generate PDF
+            # PDF үүсгэх
             pdf_path = self.pdf_generator.generate_district_summary_report(
                 districts_data=districts_data,
                 market_trends=market_trends,
@@ -252,13 +252,13 @@ class ReportService:
             }
 
     async def generate_comprehensive_market_report(self) -> dict:
-        """Generate comprehensive report using district report"""
-        logger.info("📈 Generating comprehensive market report")
-        # Use the district report for comprehensive analysis
+        """Дүүргийн тайланг ашиглан иж бүрэн тайлан үүсгэх"""
+        logger.info("📈 Иж бүрэн тайлан үүсгэж байна")
+        # Иж бүрэн шинжилгээнд дүүргийн тайланг ашиглах
         return await self.generate_district_report()
 
     async def _simple_search_summary(self, search_response) -> str:
-        """Simple search result processing"""
+        """Энгийн хайлтын үр дүнгийн боловсруулалт"""
         try:
             search_text = ""
             if isinstance(search_response, list):
@@ -271,10 +271,23 @@ class ReportService:
             if not search_text:
                 return ""
 
-            # Simple prompt for summarizing
+            # Хайлтын үр дүнг нэгтгэх энгийн prompt
             prompt = ChatPromptTemplate.from_messages([
-                ("system", "Та орон сууцны зах зээлийн мэдээллийг товч, ойлгомжтой байдлаар Монгол хэлээр нэгтгэдэг."),
-                ("human", "Дараах мэдээллийг товчлон хэлнэ үү: {content}")
+                ("system", """You are a professional real estate market analyst. Your task is to analyze search results about real estate markets and provide a clear, concise summary.
+
+Guidelines for analysis:
+- Extract key market trends and pricing information
+- Identify important factors affecting the market
+- Note any specific developments or changes
+- Focus on actionable insights for buyers and investors
+- Keep the summary concise but valuable
+- Use specific numbers and data when available
+- Avoid speculation, stick to facts from the search results
+
+IMPORTANT: Write your final response entirely in Mongolian language. Analyze the information thoroughly but present it in clear, readable Mongolian."""),
+                ("human", """Search results about real estate market: {content}
+
+Provide a clear, concise summary of the key market information in Mongolian.""")
             ])
 
             chain = prompt | self.llm | StrOutputParser()
@@ -286,10 +299,30 @@ class ReportService:
             return ""
 
     async def _simple_property_analysis(self, property_details: dict, district_analysis: str) -> str:
-        """Simple property analysis"""
+        """Энгийн үл хөдлөх хөрөнгийн шинжилгээ"""
         prompt = ChatPromptTemplate.from_messages([
-            ("system", "Та орон сууцны шинжээч. Товч, ойлгомжтой шинжилгээг Монгол хэлээр хийнэ үү."),
-            ("human", "Орон сууц: {property}\nДүүрэг: {district}\n\nЭнэ орон сууцны талаар товч дүгнэлт өгнө үү.")
+            ("system", """You are a professional real estate analyst specializing in property evaluation. Your task is to provide a clear, valuable analysis of a specific property.
+
+Analysis structure:
+1. **Property Overview** - Key characteristics and features
+2. **Price Assessment** - Is the price reasonable compared to market?
+3. **Location Analysis** - Strengths and weaknesses of the location
+4. **Investment Potential** - Short-term and long-term outlook
+5. **Recommendations** - Clear advice for potential buyers
+
+For each section:
+- Use specific information from the property details
+- Reference district market data when relevant
+- Provide clear reasoning for your conclusions
+- Be specific and actionable
+- Keep each section concise (2-3 sentences maximum)
+- Include relevant numbers and comparisons
+
+IMPORTANT: Write your final response entirely in Mongolian language. Think through the analysis thoroughly but present it in clear, readable Mongolian."""),
+            ("human", """Property details: {property}
+District analysis: {district}
+
+Provide a comprehensive property analysis with clear recommendations in Mongolian.""")
         ])
 
         chain = prompt | self.llm | StrOutputParser()
@@ -300,10 +333,30 @@ class ReportService:
         return analysis
 
     async def _simple_market_analysis(self, districts_data: list) -> str:
-        """Simple market analysis"""
+        """Энгийн зах зээлийн шинжилгээ"""
         prompt = ChatPromptTemplate.from_messages([
-            ("system", "Та зах зээлийн шинжээч. Дүүргүүдийн мэдээллээс товч дүгнэлт Монгол хэлээр гаргана уу."),
-            ("human", "Дүүргүүдийн мэдээлэл: {data}\n\nЗах зээлийн ерөнхий байдлын талаар товч дүгнэлт өгнө үү.")
+            ("system", """You are a professional real estate market analyst. Your task is to analyze district-level real estate data and provide valuable market insights.
+
+Analysis structure:
+1. **Market Overview** - Current state of the market across districts
+2. **Price Ranges** - Highest to lowest priced districts with specific numbers
+3. **Value Opportunities** - Which districts offer the best value?
+4. **Investment Zones** - Best areas for different types of investors
+5. **Market Trends** - What patterns do you see in the data?
+6. **Strategic Recommendations** - Actionable advice for buyers and investors
+
+For each section:
+- Use specific data and numbers from the district information
+- Calculate price differences and percentages
+- Identify clear patterns and trends
+- Provide actionable insights
+- Keep each section concise but valuable
+- Include specific district names and prices
+
+IMPORTANT: Write your final response entirely in Mongolian language. Analyze the data thoroughly but present insights in clear, readable Mongolian."""),
+            ("human", """District data: {data}
+
+Provide comprehensive market analysis with specific insights and recommendations in Mongolian.""")
         ])
 
         chain = prompt | self.llm | StrOutputParser()

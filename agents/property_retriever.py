@@ -1,9 +1,12 @@
-# real_estate_assistant/agents/property_retriever.py
+# real_estate_assistant/agents/property_retriever.py - Үл хөдлөх хөрөнгийн мэдээлэл авагч
 import logging
 import asyncio
 from collections import defaultdict
 import json
 from typing import Dict, Any, List
+
+import httpx
+from bs4 import BeautifulSoup
 from langchain_core.documents import Document
 
 from utils.unegui_scraper import UneguiScraper
@@ -13,24 +16,23 @@ from config.constants import DISTRICT_URL_PATHS, BASE_LISTING_URL, MAX_PAGES_TO_
 logger = logging.getLogger(__name__)
 
 class PropertyRetriever:
-    def __init__(self, llm=None): # LLM is not directly used in this refactored class, but kept for compatibility
-        self.llm = llm # Consider removing if LLM is not used here
+    def __init__(self, llm=None): # LLM нь энэ шинэчилсэн классд шууд ашиглагдахгүй, гэхдээ нийцтэй байлгахын тулд үлдээсэн
+        self.llm = llm # Хэрэв LLM энд ашиглагдахгүй бол устгаж болно
         self.scraper = UneguiScraper()
         self.aggregator = PropertyAggregator()
         self.district_url_paths = DISTRICT_URL_PATHS
 
     async def retrieve_property_details(self, url: str) -> Dict[str, Any]:
         """
-        Retrieves and parses detailed property information from a Unegui.mn individual property page
-        using the UneguiScraper.
+        Unegui.mn-ийн үл хөдлөх хөрөнгийн дэлгэрэнгүй мэдээллийг UneguiScraper ашиглан авч задлана.
         """
         return await self.scraper.retrieve_property_details(url)
 
     async def retrieve_vector_data(self) -> List[Document]:
         """
-        Scrapes Unegui.mn listing pages to collect real-time data,
-        aggregates average prices by district and room type,
-        and returns Documents for the DistrictAnalyzer's vector store.
+        Unegui.mn жагсаалтын хуудаснуудаас бодит цагийн мэдээлэл цуглуулж,
+        дүүрэг болон өрөөний төрлөөр дундаж үнийг нэгтгэн,
+        DistrictAnalyzer-ийн вектор санд зориулсан Баримтуудыг буцаана.
         """
         aggregated_data = defaultdict(lambda: defaultdict(lambda: {'total_price_per_sqm': 0.0, 'count': 0}))
 
@@ -47,7 +49,7 @@ class PropertyRetriever:
                 if page_num > 1:
                     page_url += f"&page={page_num}"
 
-                logger.info(f"  Scraping page {page_num} for {district_name}: {page_url}")
+                logger.info(f"  {page_num} дахь хуудсыг {district_name} дүүргийн хувьд скрапинг хийж байна: {page_url}")
 
                 try:
                     response = await self.scraper.async_client.get(page_url)
@@ -55,7 +57,7 @@ class PropertyRetriever:
                     soup = BeautifulSoup(response.text, "html.parser")
 
                     listings = soup.find_all("div", class_="advert js-item-listing")
-                    logger.info(f"  Found {len(listings)} listings on page {page_num}")
+                    logger.info(f"  {page_num} дахь хуудсанд {len(listings)} мэдээлэл олдсон")
 
                     for listing in listings:
                         try:
@@ -138,5 +140,5 @@ class PropertyRetriever:
         return district_documents
 
     async def close(self):
-        """Close the async client in the scraper."""
+        """Скрапер дахь async клиентийг хаана."""
         await self.scraper.close()

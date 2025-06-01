@@ -1,4 +1,4 @@
-# agents/chain_of_thought_agent.py - COMPLETELY IMPROVED VERSION
+# agents/chain_of_thought_agent.py - ENHANCED VERSION WITH ENGLISH PROMPTS
 import logging
 import json
 from datetime import datetime
@@ -12,8 +12,8 @@ logger = logging.getLogger(__name__)
 
 class ChainOfThoughtAgent:
     """
-    Improved Chain-of-Thought reasoning agent that provides clear, valuable analysis
-    with concise steps and actionable insights.
+    Enhanced Chain of Thought Agent that provides clear, valuable analysis
+    with concise steps and actionable insights using English prompts for better reasoning.
     """
 
     def __init__(self, llm):
@@ -25,10 +25,10 @@ class ChainOfThoughtAgent:
                                               data: Dict[str, Any],
                                               user_query: str) -> str:
         """
-        Enhance response with clear, valuable chain-of-thought reasoning
+        Enhance response with clear, valuable chain of thought reasoning
         """
         try:
-            # Get the appropriate reasoning template based on analysis type
+            # Get available analysis types
             if analysis_type == "property_analysis":
                 enhanced_response = await self._property_cot_analysis(original_response, data, user_query)
             elif analysis_type == "district_comparison":
@@ -36,7 +36,7 @@ class ChainOfThoughtAgent:
             elif analysis_type == "market_research":
                 enhanced_response = await self._market_cot_analysis(original_response, data, user_query)
             else:
-                # For other types, just return original with minimal enhancement
+                # Fallback for other types
                 return f"**💡 Шинжилгээ:**\n{original_response}"
 
             return enhanced_response
@@ -46,34 +46,31 @@ class ChainOfThoughtAgent:
             return original_response
 
     async def _property_cot_analysis(self, original_response: str, data: Dict[str, Any], user_query: str) -> str:
-        """Generate clear property analysis with reasoning steps"""
+        """Generate property analysis with clear reasoning steps"""
 
         prompt = ChatPromptTemplate.from_messages([
-            ("system", """You are a real estate expert. Provide clear, step-by-step analysis of a property with ACTIONABLE insights.
+            ("system", """You are a professional real estate analyst. Your task is to provide clear, valuable analysis with specific reasoning steps.
 
-Create a structured analysis with these sections:
-1. **Үнийн шинжилгээ** - Is the price fair? Compare to market averages
-2. **Байршлын давуу тал** - Location advantages and disadvantages  
-3. **Хөрөнгө оруулалтын үнэлгээ** - Investment potential with specific numbers
-4. **Эрсдлийн үнэлгээ** - What could go wrong?
-5. **Практик зөвлөмж** - Specific actionable advice
+Analyze the property data and provide insights in the following structure:
+1. **Price Analysis** - What does the pricing indicate?
+2. **Location Advantages** - Strengths and weaknesses of the location
+3. **Investment Evaluation** - Investment potential assessment
+4. **Risk Assessment** - What could go wrong?
+5. **Practical Recommendations** - Specific actionable advice
 
 For each section:
-- Be specific with numbers and facts
-- Provide clear reasoning 
-- Give actionable insights
-- Keep each section 2-3 sentences maximum
+- Use specific numbers and facts from the data
+- Show clear reasoning steps (because X, therefore Y)
+- Provide valuable insights that help decision-making
+- Keep each section to 2-3 sentences maximum
+- Be specific and actionable, avoid vague statements
 
-IMPORTANT: 
-- Write ONLY in Mongolian
-- Be concise and valuable
-- Focus on insights the user can act on
-- No repetition or filler content"""),
+CRITICAL: Your final response must be written entirely in Mongolian language. Think through the analysis in English, but write your final answer in Mongolian."""),
             ("human", """Property data: {property_data}
 
 User question: {user_query}
 
-Provide clear, valuable property analysis with step-by-step reasoning in Mongolian.""")
+Provide detailed property analysis with clear reasoning steps. Write your final response in Mongolian.""")
         ])
 
         chain = prompt | self.llm | StrOutputParser()
@@ -94,34 +91,32 @@ Provide clear, valuable property analysis with step-by-step reasoning in Mongoli
         return enhanced_response
 
     async def _district_cot_analysis(self, original_response: str, data: Dict[str, Any], user_query: str) -> str:
-        """Generate clear district analysis with reasoning steps"""
+        """Generate district analysis with clear reasoning steps"""
 
         prompt = ChatPromptTemplate.from_messages([
-            ("system", """You are a real estate market analyst. Provide clear district analysis with SPECIFIC insights.
+            ("system", """You are a professional real estate market analyst specializing in district comparisons. Your task is to provide clear, valuable analysis with specific reasoning steps.
 
-Create structured analysis with these sections:
-1. **Үнийн байдал** - Current price levels with specific numbers
-2. **Харьцуулалт** - How it compares to other districts (be specific)
-3. **Хөрөнгө оруулалтын боломж** - Investment opportunities with ROI estimates
-4. **Худалдан авагчдад зөвлөмж** - Who should buy here and why
-5. **Ирээдүйн төлөв** - What to expect in 1-2 years
+Analyze the district data and provide insights in the following structure:
+1. **Price Situation** - What do the prices indicate?
+2. **Comparative Analysis** - How does it compare to other districts?
+3. **Investment Opportunities** - Investment potential assessment
+4. **Buyer Recommendations** - Advice for different types of buyers
+5. **Future Outlook** - What to expect in the coming months
 
 For each section:
-- Use specific numbers and percentages
-- Give clear comparisons
-- Provide actionable advice
-- Maximum 2-3 sentences per section
+- Use specific numbers and facts from the data
+- Show clear reasoning steps (because X, therefore Y)
+- Provide valuable insights that help decision-making
+- Keep each section to 2-3 sentences maximum
+- Be specific and actionable, avoid vague statements
+- Compare with other districts when relevant
 
-IMPORTANT:
-- Write ONLY in Mongolian  
-- Be specific and valuable
-- No repetitive content
-- Focus on actionable insights"""),
+CRITICAL: Your final response must be written entirely in Mongolian language. Think through the analysis in English, but write your final answer in Mongolian."""),
             ("human", """District data: {district_data}
 
 User question: {user_query}
 
-Provide clear, valuable district analysis with reasoning in Mongolian.""")
+Provide detailed district analysis with clear reasoning steps. Write your final response in Mongolian.""")
         ])
 
         chain = prompt | self.llm | StrOutputParser()
@@ -144,31 +139,30 @@ Provide clear, valuable district analysis with reasoning in Mongolian.""")
         """Generate clear market research analysis"""
 
         prompt = ChatPromptTemplate.from_messages([
-            ("system", """You are a market research expert. Provide clear market analysis with SPECIFIC insights.
+            ("system", """You are a professional real estate market research analyst. Your task is to provide clear, valuable market analysis with specific reasoning steps.
 
-Create analysis with these sections:
-1. **Одоогийн зах зээлийн нөхцөл** - Current market state with facts
-2. **Үнийн чиглэл** - Price trends with specific predictions  
-3. **Хөрөнгө оруулалтын боломж** - Best investment opportunities now
-4. **Эрсдэл** - What risks to watch for
-5. **Стратеги зөвлөмж** - What to do in next 6 months
+Analyze the market data and provide insights in the following structure:
+1. **Current Market Conditions** - What is the current state of the market?
+2. **Price Trends** - Where are prices heading and why?
+3. **Investment Opportunities** - Best investment potential assessment
+4. **Risk Factors** - What risks should investors be aware of?
+5. **Strategic Recommendations** - What should be done in the next 6 months?
 
 For each section:
-- Use specific data from search results
-- Give timeline-based advice
-- Provide clear action items
-- Maximum 2-3 sentences per section
+- Use specific data from search results and market indicators
+- Show clear reasoning steps (because X, therefore Y)
+- Give timeline-based advice with specific timeframes
+- Provide clear action items that can be implemented
+- Keep each section to 2-3 sentences maximum
+- Be specific and actionable, no vague statements
+- Focus on what the user should actually do
 
-IMPORTANT:
-- Write ONLY in Mongolian
-- Be specific and actionable  
-- No vague statements
-- Focus on what user should do"""),
+CRITICAL: Your final response must be written entirely in Mongolian language. Think through the analysis in English, but write your final answer in Mongolian."""),
             ("human", """Market data: {market_data}
 
 User question: {user_query}
 
-Provide clear, valuable market analysis with reasoning in Mongolian.""")
+Provide clear, valuable market analysis with reasoning steps. Write your final response in Mongolian.""")
         ])
 
         chain = prompt | self.llm | StrOutputParser()
@@ -192,10 +186,11 @@ Provide clear, valuable market analysis with reasoning in Mongolian.""")
         return ["property_analysis", "district_comparison", "market_research"]
 
     def get_reasoning_stats(self) -> Dict[str, Any]:
-        """Get statistics about reasoning performance"""
+        """Get reasoning performance statistics"""
         return {
             "available_templates": 3,
             "analysis_types": self.get_analysis_types(),
             "last_updated": datetime.now().isoformat(),
-            "approach": "concise_valuable_insights"
+            "approach": "english_prompts_mongolian_output",
+            "reasoning_method": "step_by_step_with_because_therefore_logic"
         }
