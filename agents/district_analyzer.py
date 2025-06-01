@@ -183,6 +183,8 @@ class DistrictAnalyzer:
         else:
             logger.info("📊 Using cached data (fresh)")
 
+    # Fix for district_analyzer.py - Update the analyze_district method
+
     async def analyze_district(self, location: str) -> str:
         """
         Analyzes district information based on the provided location,
@@ -196,21 +198,60 @@ class DistrictAnalyzer:
         # Check what districts are available in vectorstore
         available_docs = list(self.vectorstore.docstore._dict.values())
         available_districts = []
+        all_district_data = []
+
         for doc in available_docs:
             lines = doc.page_content.split('\n')
             district_line = lines[0] if lines else ""
             if 'Дүүрэг:' in district_line:
                 district_name = district_line.replace('Дүүрэг:', '').strip()
                 available_districts.append(district_name)
+                all_district_data.append(doc.page_content)
 
         logger.info(f"📊 Available districts in vectorstore: {', '.join(available_districts)}")
 
-        # Retrieve relevant district info from vectorstore with scores
+        # Check if this is a comparison query (asking for all districts)
+        comparison_keywords = ['бүх дүүрэг', 'дүүрэг харьцуулах', 'дүүргүүд', 'харьцуулалт', 'compare', 'all districts']
+        is_comparison_query = any(keyword in location.lower() for keyword in comparison_keywords)
+
+        if is_comparison_query:
+            logger.info("🔄 Detected comparison query - analyzing all districts")
+            # Return comprehensive comparison of all districts
+            all_districts_content = "\n\n".join(all_district_data)
+
+            prompt_template = """
+            You are a real estate market analyst specializing in Ulaanbaatar districts. Provide a comprehensive comparison of ALL districts based on the available data.
+
+            Create a detailed comparison that includes:
+            1. Overview of all districts with their average prices
+            2. Price ranking from most expensive to least expensive
+            3. District categories (premium, mid-range, affordable)
+            4. Investment recommendations for different buyer types
+            5. Best value districts and reasons why
+            6. Market trends and insights
+
+            Location query: {location}
+            All districts data:
+            <context>
+            {price_context}
+            </context>
+
+            IMPORTANT: Respond ONLY in Mongolian language with comprehensive district comparison.
+            """
+
+            ANALYZE_PROMPT = PromptTemplate.from_template(prompt_template)
+            analysis_chain = ANALYZE_PROMPT | self.llm | StrOutputParser()
+
+            response = await analysis_chain.ainvoke({
+                "location": location,
+                "price_context": all_districts_content
+            })
+
+            logger.info(f"District comparison response generated (first 100 chars): {response[:100]}...")
+            return response
+
+        # For specific district queries, use existing logic
         retrieved_results = self.vectorstore.similarity_search_with_score(location, k=len(available_docs))
-
-        logger.debug(f"Retrieved {len(retrieved_results)} documents for '{location}'.")
-
-        # Sort by score (lower score is more similar for FAISS cosine distance)
         retrieved_results.sort(key=lambda x: x[1])
 
         # Find the best match
@@ -234,30 +275,32 @@ class DistrictAnalyzer:
             logger.info(f"Retrieved district info: {retrieved_content.splitlines()[0]}...")
             logger.debug(f"Full retrieved_content being passed to LLM: \n{retrieved_content}")
         else:
-            # Fallback if no exact district name is found
-            retrieved_content = "Тус байршилд хамаарах дүүргийн мэдээлэл олдсонгүй."
+            # If no specific district found, provide general info about available districts
+            retrieved_content = f"Одоогоор дараах дүүргүүдийн мэдээлэл байгаа: {', '.join(available_districts)}. Тодорхой дүүргийн нэрийг дурдаж асуулт асуугаарай."
             logger.warning(
-                f"❌ No exact district information found in vectorstore for: '{location}'. Falling back to generic message.")
+                f"❌ No exact district information found in vectorstore for: '{location}'. Providing available districts list.")
 
         prompt_template = """
-        Өгөгдсөн байршил болон үнийн мэдээллийг ашиглан дүүргийн дундаж үнийг харуулж, бусад дүүргүүдтэй харьцуулсан мэдээлэл өгнө үү.
-        Хэрэв өгөгдсөн "Үнийн мэдээлэл" хэсэгт тухайн "Байршил"-ийн үнийн дэлгэрэнгүй мэдээлэл байхгүй бол "мэдээлэл байхгүй" гэж заана уу.
+        You are a real estate market analyst specializing in Ulaanbaatar districts. Analyze the district information and provide insights based on the available data.
 
-        Байршил: {location}
-        Үнийн мэдээлэл:
+        If specific district data is available, provide:
+        1. District name and location
+        2. Average prices for different property types
+        3. Comparison with other districts
+        4. Investment potential and recommendations
+        5. Market characteristics and trends
+
+        If no specific district is found, guide the user to ask about available districts.
+
+        Location query: {location}
+        Available data:
         <context>
         {price_context}
         </context>
 
-        Таны хариулт дараах форматыг хатуу мөрдөнө (нэмэлт текстгүйгээр, зөвхөн Монгол хэлээр):
-           - Дүүрэг: [Дүүргийн нэр]
-               - Нийт байрны 1м2 дундаж үнэ: [Үнэ эсвэл "мэдээлэл байхгүй"]
-               - 2 өрөө байрны 1м2 дундаж үнэ: [Үнэ эсвэл "мэдээлэл байхгүй"]
-               - 3 өрөө байрны 1м2 дундаж үнэ: [Үнэ эсвэл "мэдээлэл байхгүй"]
-           - Харьцуулалт: [Бусад дүүргүүдийн дундаж үнээс дээш эсвэл доош байгаа эсэх мэдээлэл, эсвэл "харьцуулах мэдээлэл байхгүй"]
-
-        Таны хариулт:
+        IMPORTANT: Focus ONLY on Mongolian real estate market data. Do NOT reference any foreign markets (US, Europe, etc.). Respond ONLY in Mongolian language.
         """
+
         ANALYZE_PROMPT = PromptTemplate.from_template(prompt_template)
         analysis_chain = ANALYZE_PROMPT | self.llm | StrOutputParser()
 
@@ -268,6 +311,7 @@ class DistrictAnalyzer:
             "location": location,
             "price_context": retrieved_content
         })
+
         logger.info(f"District analysis LLM raw response (first 100 chars): {response[:100]}...")
         return response
 

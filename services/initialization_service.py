@@ -1,4 +1,3 @@
-# services/initialization_service.py
 import os
 import logging
 from langchain_together import ChatTogether
@@ -6,10 +5,56 @@ from langchain_community.tools.tavily_search import TavilySearchResults
 
 from agents.property_retriever import PropertyRetriever
 from agents.district_analyzer import DistrictAnalyzer
-from utils.pdf_generator import PDFReportGenerator
+from reportlab.lib import colors
+from reportlab.lib.pagesizes import letter
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 
 logger = logging.getLogger(__name__)
 
+
+class PDFReportGenerator:
+    def __init__(self):
+        self.styles = getSampleStyleSheet()
+        self.custom_style = ParagraphStyle(
+            'CustomStyle',
+            parent=self.styles['Normal'],
+            fontSize=12,
+            leading=16
+        )
+
+    def generate_pdf(self, html_content, output_path):
+        """
+        Generate PDF from content
+        :param html_content: Content to convert (will be stripped of HTML tags)
+        :param output_path: Output PDF file path
+        """
+        try:
+            # Create the PDF document
+            doc = SimpleDocTemplate(output_path, pagesize=letter)
+            story = []
+
+            # Convert HTML-like content to basic text
+            # This is a simple approach - you might want to enhance this based on your needs
+            content = html_content.replace('<br>', '\n').replace('<p>', '').replace('</p>', '\n\n')
+            
+            # Split content into paragraphs
+            paragraphs = content.split('\n\n')
+            
+            for para in paragraphs:
+                if para.strip():
+                    p = Paragraph(para.strip(), self.custom_style)
+                    story.append(p)
+                    story.append(Spacer(1, 12))
+
+            # Build the PDF
+            doc.build(story)
+            logging.info(f"PDF generated successfully: {output_path}")
+            return True
+
+        except Exception as e:
+            logging.error(f"Failed to generate PDF: {str(e)}")
+            return False
 
 class InitializationService:
     def __init__(self):

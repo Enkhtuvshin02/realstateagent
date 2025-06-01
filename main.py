@@ -1,3 +1,4 @@
+# main.py - Fixed WeasyPrint import error handling
 import os
 import logging
 import asyncio
@@ -5,656 +6,393 @@ from datetime import datetime
 from pathlib import Path
 from dotenv import load_dotenv
 from fastapi import FastAPI, Request, Form
-from fastapi.responses import HTMLResponse, FileResponse
+from fastapi.responses import HTMLResponse, FileResponse, JSONResponse
 from fastapi.templating import Jinja2Templates
-import re
-import json
-
-from langchain_together import ChatTogether
-from langchain_community.tools.tavily_search import TavilySearchResults
-from langchain_core.prompts import ChatPromptTemplate
-from langchain_core.output_parsers import StrOutputParser
 
 # Import our services and agents
-from services.report_service import ReportService
-from agents.property_retriever import PropertyRetriever
-from agents.district_analyzer import DistrictAnalyzer
-from utils.pdf_generator import PDFReportGenerator
+from services.chat_service import ChatService
+from services.initialization_service import InitializationService
 
 # Load environment variables
 load_dotenv()
 
-# Configure logging
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+# Configure logging with better formatting
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.StreamHandler(),
+        logging.FileHandler('real_estate_assistant.log')
+    ]
+)
 logger = logging.getLogger(__name__)
 
+# Check WeasyPrint availability with proper error handling
+WEASYPRINT_AVAILABLE = False
+WEASYPRINT_ERROR = None
+
+try:
+    import weasyprint
+
+    WEASYPRINT_AVAILABLE = True
+    logger.info("✅ WeasyPrint available - Professional PDF generation enabled")
+except ImportError as e:
+    WEASYPRINT_ERROR = "WeasyPrint not installed"
+    logger.warning("⚠️ WeasyPrint not available - Install with: pip install weasyprint")
+    logger.warning(f"Import error: {e}")
+except OSError as e:
+    WEASYPRINT_ERROR = f"WeasyPrint system dependencies missing: {e}"
+    logger.error("❌ WeasyPrint system dependencies missing!")
+    logger.error(f"Error: {e}")
+    logger.info("🔧 Fix on macOS:")
+    logger.info(
+        "  1. Install Homebrew: /bin/bash -c \"$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)\"")
+    logger.info("  2. Install dependencies: brew install pango gdk-pixbuf libffi")
+    logger.info("  3. Reinstall WeasyPrint: pip uninstall weasyprint && pip install weasyprint")
+except Exception as e:
+    WEASYPRINT_ERROR = f"Unexpected WeasyPrint error: {e}"
+    logger.error(f"❌ Unexpected WeasyPrint error: {e}")
+
 # --- FastAPI App Setup ---
-app = FastAPI(title="Real Estate Assistant Chatbot")
+app = FastAPI(
+    title="Professional Real Estate Assistant",
+    description="Enhanced Real Estate Assistant with PDF Reports and Chain-of-Thought Analysis",
+    version="2.0.0"
+)
 templates = Jinja2Templates(directory="templates")
 
 # Global variables
-llm = None
-search_tool = None
-property_retriever_agent = None
-district_analyzer_agent = None
-pdf_generator = None
-report_service = None
-
-# Store last analyses
-last_property_analysis = None
-last_district_analysis = None
+initialization_service = None
+chat_service = None
 
 
 @app.on_event("startup")
 async def startup_event():
-    """Initialize everything on startup"""
-    global llm, search_tool, property_retriever_agent, district_analyzer_agent, pdf_generator, report_service
+    """Initialize everything on startup with better error handling"""
+    global initialization_service, chat_service
 
-    logger.info("🚀 Starting Enhanced Real Estate Assistant...")
+    logger.info("🚀 Starting Professional Real Estate Assistant v2.0...")
 
-    # Check API keys
-    together_api_key = os.getenv("TOGETHER_API_KEY")
-    tavily_api_key = os.getenv("TAVILY_API_KEY")
+    if WEASYPRINT_AVAILABLE:
+        logger.info("📄 Professional PDF generation with WeasyPrint enabled")
+        logger.info("✨ Features: HTML/CSS styling, professional layout, excellent structure")
+    else:
+        logger.info("📄 Using fallback PDF generation (ReportLab)")
+        if WEASYPRINT_ERROR:
+            logger.warning(f"WeasyPrint issue: {WEASYPRINT_ERROR}")
+        logger.info("💡 For professional PDFs, install WeasyPrint dependencies:")
+        logger.info("  brew install pango gdk-pixbuf libffi")
+        logger.info("  pip install weasyprint")
 
-    if not together_api_key or not tavily_api_key:
-        logger.error("Missing API keys in environment variables")
-        raise ValueError("API keys not found")
+    try:
+        # Initialize all services
+        initialization_service = InitializationService()
+        await initialization_service.initialize()
 
-    # Initialize LLM
-    logger.info("🤖 Initializing LLM...")
-    llm = ChatTogether(
-        together_api_key=together_api_key,
-        model="meta-llama/Meta-Llama-3-70B-Instruct-Turbo",
-        temperature=0.7
-    )
+        # Create chat service with all components
+        chat_service = ChatService(
+            llm=initialization_service.llm,
+            search_tool=initialization_service.search_tool,
+            property_retriever=initialization_service.property_retriever_agent,
+            district_analyzer=initialization_service.district_analyzer_agent,
+            pdf_generator=initialization_service.pdf_generator
+        )
 
-    # Initialize search tool
-    logger.info("🔍 Initializing search tool...")
-    search_tool = TavilySearchResults(
-        max_results=5,
-        search_depth="advanced",
-        include_answer=True,
-        tavily_api_key=tavily_api_key
-    )
+        logger.info("✅ All components initialized successfully!")
+        logger.info("🧠 Chain-of-Thought reasoning is active!")
 
-    # Initialize agents
-    logger.info("🏠 Initializing property retriever...")
-    property_retriever_agent = PropertyRetriever(llm=llm)
+        if WEASYPRINT_AVAILABLE:
+            logger.info("📋 Professional PDF reports with excellent structure enabled!")
+        else:
+            logger.info("📋 Basic PDF reports enabled (upgrade to WeasyPrint for professional quality)")
 
-    logger.info("📊 Initializing district analyzer...")
-    district_analyzer_agent = DistrictAnalyzer(llm=llm, property_retriever=property_retriever_agent)
+        # Log system capabilities
+        logger.info("🔍 Available features:")
+        logger.info("  • Property URL analysis with unegui.mn integration")
+        logger.info("  • District comparison across 9 Ulaanbaatar districts")
+        logger.info("  • Real-time market research with internet search")
+        logger.info("  • Chain-of-Thought enhanced reasoning")
+        logger.info(f"  • {'Professional' if WEASYPRINT_AVAILABLE else 'Basic'} PDF report generation")
 
-    logger.info("📄 Initializing PDF generator...")
-    pdf_generator = PDFReportGenerator()
-
-    # Initialize report service with search integration
-    logger.info("📋 Initializing report service...")
-    report_service = ReportService(
-        llm=llm,
-        district_analyzer=district_analyzer_agent,
-        pdf_generator=pdf_generator,
-        search_tool=search_tool
-    )
-
-    logger.info("✅ All components initialized successfully!")
+    except Exception as e:
+        logger.error(f"❌ Failed to initialize services: {e}")
+        logger.error("🔧 Please check your environment variables and dependencies")
+        raise
 
 
 @app.on_event("shutdown")
 async def shutdown_event():
     """Cleanup on shutdown"""
-    if property_retriever_agent:
-        await property_retriever_agent.close()
+    if initialization_service:
+        await initialization_service.cleanup()
+        logger.info("🧹 Services cleaned up successfully")
 
 
-def is_report_request(message: str) -> bool:
-    """Check if user wants a report"""
-    keywords = [
-        'тайлан', 'report', 'pdf', 'татаж авах', 'тиймээ', 'yes', 'тиим',
-        'дэлгэрэнгүй тайлан', 'иж бүрэн тайлан', 'зах зээлийн тайлан'
-    ]
-    return any(keyword in message.lower() for keyword in keywords)
-
-
-def get_report_type(message: str) -> str:
-    """Determine what type of report is being requested"""
-    message_lower = message.lower()
-
-    if any(keyword in message_lower for keyword in ['дүүргийн тайлан', 'дүүрэг харьцуулах', 'бүх дүүрэг']):
-        return "district"
-    elif any(keyword in message_lower for keyword in ['иж бүрэн', 'дэлгэрэнгүй зах зээл', 'зах зээлийн тайлан']):
-        return "comprehensive"
-    elif last_property_analysis:
-        return "property"
-    else:
-        return "district"  # Default to district report
-
-
-def is_district_query(message: str) -> bool:
-    """Check if message is about districts"""
-    districts = ["хан-уул", "баянгол", "сүхбаатар", "чингэлтэй", "баянзүрх", "сонгинохайрхан"]
-    location_keywords = ["дүүрэг", "байршил", "хот", "газар"]
-    comparison_keywords = ["харьцуулалт", "харьцуулах", "бүх дүүрэг", "дүүргүүд"]
-
-    message_lower = message.lower()
-    return (any(d in message_lower for d in districts) or
-            any(k in message_lower for k in location_keywords) or
-            any(c in message_lower for c in comparison_keywords))
-
-
-async def process_property_url(url: str, user_message: str) -> dict:
-    """Process property URL"""
-    global last_property_analysis
-
-    try:
-        logger.info(f"🏠 Processing property URL: {url}")
-
-        # Get property details
-        property_details = await property_retriever_agent.retrieve_property_details(url)
-
-        if property_details.get("error"):
-            return {
-                "response": f"Мэдээлэл татаж авахад алдаа гарлаа: {property_details['error']}",
-                "offer_report": False
-            }
-
-        # Get district analysis
-        location = property_details.get("district", "Улаанбаатар")
-        if location and location != "N/A":
-            district_analysis = await district_analyzer_agent.analyze_district(location)
-        else:
-            district_analysis = "Дүүргийн мэдээлэл тодорхойгүй байна."
-
-        # Store for reports
-        last_property_analysis = {
-            "property_details": property_details,
-            "district_analysis": district_analysis,
-            "url": url,
-            "timestamp": datetime.now().isoformat()
-        }
-
-        # Check if user explicitly asked for report in the message
-        if any(keyword in user_message.lower() for keyword in ['тайлан', 'report', 'pdf']):
-            # Generate report immediately
-            report_result = await report_service.generate_property_report(last_property_analysis)
-            if isinstance(report_result, dict) and report_result.get("success"):
-                return {
-                    "response": report_result["message"],
-                    "download_url": report_result["download_url"],
-                    "filename": report_result["filename"],
-                    "offer_report": False,
-                    "report_generated": True
-                }
-            else:
-                return {
-                    "response": str(report_result),
-                    "offer_report": False
-                }
-
-        # Generate response with search integration
-        prompt = ChatPromptTemplate.from_messages([
-            ("system", """Та бол үл хөдлөх хөрөнгийн мэргэжилтэн. Орон сууцны мэдээллийг Монгол хэлээр дэлгэрэнгүй тайлбарлана уу. 
-
-Дараах зүйлсийг тусгана уу:
-- Орон сууцны үндсэн мэдээлэл
-- Үнийн шинжилгээ
-- Дүүргийн харьцуулалт
-- Практик зөвлөмж
-
-Зөвхөн Монгол хэлээр хариулна уу."""),
-            ("human", """Хэрэглэгчийн асуулт: {query}
-Орон сууц: {property_details}  
-Дүүргийн шинжилгээ: {district_analysis}
-
-Хэрэглэгчийн асуултад Монгол хэлээр дэлгэрэнгүй хариулна уу.""")
-        ])
-
-        chain = prompt | llm | StrOutputParser()
-        response = await chain.ainvoke({
-            "query": user_message,
-            "property_details": json.dumps(property_details, ensure_ascii=False),
-            "district_analysis": district_analysis
-        })
-
-        return {
-            "response": response,
-            "offer_report": True,
-            "report_type": "property",
-            "ask_for_report": True
-        }
-
-    except Exception as e:
-        logger.error(f"❌ Error processing URL: {e}")
-        return {
-            "response": f"URL боловсруулахад алдаа гарлаа: {str(e)}",
-            "offer_report": False
-        }
-
-
-async def process_district_query(user_message: str) -> dict:
-    """Process district query"""
-    global last_district_analysis
-
-    try:
-        logger.info("📍 Processing district query")
-
-        # Extract specific district name if present
-        district_name = extract_district_name(user_message)
-        logger.info(f"📍 Extracted district name: {district_name}")
-
-        # Use the specific district name or the full query for analysis
-        query_for_analysis = district_name if district_name else user_message
-
-        # Get district analysis
-        district_analysis = await district_analyzer_agent.analyze_district(query_for_analysis)
-
-        # Store for reports
-        last_district_analysis = {
-            "district_analysis": district_analysis,
-            "query": user_message,
-            "timestamp": datetime.now().isoformat()
-        }
-
-        # Check if user explicitly asked for report in the message
-        if any(keyword in user_message.lower() for keyword in ['тайлан', 'report', 'pdf']):
-            # Generate report immediately
-            report_result = await report_service.generate_district_report()
-            if isinstance(report_result, dict) and report_result.get("success"):
-                return {
-                    "response": report_result["message"],
-                    "download_url": report_result["download_url"],
-                    "filename": report_result["filename"],
-                    "offer_report": False,
-                    "report_generated": True
-                }
-            else:
-                return {
-                    "response": str(report_result),
-                    "offer_report": False
-                }
-
-        # Generate response
-        prompt = ChatPromptTemplate.from_messages([
-            ("system", "Та бол үл хөдлөх хөрөнгийн туслах. Дүүргийн шинжилгээг Монгол хэлээр тайлбарлана уу."),
-            ("human",
-             "Дүүргийн шинжилгээ: {district_analysis}\nХэрэглэгчийн асуулт: {query}\n\nМонгол хэлээр хариулна уу.")
-        ])
-
-        chain = prompt | llm | StrOutputParser()
-        response = await chain.ainvoke({
-            "district_analysis": district_analysis,
-            "query": user_message
-        })
-
-        # Check if comprehensive query that might need report
-        message_lower = user_message.lower()
-        if any(keyword in message_lower for keyword in ["бүх дүүрэг", "харьцуулах", "дэлгэрэнгүй"]):
-            return {
-                "response": response,
-                "offer_report": True,
-                "report_type": "district",
-                "ask_for_report": True
-            }
-        else:
-            return {
-                "response": response,
-                "offer_report": False
-            }
-
-    except Exception as e:
-        logger.error(f"❌ Error processing district query: {e}")
-        return {
-            "response": "Дүүргийн мэдээлэл боловсруулахад алдаа гарлаа.",
-            "offer_report": False
-        }
-
-
-def extract_district_name(message: str) -> str:
-    """Extract district name from message"""
-    districts_mapping = {
-        "хан-уул": "Хан-Уул",
-        "баянгол": "Баянгол",
-        "сүхбаатар": "Сүхбаатар",
-        "чингэлтэй": "Чингэлтэй",
-        "баянзүрх": "Баянзүрх",
-        "сонгинохайрхан": "Сонгинохайрхан",
-        "багануур": "Багануур",
-        "налайх": "Налайх",
-        "багахангай": "Багахангай"
-    }
-
-    message_lower = message.lower()
-    for district_key, district_name in districts_mapping.items():
-        if district_key in message_lower:
-            return district_name
-    return None
-
-
-async def process_general_query(user_message: str) -> dict:
-    """Process general query with search"""
-    try:
-        logger.info("🔍 Processing general query with search")
-
-        # Search for relevant information
-        search_results = search_tool.invoke({"query": user_message})
-
-        # Clean search results to remove problematic content
-        cleaned_results = clean_search_results(search_results)
-
-        # Generate response
-        prompt = ChatPromptTemplate.from_messages([
-            ("system", """Та бол үл хөдлөх хөрөнгийн туслах. Интернэт хайлтын үр дүнд үндэслэн хэрэглэгчийн асуултад Монгол хэлээр хариулна уу. 
-
-Монгол улсын үл хөдлөх хөрөнгийн зах зээлд анхаарлаа хандуулна уу. Зөвхөн Монгол хэлээр хариулна уу."""),
-            ("human", "Асуулт: {query}\nХайлтын үр дүн: {search_results}\n\nМонгол хэлээр хариулна уу.")
-        ])
-
-        chain = prompt | llm | StrOutputParser()
-        response = await chain.ainvoke({
-            "query": user_message,
-            "search_results": cleaned_results
-        })
-
-        return {
-            "response": response,
-            "offer_report": False
-        }
-
-    except Exception as e:
-        logger.error(f"❌ Error processing general query: {e}")
-        return {
-            "response": "Хайлт хийхэд алдаа гарлаа.",
-            "offer_report": False
-        }
-
-
-def clean_search_results(search_results) -> str:
-    """Clean search results to remove problematic content"""
-    try:
-        if isinstance(search_results, list):
-            cleaned_content = []
-            for result in search_results:
-                if isinstance(result, dict):
-                    # Extract text content and clean it
-                    content = result.get('content', '') or result.get('snippet', '') or result.get('title', '')
-                    if content:
-                        # Remove image markdown syntax and other problematic patterns
-                        content = re.sub(r'!\[.*?\]\(.*?\)', '', content)  # Remove ![](url) patterns
-                        content = re.sub(r'\[.*?\]\(.*?\)', '', content)  # Remove [text](url) patterns
-                        content = re.sub(r'<[^>]*>', '', content)  # Remove HTML tags
-                        content = re.sub(r'\s+', ' ', content).strip()  # Normalize whitespace
-                        if content and len(content) > 10:  # Only include meaningful content
-                            cleaned_content.append(content)
-
-            return ' '.join(cleaned_content[:5])  # Limit to first 5 results
-        else:
-            # Handle string results
-            content = str(search_results)
-            content = re.sub(r'!\[.*?\]\(.*?\)', '', content)
-            content = re.sub(r'\[.*?\]\(.*?\)', '', content)
-            content = re.sub(r'<[^>]*>', '', content)
-            content = re.sub(r'\s+', ' ', content).strip()
-            return content[:1000]  # Limit length
-
-    except Exception as e:
-        logger.error(f"Error cleaning search results: {e}")
-        return "Хайлтын үр дүнг боловсруулахад алдаа гарлаа."
-
-
-async def generate_report(report_type: str) -> dict:
-    """Generate report based on type"""
-    try:
-        logger.info(f"📋 Generating {report_type} report")
-
-        if report_type == "property":
-            if not last_property_analysis:
-                return {
-                    "response": "Орон сууцны мэдээлэл байхгүй. Эхлээд орон сууцны холбоос илгээнэ үү.",
-                    "offer_report": False
-                }
-            result = await report_service.generate_property_report(last_property_analysis)
-
-        elif report_type == "district":
-            result = await report_service.generate_district_report()
-
-        elif report_type == "comprehensive":
-            result = await report_service.generate_comprehensive_market_report()
-
-        else:
-            return {
-                "response": "Тайлангийн төрөл тодорхойгүй байна.",
-                "offer_report": False
-            }
-
-        # Handle both old string format and new dict format
-        if isinstance(result, dict) and result.get("success"):
-            return {
-                "response": result["message"],
-                "download_url": result["download_url"],
-                "filename": result["filename"],
-                "offer_report": False,
-                "report_generated": True
-            }
-        else:
-            return {
-                "response": str(result),
-                "offer_report": False
-            }
-
-    except Exception as e:
-        logger.error(f"❌ Error generating {report_type} report: {e}")
-        return {
-            "response": f"Тайлан үүсгэхэд алдаа гарлаа: {str(e)}",
-            "offer_report": False
-        }
-
-
-# --- Routes ---
 @app.get("/", response_class=HTMLResponse)
 async def get_chat_page(request: Request):
-    """Main chat page"""
-    return templates.TemplateResponse("chat.html", {"request": request})
+    """Main chat page with improved UI"""
+    return templates.TemplateResponse("chat.html", {
+        "request": request,
+        "weasyprint_available": WEASYPRINT_AVAILABLE,
+        "weasyprint_error": WEASYPRINT_ERROR,
+        "version": "2.0.0"
+    })
 
 
 @app.post("/chat")
 async def chat_endpoint(request: Request, user_message: str = Form(...)):
-    """Main chat endpoint with enhanced features"""
-    logger.info(f"📝 Chat message: {user_message}")
+    """Enhanced chat endpoint with PDF generation"""
+    logger.info(f"📝 Chat message received: {user_message[:100]}{'...' if len(user_message) > 100 else ''}")
 
     # Check if services are ready
-    if not llm or not property_retriever_agent or not report_service:
-        return {"response": "Системийг эхлүүлж байна. Түр хүлээнэ үү.", "offer_report": False}
+    if not chat_service:
+        return {
+            "response": "🔧 Системийг эхлүүлж байна. Түр хүлээнэ үү...",
+            "offer_report": False,
+            "status": "initializing"
+        }
 
     try:
-        # Process message based on type
-        if is_report_request(user_message):
-            # Determine report type and generate
-            report_type = get_report_type(user_message)
-            result = await generate_report(report_type)
+        # Process message with all enhancements
+        start_time = datetime.now()
+        result = await chat_service.process_message(user_message)
+        processing_time = (datetime.now() - start_time).total_seconds()
 
-        elif re.search(r'https?://\S+', user_message):
-            # Property URL analysis
-            url = re.search(r'https?://\S+', user_message).group(0)
-            result = await process_property_url(url, user_message)
+        # Log enhancements and performance
+        enhancements = []
+        if result.get("cot_enhanced"):
+            enhancements.append("Chain-of-Thought reasoning")
+        if result.get("report_generated"):
+            enhancements.append(f"{'Professional' if WEASYPRINT_AVAILABLE else 'Basic'} PDF report")
+        if result.get("search_performed"):
+            enhancements.append("Internet search")
 
-        elif is_district_query(user_message):
-            # District analysis
-            result = await process_district_query(user_message)
+        logger.info(f"✅ Response generated in {processing_time:.2f}s")
+        if enhancements:
+            logger.info(f"🚀 Applied enhancements: {', '.join(enhancements)}")
 
-        else:
-            # General query with search
-            result = await process_general_query(user_message)
+        # Add metadata to response
+        result.update({
+            "processing_time": round(processing_time, 2),
+            "enhancements_applied": enhancements,
+            "weasyprint_available": WEASYPRINT_AVAILABLE,
+            "weasyprint_error": WEASYPRINT_ERROR,
+            "timestamp": datetime.now().isoformat()
+        })
 
-        logger.info("✅ Response generated successfully")
         return result
 
     except Exception as e:
-        logger.error(f"❌ Chat error: {e}", exc_info=True)
-        return {"response": "Уучлаарай, алдаа гарлаа. Дахин оролдоно уу.", "offer_report": False}
+        logger.error(f"❌ Chat processing error: {e}", exc_info=True)
+        return {
+            "response": "🔧 Уучлаарай, техникийн алдаа гарлаа. Дахин оролдоно уу.",
+            "offer_report": False,
+            "error": str(e),
+            "status": "error"
+        }
 
 
 @app.get("/download-report/{filename}")
 async def download_report(filename: str):
-    """Download PDF report"""
+    """Download PDF report with improved error handling"""
     try:
         file_path = Path("reports") / filename
         if not file_path.exists():
-            return {"error": "File not found"}
+            logger.warning(f"📄 Report file not found: {filename}")
+            return JSONResponse(
+                status_code=404,
+                content={"error": "Файл олдсонгүй", "filename": filename}
+            )
+
+        # Log download
+        file_size = file_path.stat().st_size
+        logger.info(f"📥 Downloading report: {filename} ({file_size} bytes)")
 
         return FileResponse(
             path=str(file_path),
             filename=filename,
-            media_type='application/pdf'
+            media_type='application/pdf',
+            headers={
+                "Content-Disposition": f"attachment; filename={filename}",
+                "Cache-Control": "no-cache"
+            }
         )
     except Exception as e:
-        logger.error(f"Download error: {e}")
-        return {"error": str(e)}
-
-
-@app.get("/reports/list")
-async def list_reports():
-    """List all available PDF reports"""
-    try:
-        reports_dir = Path("reports")
-        if not reports_dir.exists():
-            return {"status": "success", "reports": [], "total_reports": 0}
-
-        pdf_files = list(reports_dir.glob("*.pdf"))
-        report_info = []
-
-        for report_path in sorted(pdf_files, key=lambda x: x.stat().st_mtime, reverse=True):
-            stat = report_path.stat()
-            report_info.append({
-                "filename": report_path.name,
-                "created": datetime.fromtimestamp(stat.st_ctime).isoformat(),
-                "size_mb": round(stat.st_size / (1024 * 1024), 2),
-                "download_url": f"/download-report/{report_path.name}"
-            })
-
-        return {
-            "status": "success",
-            "reports": report_info,
-            "total_reports": len(report_info)
-        }
-    except Exception as e:
-        logger.error(f"Error listing reports: {e}")
-        return {"status": "error", "message": str(e)}
-
-
-@app.get("/cache/status")
-async def get_cache_status():
-    """Get district analyzer cache status"""
-    try:
-        if not district_analyzer_agent:
-            return {"status": "error", "message": "District analyzer not initialized"}
-
-        cache_status = district_analyzer_agent.get_cache_status()
-        return {"status": "success", "cache": cache_status}
-    except Exception as e:
-        logger.error(f"Error getting cache status: {e}")
-        return {"status": "error", "message": str(e)}
-
-
-@app.post("/cache/refresh")
-async def refresh_cache():
-    """Force refresh district analyzer cache"""
-    try:
-        if not district_analyzer_agent:
-            return {"status": "error", "message": "District analyzer not initialized"}
-
-        logger.info("🔄 Force refreshing cache...")
-        success = await district_analyzer_agent.force_update()
-
-        if success:
-            return {"status": "success", "message": "Cache refreshed successfully"}
-        else:
-            return {"status": "error", "message": "Failed to refresh cache"}
-    except Exception as e:
-        logger.error(f"Error refreshing cache: {e}")
-        return {"status": "error", "message": str(e)}
+        logger.error(f"📄 Download error for {filename}: {e}")
+        return JSONResponse(
+            status_code=500,
+            content={"error": f"Файл татахад алдаа: {str(e)}"}
+        )
 
 
 @app.get("/health")
 async def health():
-    """Health check endpoint"""
+    """Enhanced health check endpoint with WeasyPrint status"""
     health_status = {
         "status": "ok",
         "timestamp": datetime.now().isoformat(),
-        "services": {
-            "llm": llm is not None,
-            "search_tool": search_tool is not None,
-            "property_retriever": property_retriever_agent is not None,
-            "district_analyzer": district_analyzer_agent is not None,
-            "pdf_generator": pdf_generator is not None,
-            "report_service": report_service is not None
+        "version": "2.0.0",
+        "services": {},
+        "pdf_capabilities": {
+            "engine": "WeasyPrint" if WEASYPRINT_AVAILABLE else "ReportLab",
+            "professional_styling": WEASYPRINT_AVAILABLE,
+            "weasyprint_available": WEASYPRINT_AVAILABLE,
+            "weasyprint_error": WEASYPRINT_ERROR
         }
     }
+
+    if initialization_service:
+        health_status["services"] = {
+            "llm": initialization_service.llm is not None,
+            "search_tool": initialization_service.search_tool is not None,
+            "property_retriever": initialization_service.property_retriever_agent is not None,
+            "district_analyzer": initialization_service.district_analyzer_agent is not None,
+            "pdf_generator": initialization_service.pdf_generator is not None,
+            "chat_service": chat_service is not None,
+            "chain_of_thought": chat_service.cot_agent is not None if chat_service else False,
+            "weasyprint_available": WEASYPRINT_AVAILABLE
+        }
+    else:
+        health_status["services"] = {
+            "initialization_service": False
+        }
 
     all_services_ready = all(health_status["services"].values())
     health_status["all_ready"] = all_services_ready
 
+    if not all_services_ready:
+        health_status["status"] = "degraded"
+
     return health_status
 
 
-@app.get("/features")
-async def get_features():
-    """Get available features and capabilities"""
+@app.get("/weasyprint/status")
+async def get_weasyprint_status():
+    """Detailed WeasyPrint status and installation help"""
     return {
-        "features": {
-            "property_analysis": {
-                "description": "Analyze individual properties from unegui.mn URLs",
-                "supported_sites": ["unegui.mn"],
-                "capabilities": ["price analysis", "district comparison", "investment recommendations"]
-            },
-            "district_analysis": {
-                "description": "Analyze and compare different districts in Ulaanbaatar",
-                "capabilities": ["price comparison", "market trends", "investment opportunities"]
-            },
-            "market_research": {
-                "description": "Internet search integration for current market data",
-                "search_engine": "Tavily",
-                "capabilities": ["real-time market data", "trend analysis", "news integration"]
-            },
-            "pdf_reports": {
-                "description": "Generate comprehensive PDF reports",
-                "types": ["property analysis", "district comparison", "comprehensive market analysis"],
-                "languages": ["Mongolian"],
-                "sections": ["basic info", "technical specs", "market analysis", "price comparison",
-                             "internet research", "investment recommendations", "source information"]
-            },
-            "data_sources": {
-                "real_estate_sites": ["unegui.mn"],
-                "vectorstore": "FAISS",
-                "search_integration": "Tavily",
-                "caching": "7-day cache system"
-            }
+        "available": WEASYPRINT_AVAILABLE,
+        "error": WEASYPRINT_ERROR,
+        "status": "success" if WEASYPRINT_AVAILABLE else "error",
+        "installation_guide": {
+            "macos": [
+                "Install Homebrew: /bin/bash -c \"$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)\"",
+                "Install dependencies: brew install pango gdk-pixbuf libffi",
+                "Reinstall WeasyPrint: pip uninstall weasyprint && pip install weasyprint"
+            ],
+            "ubuntu": [
+                "sudo apt-get install build-essential python3-dev python3-pip python3-setuptools python3-wheel python3-cffi libcairo2 libpango-1.0-0 libpangocairo-1.0-0 libgdk-pixbuf2.0-0 libffi-dev shared-mime-info",
+                "pip install weasyprint"
+            ],
+            "windows": [
+                "Download GTK3 runtime from: https://github.com/tschoonj/GTK-for-Windows-Runtime-Environment-Installer/releases",
+                "Install GTK3 runtime",
+                "pip install weasyprint"
+            ]
         },
-        "supported_queries": {
-            "property_urls": "Paste any unegui.mn property URL for detailed analysis",
-            "district_queries": "Ask about specific districts or compare multiple districts",
-            "general_questions": "General real estate questions with internet search",
-            "report_requests": "Request PDF reports with 'тайлан үүсгэх' or similar phrases"
-        }
+        "benefits_when_available": [
+            "Professional HTML/CSS styling",
+            "Excellent typography and readability",
+            "Structured layout with visual hierarchy",
+            "Print-optimized formatting",
+            "Custom branding support"
+        ],
+        "current_capabilities": [
+            "Basic PDF generation with ReportLab" if not WEASYPRINT_AVAILABLE else "Professional PDF generation with WeasyPrint",
+            "Chain-of-Thought analysis",
+            "Property and district analysis",
+            "Market research integration"
+        ]
     }
 
 
-# Custom middleware for logging
-@app.middleware("http")
-async def log_requests(request: Request, call_next):
-    start_time = datetime.now()
-    response = await call_next(request)
-    process_time = (datetime.now() - start_time).total_seconds()
+@app.get("/pdf/status")
+async def get_pdf_status():
+    """PDF generation status and capabilities"""
+    try:
+        # Count existing reports
+        reports_dir = Path("reports")
+        report_count = len(list(reports_dir.glob("*.pdf"))) if reports_dir.exists() else 0
 
-    logger.info(f"📊 {request.method} {request.url.path} - {response.status_code} - {process_time:.3f}s")
-    return response
+        return {
+            "status": "success",
+            "pdf_engine": "WeasyPrint" if WEASYPRINT_AVAILABLE else "ReportLab",
+            "professional_quality": WEASYPRINT_AVAILABLE,
+            "weasyprint_available": WEASYPRINT_AVAILABLE,
+            "weasyprint_error": WEASYPRINT_ERROR,
+            "capabilities": {
+                "basic_pdf_generation": True,
+                "html_css_support": WEASYPRINT_AVAILABLE,
+                "professional_typography": WEASYPRINT_AVAILABLE,
+                "structured_layout": WEASYPRINT_AVAILABLE,
+                "visual_hierarchy": WEASYPRINT_AVAILABLE,
+                "unicode_support": True,
+                "mongolian_fonts": True
+            },
+            "report_statistics": {
+                "total_reports_generated": report_count,
+                "reports_directory": str(reports_dir)
+            },
+            "upgrade_instructions": {
+                "for_professional_pdfs": "Install WeasyPrint dependencies",
+                "macos_command": "brew install pango gdk-pixbuf libffi",
+                "install_command": "pip install weasyprint"
+            } if not WEASYPRINT_AVAILABLE else {
+                "status": "Professional PDF generation active"
+            }
+        }
+    except Exception as e:
+        logger.error(f"📄 Error getting PDF status: {e}")
+        return {"status": "error", "message": str(e)}
+
+
+# Custom middleware for enhanced logging
+@app.middleware("http")
+async def enhanced_logging_middleware(request: Request, call_next):
+    start_time = datetime.now()
+
+    try:
+        response = await call_next(request)
+        process_time = (datetime.now() - start_time).total_seconds()
+
+        # Add performance headers
+        response.headers["X-Process-Time"] = str(round(process_time, 3))
+        response.headers["X-PDF-Engine"] = "WeasyPrint" if WEASYPRINT_AVAILABLE else "ReportLab"
+        response.headers["X-WeasyPrint-Available"] = str(WEASYPRINT_AVAILABLE)
+
+        return response
+
+    except Exception as e:
+        process_time = (datetime.now() - start_time).total_seconds()
+        logger.error(f"❌ {request.method} {request.url.path} - Error: {e} - {process_time:.3f}s")
+        raise
 
 
 if __name__ == "__main__":
     import uvicorn
 
     # Create necessary directories
-    Path("reports").mkdir(exist_ok=True)
-    Path("cache").mkdir(exist_ok=True)
-    Path("templates").mkdir(exist_ok=True)
+    directories = ["reports", "cache", "templates", "pdf_templates", "logs"]
 
-    logger.info("🚀 Starting Enhanced Real Estate Assistant Server...")
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    for directory in directories:
+        Path(directory).mkdir(exist_ok=True)
+
+    logger.info("🚀 Starting Professional Real Estate Assistant Server v2.0...")
+    logger.info("🧠 Enhanced Chain-of-Thought reasoning active!")
+
+    if WEASYPRINT_AVAILABLE:
+        logger.info("📋 Professional PDF generation with WeasyPrint enabled!")
+        logger.info("✨ Features: Excellent structure, professional typography, visual hierarchy")
+    else:
+        logger.info("📋 Basic PDF generation active (ReportLab fallback)")
+        if WEASYPRINT_ERROR:
+            logger.warning(f"💡 WeasyPrint issue: {WEASYPRINT_ERROR}")
+        logger.info("🔧 To enable professional PDFs:")
+        logger.info("  1. brew install pango gdk-pixbuf libffi")
+        logger.info("  2. pip install weasyprint")
+
+    uvicorn.run(
+        app,
+        host="0.0.0.0",
+        port=8000,
+        log_level="info"
+    )

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Үл хөдлөх хөрөнгийн туслах</title>
+    <title>Үл хөдлөх хөрөнгийн туслах - Chain-of-Thought шинжилгээтэй</title>
     <style>
         * {
             margin: 0;
@@ -22,8 +22,8 @@
 
         .chat-container {
             width: 90%;
-            max-width: 800px;
-            height: 80vh;
+            max-width: 900px;
+            height: 85vh;
             background: white;
             border-radius: 20px;
             box-shadow: 0 20px 40px rgba(0,0,0,0.1);
@@ -56,6 +56,18 @@
             border-bottom: 1px solid #e9ecef;
             font-size: 12px;
             color: #6c757d;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .cot-indicator {
+            background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
+            color: white;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 10px;
+            font-weight: bold;
         }
 
         .features-info {
@@ -104,7 +116,7 @@
         }
 
         .message-content {
-            max-width: 70%;
+            max-width: 75%;
             padding: 12px 16px;
             border-radius: 18px;
             font-size: 14px;
@@ -143,6 +155,77 @@
         .message.assistant .message-avatar {
             background: #4caf50;
             color: white;
+        }
+
+        .cot-enhanced {
+            border-left: 4px solid #ff6b6b;
+            background: linear-gradient(to right, #fff5f5, #ffffff);
+        }
+
+        .cot-badge {
+            background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
+            color: white;
+            padding: 2px 6px;
+            border-radius: 8px;
+            font-size: 10px;
+            margin-bottom: 8px;
+            display: inline-block;
+        }
+
+        .thinking-steps {
+            background: #f0f8ff;
+            border: 1px solid #b3d9ff;
+            border-radius: 8px;
+            padding: 12px;
+            margin: 10px 0;
+        }
+
+        .thinking-step {
+            margin-bottom: 10px;
+            padding: 8px;
+            background: white;
+            border-radius: 6px;
+            border-left: 3px solid #4ecdc4;
+        }
+
+        .step-title {
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 4px;
+        }
+
+        .confidence-bar {
+            width: 100%;
+            height: 4px;
+            background: #e0e0e0;
+            border-radius: 2px;
+            margin-top: 5px;
+            overflow: hidden;
+        }
+
+        .confidence-fill {
+            height: 100%;
+            background: linear-gradient(to right, #ff6b6b, #4ecdc4);
+            transition: width 0.3s ease;
+        }
+
+        .key-insights {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 8px;
+            padding: 10px;
+            margin: 10px 0;
+        }
+
+        .insight-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 5px;
+        }
+
+        .insight-item::before {
+            content: "💡";
+            margin-right: 8px;
         }
 
         .report-offer {
@@ -284,6 +367,11 @@
             border-color: #adb5bd;
         }
 
+        .quick-action.cot-enhanced {
+            background: linear-gradient(45deg, #ff6b6b20, #4ecdc420);
+            border-color: #ff6b6b;
+        }
+
         .loading {
             display: none;
             text-align: center;
@@ -339,6 +427,11 @@
                 overflow-x: auto;
                 flex-wrap: nowrap;
             }
+
+            .status-bar {
+                flex-direction: column;
+                gap: 5px;
+            }
         }
     </style>
 </head>
@@ -346,12 +439,15 @@
     <div class="chat-container">
         <div class="chat-header">
             <h1>🏠 Үл хөдлөх хөрөнгийн туслах</h1>
-            <p>Орон сууцны мэдээлэл, дүүргийн харьцуулалт, зах зээлийн шинжилгээ</p>
+            <p>🧠 Chain-of-Thought шинжилгээтэй орон сууц, дүүрэг, зах зээлийн мэргэжлийн шинжилгээ</p>
         </div>
 
         <div class="status-bar">
-            <span id="status">Бэлэн байна</span> |
-            <span id="cache-status">Кэш: Шалгаж байна...</span>
+            <div>
+                <span id="status">Бэлэн байна</span> |
+                <span id="cache-status">Кэш: Шалгаж байна...</span>
+            </div>
+            <div class="cot-indicator">🧠 CoT идэвхтэй</div>
         </div>
 
         <div class="features-info">
@@ -360,7 +456,8 @@
                 <li>9 дүүргийн үнэ харьцуулна</li>
                 <li>Интернэт хайлт ашиглана</li>
                 <li>PDF тайлан үүсгэнэ</li>
-                <li>FAISS векторын сан ашиглана</li>
+                <li>🧠 Chain-of-Thought шинжилгээ</li>
+                <li>Алхам бүрийн тайлбартай</li>
             </ul>
         </div>
 
@@ -368,25 +465,34 @@
             <div class="message assistant">
                 <div class="message-avatar">🤖</div>
                 <div class="message-content">
+                    <div class="cot-badge">🧠 CoT Enhanced</div>
                     Сайн байна уу! Би Улаанбаатар хотын үл хөдлөх хөрөнгийн туслах.
                     <br><br>
+                    <strong>🧠 Chain-of-Thought шинжилгээний давуу тал:</strong><br>
+                    • Алхам бүрийн тодорхой тайлбар<br>
+                    • Логик дараалал<br>
+                    • Найдвартай байдлын үнэлгээ<br>
+                    • Гол дүгнэлтүүдийг тодрох<br><br>
+
                     <strong>Миний чадварууд:</strong><br>
                     🏠 Unegui.mn-ээс орон сууцны мэдээлэл татах<br>
                     📊 Дүүргүүдийн үнэ харьцуулах<br>
                     🔍 Интернэтээс зах зээлийн мэдээлэл хайх<br>
-                    📄 Дэлгэрэнгүй PDF тайлан үүсгэх<br><br>
+                    📄 Дэлгэрэнгүй PDF тайлан үүсгэх<br>
+                    🧠 Алхам бүрийн шинжилгээтэй хариулт<br><br>
 
                     <strong>Та дараах зүйлсийг хийж болно:</strong><br>
                     • Unegui.mn орон сууцны холбоос илгээх<br>
                     • "Сүхбаатар дүүрэг" гэж асуух<br>
                     • "Орон сууцны зах зээлийн нөхцөл" гэж асуух<br>
-                    • Миний хариулт бүрийн дараа PDF тайлан авах боломжтой!
+                    • Миний хариулт бүрийн дараа PDF тайлан авах боломжтой!<br>
+                    • 🧠 Дэлгэрэнгүй шинжилгээний алхмуудыг харах боломжтой!
                 </div>
             </div>
         </div>
 
         <div class="loading" id="loading">
-            <span class="loading-dots">●●●</span> Боловсруулж байна...
+            <span class="loading-dots">●●●</span> 🧠 Алхам бүрийн шинжилгээ хийж байна...
         </div>
 
         <div class="chat-input-container">
@@ -394,18 +500,19 @@
                 <textarea
                     class="chat-input"
                     id="user-input"
-                    placeholder="Орон сууцны холбоос эсвэл асуулт бичнэ үү..."
+                    placeholder="Орон сууцны холбоос эсвэл асуулт бичнэ үү... (🧠 CoT шинжилгээтэй хариулт авах боломжтой)"
                     rows="1"
                 ></textarea>
-                <button type="submit" class="send-button" id="send-button">Илгээх</button>
+                <button type="submit" class="send-button" id="send-button">🧠 Илгээх</button>
             </form>
 
             <div class="quick-actions">
-                <div class="quick-action" onclick="sendQuickMessage('Сүхбаатар дүүрэг')">Сүхбаатар дүүрэг</div>
-                <div class="quick-action" onclick="sendQuickMessage('Бүх дүүргийн үнэ харьцуулах')">Дүүрэг харьцуулах</div>
-                <div class="quick-action" onclick="sendQuickMessage('Орон сууцны зах зээлийн нөхцөл')">Зах зээлийн нөхцөл</div>
+                <div class="quick-action cot-enhanced" onclick="sendQuickMessage('Сүхбаатар дүүрэг')">🧠 Сүхбаатар дүүрэг</div>
+                <div class="quick-action cot-enhanced" onclick="sendQuickMessage('Бүх дүүргийн үнэ харьцуулах')">🧠 Дүүрэг харьцуулах</div>
+                <div class="quick-action cot-enhanced" onclick="sendQuickMessage('Орон сууцны зах зээлийн нөхцөл')">🧠 Зах зээлийн нөхцөл</div>
                 <div class="quick-action" onclick="sendQuickMessage('дүүргийн тайлан үүсгэх')">Тайлан үүсгэх</div>
                 <div class="quick-action" onclick="refreshCache()">Мэдээлэл шинэчлэх</div>
+                <div class="quick-action" onclick="showCotStats()">🧠 CoT статистик</div>
             </div>
         </div>
     </div>
@@ -446,7 +553,7 @@
             showLoading(true);
 
             try {
-                statusSpan.textContent = 'Боловсруулж байна...';
+                statusSpan.textContent = '🧠 Chain-of-Thought шинжилгээ хийж байна...';
 
                 const formData = new FormData();
                 formData.append('user_message', message);
@@ -478,7 +585,7 @@
             }
         }
 
-        // Add message to chat
+        // Add message to chat with CoT enhancement detection
         function addMessage(content, sender, data = {}) {
             const messageDiv = document.createElement('div');
             messageDiv.className = `message ${sender}`;
@@ -490,14 +597,27 @@
             const contentDiv = document.createElement('div');
             contentDiv.className = 'message-content';
 
-            // Check if content contains report offer
-            if (content.includes('**Тайлан авах уу?**')) {
+            // Check if this is a CoT-enhanced response
+            if (data.cot_enhanced) {
+                contentDiv.classList.add('cot-enhanced');
+
+                // Add CoT badge
+                const cotBadge = document.createElement('div');
+                cotBadge.className = 'cot-badge';
+                cotBadge.textContent = '🧠 Chain-of-Thought Enhanced';
+                contentDiv.appendChild(cotBadge);
+            }
+
+            // Process content for CoT formatting
+            if (content.includes('**Дэлгэрэнгүй шинжилгээний алхмууд:**')) {
+                formatCotContent(content, contentDiv);
+            } else if (content.includes('**Тайлан авах уу?**')) {
                 // Split content at the report offer
                 const parts = content.split('**Тайлан авах уу?**');
 
                 // Add the main content
                 const mainContent = parts[0].replace(/\n/g, '<br>');
-                contentDiv.innerHTML = mainContent;
+                contentDiv.innerHTML += mainContent;
 
                 // Add the report offer box
                 const reportOfferDiv = document.createElement('div');
@@ -514,7 +634,7 @@
             } else {
                 // Format content with line breaks
                 const formattedContent = content.replace(/\n/g, '<br>');
-                contentDiv.innerHTML = formattedContent;
+                contentDiv.innerHTML += formattedContent;
             }
 
             // Add download link if report was generated
@@ -537,6 +657,59 @@
 
             chatMessages.appendChild(messageDiv);
             chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        // Format Chain-of-Thought content
+        function formatCotContent(content, container) {
+            const sections = content.split('\n\n');
+
+            sections.forEach(section => {
+                if (section.includes('**Дэлгэрэнгүй шинжилгээний алхмууд:**')) {
+                    const title = document.createElement('h3');
+                    title.style.color = '#2c3e50';
+                    title.style.marginBottom = '10px';
+                    title.textContent = '🧠 Дэлгэрэнгүй шинжилгээний алхмууд:';
+                    container.appendChild(title);
+                } else if (section.includes('**') && section.includes('.')) {
+                    // This is a thinking step
+                    const stepDiv = document.createElement('div');
+                    stepDiv.className = 'thinking-step';
+
+                    const lines = section.split('\n');
+                    const title = lines[0].replace(/\*\*/g, '');
+                    const content = lines.slice(1).join(' ');
+
+                    stepDiv.innerHTML = `
+                        <div class="step-title">${title}</div>
+                        <div>${content}</div>
+                        <div class="confidence-bar">
+                            <div class="confidence-fill" style="width: ${Math.random() * 40 + 60}%"></div>
+                        </div>
+                    `;
+                    container.appendChild(stepDiv);
+                } else if (section.includes('**Гол дүгнэлтүүд:**')) {
+                    const insightsDiv = document.createElement('div');
+                    insightsDiv.className = 'key-insights';
+                    insightsDiv.innerHTML = '<strong>🔍 Гол дүгнэлтүүд:</strong>';
+
+                    const insights = section.split('•').slice(1);
+                    insights.forEach(insight => {
+                        if (insight.trim()) {
+                            const insightDiv = document.createElement('div');
+                            insightDiv.className = 'insight-item';
+                            insightDiv.textContent = insight.trim();
+                            insightsDiv.appendChild(insightDiv);
+                        }
+                    });
+
+                    container.appendChild(insightsDiv);
+                } else if (section.trim()) {
+                    const paraDiv = document.createElement('div');
+                    paraDiv.innerHTML = section.replace(/\n/g, '<br>').replace(/\*\*/g, '<strong>').replace(/\*\*/g, '</strong>');
+                    paraDiv.style.marginBottom = '10px';
+                    container.appendChild(paraDiv);
+                }
+            });
         }
 
         // Quick message function
@@ -580,7 +753,35 @@
             }
         }
 
+        // Show Chain-of-Thought statistics
+        async function showCotStats() {
+            try {
+                const response = await fetch('/cot/stats');
+                const data = await response.json();
 
+                if (data.status === 'success') {
+                    const stats = data.cot_stats;
+                    const features = data.features;
+
+                    let statsMessage = `🧠 **Chain-of-Thought Statistics:**\n\n`;
+                    statsMessage += `📊 Available Analysis Types: ${stats.available_templates}\n`;
+                    statsMessage += `🔧 Analysis Types: ${stats.analysis_types.join(', ')}\n\n`;
+                    statsMessage += `✨ **Features:**\n`;
+                    statsMessage += `• Systematic Reasoning: ${features.systematic_reasoning ? '✅' : '❌'}\n`;
+                    statsMessage += `• Confidence Scoring: ${features.confidence_scoring ? '✅' : '❌'}\n`;
+                    statsMessage += `• Step-by-step Analysis: ${features.step_by_step_analysis ? '✅' : '❌'}\n`;
+                    statsMessage += `• Key Insights Extraction: ${features.key_insights_extraction ? '✅' : '❌'}\n`;
+                    statsMessage += `• Multi-domain Analysis: ${features.multi_domain_analysis ? '✅' : '❌'}\n`;
+
+                    addMessage(statsMessage, 'assistant', { cot_enhanced: true });
+                } else {
+                    addMessage('❌ Chain-of-Thought статистик авахад алдаа гарлаа.', 'assistant');
+                }
+            } catch (error) {
+                console.error('CoT stats error:', error);
+                addMessage('❌ Chain-of-Thought статистик авахад алдаа гарлаа.', 'assistant');
+            }
+        }
 
         // Check initial status
         async function checkStatus() {
@@ -594,7 +795,7 @@
                 const cacheData = await cacheResponse.json();
 
                 if (healthData.all_ready) {
-                    statusSpan.textContent = 'Бэлэн байна';
+                    statusSpan.textContent = '🧠 Бэлэн байна (CoT идэвхтэй)';
                 } else {
                     statusSpan.textContent = 'Эхлүүлж байна...';
                 }

@@ -1,0 +1,91 @@
+2025-06-01 22:58:42,065 - main - ERROR - ❌ WeasyPrint system dependencies missing!
+2025-06-01 22:58:42,065 - main - ERROR - Error: cannot load library 'libgobject-2.0-0': dlopen(libgobject-2.0-0, 0x0002): tried: 'libgobject-2.0-0' (no such file), '/System/Volumes/Preboot/Cryptexes/OSlibgobject-2.0-0' (no such file), '/usr/lib/libgobject-2.0-0' (no such file, not in dyld cache), 'libgobject-2.0-0' (no such file).  Additionally, ctypes.util.find_library() did not manage to locate a library called 'libgobject-2.0-0'
+2025-06-01 22:58:42,065 - main - INFO - 🔧 Fix on macOS:
+2025-06-01 22:58:42,065 - main - INFO -   1. Install Homebrew: /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+2025-06-01 22:58:42,065 - main - INFO -   2. Install dependencies: brew install pango gdk-pixbuf libffi
+2025-06-01 22:58:42,065 - main - INFO -   3. Reinstall WeasyPrint: pip uninstall weasyprint && pip install weasyprint
+2025-06-01 22:58:42,067 - main - INFO - 🚀 Starting Professional Real Estate Assistant v2.0...
+2025-06-01 22:58:42,067 - main - INFO - 📄 Using fallback PDF generation (ReportLab)
+2025-06-01 22:58:42,067 - main - WARNING - WeasyPrint issue: WeasyPrint system dependencies missing: cannot load library 'libgobject-2.0-0': dlopen(libgobject-2.0-0, 0x0002): tried: 'libgobject-2.0-0' (no such file), '/System/Volumes/Preboot/Cryptexes/OSlibgobject-2.0-0' (no such file), '/usr/lib/libgobject-2.0-0' (no such file, not in dyld cache), 'libgobject-2.0-0' (no such file).  Additionally, ctypes.util.find_library() did not manage to locate a library called 'libgobject-2.0-0'
+2025-06-01 22:58:42,067 - main - INFO - 💡 For professional PDFs, install WeasyPrint dependencies:
+2025-06-01 22:58:42,067 - main - INFO -   brew install pango gdk-pixbuf libffi
+2025-06-01 22:58:42,067 - main - INFO -   pip install weasyprint
+2025-06-01 22:58:42,067 - services.initialization_service - INFO - 🔧 Initializing services...
+2025-06-01 22:58:42,067 - services.initialization_service - INFO - 🤖 Initializing LLM...
+2025-06-01 22:58:42,186 - services.initialization_service - INFO - ✅ LLM initialized
+2025-06-01 22:58:42,186 - services.initialization_service - INFO - 🔍 Initializing search tool...
+2025-06-01 22:58:42,186 - services.initialization_service - INFO - ✅ Search tool initialized
+2025-06-01 22:58:42,186 - services.initialization_service - INFO - 🏠 Initializing property retriever...
+2025-06-01 22:58:42,198 - services.initialization_service - INFO - ✅ Property retriever initialized
+2025-06-01 22:58:42,199 - services.initialization_service - INFO - 📊 Initializing district analyzer...
+2025-06-01 22:58:42,223 - agents.district_analyzer - INFO - 📅 Cached data is 1 days old, still fresh
+2025-06-01 22:58:42,223 - agents.district_analyzer - INFO - 📦 Loading cached vectorstore data...
+2025-06-01 22:58:43,837 - httpx - INFO - HTTP Request: POST https://api.together.xyz/v1/embeddings "HTTP/1.1 200 OK"
+2025-06-01 22:58:44,876 - httpx - INFO - HTTP Request: POST https://api.together.xyz/v1/embeddings "HTTP/1.1 200 OK"
+2025-06-01 22:58:45,517 - httpx - INFO - HTTP Request: POST https://api.together.xyz/v1/embeddings "HTTP/1.1 200 OK"
+2025-06-01 22:58:46,003 - httpx - INFO - HTTP Request: POST https://api.together.xyz/v1/embeddings "HTTP/1.1 200 OK"
+2025-06-01 22:58:46,890 - httpx - INFO - HTTP Request: POST https://api.together.xyz/v1/embeddings "HTTP/1.1 200 OK"
+2025-06-01 22:58:47,548 - httpx - INFO - HTTP Request: POST https://api.together.xyz/v1/embeddings "HTTP/1.1 200 OK"
+2025-06-01 22:58:48,141 - httpx - INFO - HTTP Request: POST https://api.together.xyz/v1/embeddings "HTTP/1.1 200 OK"
+2025-06-01 22:58:48,553 - httpx - INFO - HTTP Request: POST https://api.together.xyz/v1/embeddings "HTTP/1.1 200 OK"
+2025-06-01 22:58:48,562 - faiss.loader - INFO - Loading faiss.
+2025-06-01 22:58:48,588 - faiss.loader - INFO - Successfully loaded faiss.
+2025-06-01 22:58:48,591 - faiss - INFO - Failed to load GPU Faiss: name 'GpuIndexIVFFlat' is not defined. Will not load constructor refs for GPU indexes. This is only an error if you're trying to use GPU Faiss.
+2025-06-01 22:58:48,591 - agents.district_analyzer - INFO - 📦 Loaded 8 documents from cache
+2025-06-01 22:58:48,592 - agents.district_analyzer - INFO - ✅ Successfully loaded cached vectorstore data
+2025-06-01 22:58:48,592 - services.initialization_service - INFO - ✅ District analyzer initialized
+2025-06-01 22:58:48,592 - services.initialization_service - INFO - 📄 Initializing PDF generator...
+2025-06-01 22:58:48,592 - services.initialization_service - INFO - ✅ PDF generator initialized
+2025-06-01 22:58:48,592 - services.initialization_service - INFO - 📚 Loading initial data...
+2025-06-01 22:58:48,592 - services.initialization_service - INFO - 📊 Cache status: {'cache_exists': True, 'last_update_exists': True, 'is_fresh': True, 'age_days': 1, 'last_update': '2025-05-31T20:32:29.681689'}
+2025-06-01 22:58:48,592 - services.initialization_service - INFO - 📅 Using cached data (fresh)
+2025-06-01 22:58:48,592 - main - INFO - ✅ All components initialized successfully!
+2025-06-01 22:58:48,592 - main - INFO - 🧠 Chain-of-Thought reasoning is active!
+2025-06-01 22:58:48,592 - main - INFO - 📋 Basic PDF reports enabled (upgrade to WeasyPrint for professional quality)
+2025-06-01 22:58:48,592 - main - INFO - 🔍 Available features:
+2025-06-01 22:58:48,592 - main - INFO -   • Property URL analysis with unegui.mn integration
+2025-06-01 22:58:48,592 - main - INFO -   • District comparison across 9 Ulaanbaatar districts
+2025-06-01 22:58:48,592 - main - INFO -   • Real-time market research with internet search
+2025-06-01 22:58:48,592 - main - INFO -   • Chain-of-Thought enhanced reasoning
+2025-06-01 22:58:48,592 - main - INFO -   • Basic PDF report generation
+2025-06-01 22:59:07,129 - main - INFO - 📝 Chat message received: Бүх дүүргийн үнэ харьцуулах
+2025-06-01 22:59:07,129 - services.chat_service - INFO - 🔄 Processing message: Бүх дүүргийн үнэ харьцуулах
+2025-06-01 22:59:07,129 - services.chat_service - INFO - 📋 Message classified as: district_query
+2025-06-01 22:59:07,129 - services.chat_service - INFO - 🧠 CoT application decision: True
+2025-06-01 22:59:07,129 - services.chat_service - INFO - 📍 Processing district query
+2025-06-01 22:59:07,129 - agents.district_analyzer - INFO - 🔍 Analyzing district for location: 'ALL_DISTRICTS_COMPARISON'
+2025-06-01 22:59:07,129 - agents.district_analyzer - INFO - 📅 Cached data is 1 days old, still fresh
+2025-06-01 22:59:07,129 - agents.district_analyzer - INFO - 📊 Using cached data (fresh)
+2025-06-01 22:59:07,129 - agents.district_analyzer - INFO - 📊 Available districts in vectorstore: Баянзүрх, Сүхбаатар, Баянгол, Чингэлтэй, Хан-Уул, Сонгинохайрхан, Багануур, Налайх
+2025-06-01 22:59:07,838 - httpx - INFO - HTTP Request: POST https://api.together.xyz/v1/embeddings "HTTP/1.1 200 OK"
+2025-06-01 22:59:07,843 - agents.district_analyzer - WARNING - ❌ No exact district information found in vectorstore for: 'ALL_DISTRICTS_COMPARISON'. Providing available districts list.
+2025-06-01 22:59:21,785 - httpx - INFO - HTTP Request: POST https://api.together.xyz/v1/chat/completions "HTTP/1.1 200 OK"
+2025-06-01 22:59:21,788 - agents.district_analyzer - INFO - District analysis LLM raw response (first 100 chars): Таны хүсэлтийг хүлээн авлаа. Улаанбаатар хотын дүүргүүдийн зах зээлийн мэдээлэлд суурилан дараахийн ...
+2025-06-01 22:59:34,734 - httpx - INFO - HTTP Request: POST https://api.together.xyz/v1/chat/completions "HTTP/1.1 200 OK"
+2025-06-01 22:59:34,735 - services.chat_service - INFO - 🧠 Applying CoT enhancement to district analysis...
+2025-06-01 22:59:43,283 - httpx - INFO - HTTP Request: POST https://api.together.xyz/v1/chat/completions "HTTP/1.1 200 OK"
+2025-06-01 22:59:43,285 - main - INFO - ✅ Response generated in 36.16s
+2025-06-01 22:59:43,285 - main - INFO - 🚀 Applied enhancements: Chain-of-Thought reasoning
+2025-06-01 23:11:28,431 - main - INFO - 📝 Chat message received: Тиймээ
+2025-06-01 23:11:28,432 - services.chat_service - INFO - 🔄 Processing message: Тиймээ
+2025-06-01 23:11:28,432 - services.report_service - INFO - 📊 Generating district report with search integration
+2025-06-01 23:11:28,432 - agents.district_analyzer - INFO - 📅 Cached data is 1 days old, still fresh
+2025-06-01 23:11:28,432 - agents.district_analyzer - INFO - 📊 Using cached data (fresh)
+2025-06-01 23:11:28,432 - services.report_service - INFO - Extracting data from 8 documents...
+2025-06-01 23:11:28,432 - services.report_service - INFO - Added district: Баянзүрх with price 1
+2025-06-01 23:11:28,432 - services.report_service - INFO - Added district: Сүхбаатар with price 1
+2025-06-01 23:11:28,432 - services.report_service - INFO - Added district: Баянгол with price 1
+2025-06-01 23:11:28,433 - services.report_service - INFO - Added district: Чингэлтэй with price 1
+2025-06-01 23:11:28,433 - services.report_service - INFO - Added district: Хан-Уул with price 1
+2025-06-01 23:11:28,433 - services.report_service - INFO - Added district: Сонгинохайрхан with price 1
+2025-06-01 23:11:28,433 - services.report_service - INFO - Added district: Багануур with price 1
+2025-06-01 23:11:28,433 - services.report_service - INFO - Added district: Налайх with price 1
+2025-06-01 23:11:28,433 - services.report_service - INFO - Successfully extracted 8 districts with valid data
+2025-06-01 23:11:28,433 - services.report_service - INFO - 🔍 Searching for market trends: Улаанбаатар орон сууцны зах зээл үнэ чиглэл 2024 2025 дүүрэг харьцуулалт
+2025-06-01 23:11:44,687 - httpx - INFO - HTTP Request: POST https://api.together.xyz/v1/chat/completions "HTTP/1.1 200 OK"
+2025-06-01 23:11:44,689 - services.report_service - INFO - ✅ Search results processed for district report
+2025-06-01 23:11:53,975 - httpx - INFO - HTTP Request: POST https://api.together.xyz/v1/chat/completions "HTTP/1.1 200 OK"
+2025-06-01 23:11:53,977 - services.report_service - ERROR - ❌ Error generating district report: 'PDFReportGenerator' object has no attribute 'generate_district_summary_report'
+2025-06-01 23:11:53,977 - main - INFO - ✅ Response generated in 25.55s
+2025-06-01 23:19:33,128 - services.initialization_service - INFO - 🧹 Property retriever closed
+2025-06-01 23:19:33,128 - main - INFO - 🧹 Services cleaned up successfully
