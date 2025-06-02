@@ -1,4 +1,4 @@
-# utils/xhtml2pdf_generator.py - Рефакторлогдсон PDF үүсгэгч (Монгол кирилл бичгийн хувьд)
+
 import logging
 import re
 from datetime import datetime
@@ -7,7 +7,7 @@ from typing import Dict, Any, List, Optional
 
 from xhtml2pdf import pisa
 
-# Тохиргооны файлуудаас импорт хийх
+
 from config.pdf_constants import (
     CYRILLIC_FONTS, FONT_FAMILY_NAMES, FONTS_DIR, get_font_path,
     PDF_PAGE_CONFIG, FONT_SIZES, COLORS, SPACING, REPORT_TEMPLATES,
@@ -19,19 +19,17 @@ logger = logging.getLogger(__name__)
 
 
 class XHTML2PDFGenerator:
-    """Монгол кириллд зориулж тохируулсан xhtml2pdf ашигласан PDF үүсгэгч."""
 
     def __init__(self):
         self.reports_dir = Path(FILE_CONFIG["reports_dir"])
         self.reports_dir.mkdir(exist_ok=True)
 
-        # Фонт файлын байгаа эсэхийг шалгах
+
         self._validate_fonts()
 
         logger.info(f"XHTML2PDFGenerator initialized. Font path: {get_font_path()}")
 
     def _validate_fonts(self) -> None:
-        """Фонт файлуудын байгаа эсэхийг шалгах"""
         primary_font = FONTS_DIR / CYRILLIC_FONTS["regular"]
         if not primary_font.exists():
             logger.error(
@@ -42,21 +40,19 @@ class XHTML2PDFGenerator:
             )
 
     def _clean_text_for_html(self, text: Any) -> str:
-        """HTML-д зориулж текстийг цэвэрлэх"""
         if text is None:
             return ERROR_MESSAGES["no_data"]
 
         text_str = str(text)
-        # Үндсэн HTML escape хийх
+
         text_str = text_str.replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;')
-        # Мөр шилжих тэмдгийг <br> болгох
+
         text_str = text_str.replace('\n\n', '<br><br>').replace('\n', '<br>')
-        # Илүүдэл зайг арилгах
+
         text_str = re.sub(r' +', ' ', text_str).strip()
         return text_str
 
     def _format_price_html(self, price: Any) -> str:
-        """Үнийг HTML-д зориулж форматлах"""
         if price is None or price == 0 or str(price).lower() == ERROR_MESSAGES["no_data"]:
             return ERROR_MESSAGES["no_data"]
 
@@ -69,7 +65,6 @@ class XHTML2PDFGenerator:
             return self._clean_text_for_html(str(price))
 
     def _generate_pdf_from_html(self, html_content: str, output_filepath: str) -> bool:
-        """HTML агуулгыг PDF болгон хөрвүүлж хадгалах"""
         try:
             with open(output_filepath, "w+b") as result_file:
                 pisa_status = pisa.CreatePDF(
@@ -93,13 +88,11 @@ class XHTML2PDFGenerator:
             return False
 
     def _link_callback(self, uri: str, rel: str) -> str:
-        """xhtml2pdf-д зориулсан link callback функц"""
         from pathlib import Path
         import os
         return os.path.join(str(FONTS_DIR.parent), uri.replace(f"file://{FONTS_DIR.parent}/", ""))
 
     def _get_base_css(self) -> str:
-        """Үндсэн CSS стилийг авах"""
         return f"""
         @font-face {{
             font-family: '{FONT_FAMILY_NAMES["primary"]}';
@@ -207,7 +200,6 @@ class XHTML2PDFGenerator:
         """
 
     def _generate_investment_recommendation(self, price_per_sqm: float) -> str:
-        """Хөрөнгө оруулалтын зөвлөмж үүсгэх"""
         if price_per_sqm > INVESTMENT_THRESHOLDS["expensive"]:
             return INVESTMENT_THRESHOLDS["messages"]["expensive"]
         elif price_per_sqm < INVESTMENT_THRESHOLDS["affordable"]:
@@ -216,24 +208,16 @@ class XHTML2PDFGenerator:
             return INVESTMENT_THRESHOLDS["messages"]["moderate"]
 
     def _should_include_search_results(self, search_results: str) -> bool:
-        """Хайлтын үр дүнг тайланд оруулах эсэхийг шийдэх"""
         if not search_results:
             return False
-
         cleaned_results = search_results.lower().strip()
         return cleaned_results not in ERROR_MESSAGES["search_failed"]
 
-    def generate_property_report(self,
-                                 property_data: Dict[str, Any],
-                                 district_analysis: str,
-                                 comparison_result: str,
-                                 search_results: str = "") -> str:
-        """Орон сууцны тайлан үүсгэх"""
+    def generate_property_report(self, property_data: Dict[str, Any], district_analysis: str, comparison_result: str, search_results: str = "") -> str:
         timestamp = datetime.now().strftime(DATE_FORMATS["filename"])
         filename = f"{FILE_CONFIG['property_prefix']}{timestamp}{FILE_CONFIG['extension']}"
         filepath = self.reports_dir / filename
 
-        # Өгөгдлийг цэвэрлэх
         prop_title = self._clean_text_for_html(property_data.get('title', 'Орон сууцны шинжилгээ'))
         location = self._clean_text_for_html(property_data.get('full_location', 'Тодорхойгүй'))
         district = self._clean_text_for_html(property_data.get('district', 'Тодорхойгүй'))
@@ -246,7 +230,6 @@ class XHTML2PDFGenerator:
         cleaned_comparison_result = self._clean_text_for_html(comparison_result)
         cleaned_search_results = self._clean_text_for_html(search_results)
 
-        # HTML агуулга үүсгэх
         html = self._build_property_html(
             prop_title, location, district, area, rooms, price, price_per_sqm,
             cleaned_district_analysis, cleaned_comparison_result, cleaned_search_results,
@@ -258,11 +241,7 @@ class XHTML2PDFGenerator:
         else:
             return ERROR_MESSAGES["pdf_generation_failed"].format("property", CYRILLIC_FONTS["regular"])
 
-    def _build_property_html(self, title: str, location: str, district: str,
-                             area: float, rooms: int, price: str, price_per_sqm: str,
-                             district_analysis: str, comparison_result: str,
-                             search_results: str, price_per_sqm_numeric: float) -> str:
-        """Орон сууцны HTML агуулга бүтээх"""
+    def _build_property_html(self, title: str, location: str, district: str, area: float, rooms: int, price: str, price_per_sqm: str, district_analysis: str, comparison_result: str, search_results: str, price_per_sqm_numeric: float) -> str:
         now = datetime.now()
 
         html = f"""
@@ -273,10 +252,6 @@ class XHTML2PDFGenerator:
             <title>{REPORT_TEMPLATES['property']['title']}</title>
         </head>
         <body>
-            <div id="footer_content" class="footer-text">
-                Тайлан үүсгэсэн: {now.strftime(DATE_FORMATS['display'])} | Хуудас <pdf:pagenumber />
-            </div>
-
             <h1>{REPORT_TEMPLATES['property']['title']}</h1>
             <p class="report-date">Тайлангийн огноо: {now.strftime(DATE_FORMATS['mongolian'])}</p>
 
@@ -294,44 +269,37 @@ class XHTML2PDFGenerator:
             </div>
 
             <div class="section">
-                <h2>🏘️ {REPORT_TEMPLATES['property']['sections'][1]}</h2>
+                <h2>{REPORT_TEMPLATES['property']['sections'][1]}</h2>
                 <p>{district_analysis}</p>
             </div>
 
             <div class="section">
-                <h2>🧠 {REPORT_TEMPLATES['property']['sections'][2]}</h2>
+                <h2>{REPORT_TEMPLATES['property']['sections'][2]}</h2>
                 <p>{comparison_result}</p>
             </div>
         """
 
-        # Хайлтын үр дүн нэмэх
         if self._should_include_search_results(search_results):
             html += f"""
             <div class="section">
-                <h2>🔍 {REPORT_TEMPLATES['property']['sections'][3]}</h2>
+                <h2>{REPORT_TEMPLATES['property']['sections'][3]}</h2>
                 <p>{search_results}</p>
             </div>
             """
 
-        # Хөрөнгө оруулалтын зөвлөмж нэмэх
         investment_advice = self._generate_investment_recommendation(price_per_sqm_numeric)
         html += f"""
             <div class="section">
-                <h2>💡 {REPORT_TEMPLATES['property']['sections'][4]} (Жишээ)</h2>
+                <h2> {REPORT_TEMPLATES['property']['sections'][4]} (Жишээ)</h2>
                 <p>{investment_advice}</p>
             </div>
-            <p class="footer-text">Үл хөдлөх хөрөнгийн мэргэжлийн туслах системээр автоматаар үүсгэсэн.</p>
         </body>
         </html>
         """
 
         return html
 
-    def generate_district_summary_report(self,
-                                         districts_data: List[Dict],
-                                         market_trends: str = "",
-                                         search_results: str = "") -> str:
-        """Дүүргийн тайлан үүсгэх"""
+    def generate_district_summary_report(self, districts_data: List[Dict], market_trends: str = "", search_results: str = "") -> str:
         timestamp = datetime.now().strftime(DATE_FORMATS["filename"])
         filename = f"{FILE_CONFIG['district_prefix']}{timestamp}{FILE_CONFIG['extension']}"
         filepath = self.reports_dir / filename
@@ -346,9 +314,7 @@ class XHTML2PDFGenerator:
         else:
             return ERROR_MESSAGES["pdf_generation_failed"].format("district summary", CYRILLIC_FONTS["regular"])
 
-    def _build_district_html(self, districts_data: List[Dict],
-                             market_trends: str, search_results: str) -> str:
-        """Дүүргийн тайлангийн HTML агуулга бүтээх"""
+    def _build_district_html(self, districts_data: List[Dict], market_trends: str, search_results: str) -> str:
         now = datetime.now()
 
         html = f"""
@@ -367,26 +333,23 @@ class XHTML2PDFGenerator:
             <p class="report-date">Тайлангийн огноо: {now.strftime(DATE_FORMATS['mongolian'])}</p>
 
             <div class="section">
-                <h2>📊 {REPORT_TEMPLATES['district']['sections'][0]}</h2>
+                <h2{REPORT_TEMPLATES['district']['sections'][0]}</h2>
         """
 
-        # Дүүргүүдийн хүснэгт үүсгэх
         html += self._build_districts_table(districts_data)
         html += "</div>"
 
-        # Зах зээлийн шинжилгээ нэмэх
         html += f"""
             <div class="section">
-                <h2>📈 {REPORT_TEMPLATES['district']['sections'][1]}</h2>
+                <h2{REPORT_TEMPLATES['district']['sections'][1]}</h2>
                 <p>{market_trends if market_trends else 'Зах зээлийн ерөнхий чиг хандлагын мэдээлэл олдсонгүй.'}</p>
             </div>
         """
 
-        # Хайлтын үр дүн нэмэх
         if self._should_include_search_results(search_results):
             html += f"""
             <div class="section">
-                <h2>🔍 {REPORT_TEMPLATES['district']['sections'][2]}</h2>
+                <h2{REPORT_TEMPLATES['district']['sections'][2]}</h2>
                 <p>{search_results}</p>
             </div>
             """
@@ -400,11 +363,9 @@ class XHTML2PDFGenerator:
         return html
 
     def _build_districts_table(self, districts_data: List[Dict]) -> str:
-        """Дүүргүүдийн харьцуулалтын хүснэгт бүтээх"""
         if not districts_data:
             return "<p>Дүүргийн мэдээлэл байхгүй.</p>"
 
-        # Дүүргүүдийг үнээр нь эрэмбэлэх
         table_config = TABLE_CONFIG["district_comparison"]
         districts_sorted = sorted(
             districts_data,
@@ -418,7 +379,6 @@ class XHTML2PDFGenerator:
                     <tr>
         """
 
-        # Хүснэгтийн толгойг үүсгэх
         for header in table_config["headers"]:
             html += f"<th>{header}</th>"
 
@@ -428,7 +388,6 @@ class XHTML2PDFGenerator:
                 <tbody>
         """
 
-        # Хүснэгтийн агуулгыг үүсгэх
         for district in districts_sorted:
             name = self._clean_text_for_html(district.get('name', 'N/A'))
             overall = self._format_price_html(district.get('overall_avg', 0))
@@ -452,19 +411,11 @@ class XHTML2PDFGenerator:
         return html
 
 
-# Хуучин API-тай нийцтэй байлгах бүрхүүлэгч класс
 class PDFReportGenerator:
-    """PDF тайлан үүсгэгчийн бүрхүүлэгч класс"""
-
     def __init__(self):
         self.generator = XHTML2PDFGenerator()
-        logger.info("✅ PDF generator (xhtml2pdf) initialized for Mongolian Cyrillic.")
 
-    def generate_property_analysis_report(self, property_data: Dict[str, Any],
-                                          district_analysis: str,
-                                          comparison_result: str,
-                                          search_results: str = "") -> str:
-        """Орон сууцны шинжилгээний тайлан үүсгэх"""
+    def generate_property_analysis_report(self, property_data: Dict[str, Any], district_analysis: str, comparison_result: str, search_results: str = "") -> str:
         if not self.generator:
             logger.error("xhtml2pdf PDF generator is not available.")
             raise RuntimeError("xhtml2pdf PDF generator is not available for property report.")
@@ -473,10 +424,7 @@ class PDFReportGenerator:
             property_data, district_analysis, comparison_result, search_results
         )
 
-    def generate_district_summary_report(self, districts_data: List[Dict],
-                                         market_trends: str = "",
-                                         search_results: str = "") -> str:
-        """Дүүргийн харьцуулалтын тайлан үүсгэх"""
+    def generate_district_summary_report(self, districts_data: List[Dict], market_trends: str = "", search_results: str = "") -> str:
         if not self.generator:
             logger.error("xhtml2pdf PDF generator is not available.")
             raise RuntimeError("xhtml2pdf PDF generator is not available for district report.")

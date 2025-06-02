@@ -1,4 +1,4 @@
-# real_estate_assistant/data_processors/property_aggregator.py - Үл хөдлөх хөрөнгийн өгөгдлийн нэгтгэгч
+
 import logging
 import datetime
 from collections import defaultdict
@@ -15,7 +15,6 @@ class PropertyAggregator:
         pass
 
     def _is_valid_residential_property(self, prop_data: Dict[str, Any]) -> bool:
-        """Үл хөдлөх хөрөнгө нь нэгтгэхэд хүчинтэй орон сууцны жагсаалт мөн эсэхийг шалгах"""
         title = prop_data.get("title", "").lower()
 
         price_per_sqm = prop_data.get("price_per_sqm")
@@ -23,7 +22,7 @@ class PropertyAggregator:
         room_count = prop_data.get("room_count")
 
         if not isinstance(room_count, int) or room_count < 1 or room_count > 10:
-            logger.debug(f"Буутай тоо биш эсвэл 1-10 тооны хооронд биш: {room_count} өрөөний тоо {title}-д")
+            logger.debug(f"Invalid room count or not between 1-10: {room_count} rooms in {title}")
             return False
 
         definite_exclusions = [
@@ -42,7 +41,7 @@ class PropertyAggregator:
             "амралт",
         ]
         if any(keyword in title for keyword in definite_exclusions):
-            logger.debug(f"Тодорхой хасах жагсаалтад орсон учир хасав: {title}")
+            logger.debug(f"Excluded due to definite exclusion list: {title}")
             return False
 
         apartment_indicators = [
@@ -62,7 +61,7 @@ class PropertyAggregator:
         if not has_apartment_indicator:
             house_indicators = ["хашаа байшин", "байшин", "аос", "хаус"]
             if any(indicator in title for indicator in house_indicators):
-                logger.debug(f"Хасав: {title}-д өрөө байр биш")
+                logger.debug(f"Excluded: {title} is not an apartment")
                 return False
 
             commercial_indicators = [
@@ -73,11 +72,11 @@ class PropertyAggregator:
                 "объект",
             ]
             if any(indicator in title for indicator in commercial_indicators):
-                logger.debug(f"Хасав: {title}-д үйлчилгээний газар байна")
+                logger.debug(f"Excluded: {title} is a commercial property")
                 return False
 
         if area_sqm is None or not (15 <= area_sqm <= 500):
-            logger.debug(f"Талбайн хэмжээ буруу: {area_sqm} м² {title}-д")
+            logger.debug(f"Invalid area size: {area_sqm} m² in {title}")
             return False
 
         if (
@@ -85,22 +84,17 @@ class PropertyAggregator:
             or not isinstance(price_per_sqm, (int, float))
             or price_per_sqm <= 0
         ):
-            logger.debug(
-                f"Ханш м²-д буруу эсвэл алга: {price_per_sqm} {title}-д"
-            )
+            logger.debug(f"Price per sqm invalid or missing: {price_per_sqm} in {title}")
             return False
 
         if not (500_000 <= price_per_sqm <= 20_000_000):
-            logger.debug(
-                f"Ханш м²-д хэтэрхий өндөр эсвэл бага: {price_per_sqm:,.0f} ₮/м² {title}-д"
-            )
+            logger.debug(f"Price per sqm too high or too low: {price_per_sqm:,.0f} ₮/m² in {title}")
             return False
 
-        logger.debug(f"✅ Хүчинтэй орон сууц: {title}")
+        logger.debug(f" Valid residential property: {title}")
         return True
 
     def _classify_property_type(self, prop_data: Dict[str, Any]) -> str:
-        """Логгингийн зорилгоор үл хөдлөх хөрөнгийн төрлийг ангилах"""
         title = prop_data.get("title", "").lower()
 
         if any(keyword in title for keyword in ["зогсоол", "гараж"]):
@@ -153,7 +147,6 @@ class PropertyAggregator:
     def aggregate_property_data(
         self, prop_data: Dict[str, Any], aggregated_data: Dict
     ) -> None:
-        """Үл хөдлөх хөрөнгийн өгөгдлийг нэгтгэх бүтэцд нэмэх."""
         district = prop_data.get("scraped_district") or prop_data.get(
             "district", "Unknown"
         )
@@ -161,9 +154,7 @@ class PropertyAggregator:
         price_per_sqm = prop_data.get("price_per_sqm")
 
         if not all([district, room_count is not None, price_per_sqm is not None]):
-            logger.debug(
-                f"Нэмэхээс татгалзав: дүүрэг={district}, өрөөний тоо={room_count}, ханш м²-д={price_per_sqm} мэдээлэл алга"
-            )
+            logger.debug(f"Rejected addition: district={district}, room_count={room_count}, price_per_sqm={price_per_sqm} information missing")
             return
 
         aggregated_data[district]["overall"]["total_price_per_sqm"] += price_per_sqm
@@ -173,16 +164,13 @@ class PropertyAggregator:
         aggregated_data[district][room_key]["total_price_per_sqm"] += price_per_sqm
         aggregated_data[district][room_key]["count"] += 1
 
-        logger.debug(
-            f"✅ Нэмэв: {district} - {room_count} өрөө - {price_per_sqm:,.0f} ₮/м²"
-        )
+        logger.debug(f" Added: {district} - {room_count} rooms - {price_per_sqm:,.0f} ₮/m²")
 
     def generate_district_documents(self, aggregated_data: Dict) -> List[Document]:
-        """Вектор хадгалагчид зориулж нэгтгэсэн өгөгдлөөс Document объектуудыг үүсгэх."""
         district_documents = []
 
         if not aggregated_data:
-            logger.warning("Аль ч дүүрэгт мэдээлэл цуглуулаагүй байна")
+            logger.warning("No data collected for any district")
             return []
 
         for district, room_types in aggregated_data.items():
@@ -215,21 +203,21 @@ class PropertyAggregator:
             overall_avg_formatted = (
                 f"{int(overall_avg):,} төгрөг".replace(",", " ")
                 if overall_avg > 0
-                else "мэдээлэл байхгүй"
+                else "no data"
             )
             two_room_avg_formatted = (
                 f"{int(two_room_avg):,} төгрөг".replace(",", " ")
                 if two_room_avg > 0
-                else "мэдээлэл байхгүй"
+                else "no data"
             )
             three_room_avg_formatted = (
                 f"{int(three_room_avg):,} төгрөг".replace(",", " ")
                 if three_room_avg > 0
-                else "мэдээлэл байхгүй"
+                else "no data"
             )
 
             description = DISTRICT_DESCRIPTIONS.get(
-                district, f"{district} дүүргийн тухай нэмэлт мэдээлэл байхгүй."
+                district, f"{district} district has no additional information."
             )
 
             content = f"""
@@ -243,8 +231,6 @@ class PropertyAggregator:
             """.strip()
 
             district_documents.append(Document(page_content=content))
-            logger.debug(
-                f"Generated document for {district} with {overall_info['count']} properties"
-            )
+            logger.debug(f"Generated document for {district} with {overall_info['count']} properties")
 
         return district_documents

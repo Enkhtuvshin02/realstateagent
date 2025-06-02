@@ -228,6 +228,7 @@
             font-size: 14px;
             font-weight: 500;
             margin-top: 12px;
+            margin-left: 4px;
         }
 
         .download-link:hover {
@@ -400,15 +401,6 @@
             <p>Орон сууц, дүүрэг, зах зээлийн мэргэжлийн шинжилгээ</p>
         </div>
 
-        <div class="status-bar">
-            <div class="status-indicator">
-                <div class="status-dot"></div>
-                <span id="status">Бэлэн байна</span>
-            </div>
-            <div>
-                <span id="cache-status">Кэш шалгаж байна...</span>
-            </div>
-        </div>
 
         <div class="chat-messages" id="chat-messages">
             <div class="message assistant">
@@ -447,7 +439,6 @@
                 <div class="quick-action" onclick="sendQuickMessage('Сүхбаатар дүүрэг')">Сүхбаатар дүүрэг</div>
                 <div class="quick-action" onclick="sendQuickMessage('Бүх дүүргийн үнэ харьцуулах')">Дүүрэг харьцуулах</div>
                 <div class="quick-action" onclick="sendQuickMessage('Орон сууцны зах зээлийн нөхцөл')">Зах зээлийн нөхцөл</div>
-                <div class="quick-action" onclick="refreshCache()">Мэдээлэл шинэчлэх</div>
             </div>
         </div>
     </div>
@@ -459,7 +450,6 @@
         const chatMessages = document.getElementById('chat-messages');
         const loading = document.getElementById('loading');
         const statusSpan = document.getElementById('status');
-        const cacheStatusSpan = document.getElementById('cache-status');
 
         // Textarea-г автоматаар өргөтгөх
         userInput.addEventListener('input', function() {
@@ -545,7 +535,7 @@
                     <div class="report-title">Тайлан авах уу?</div>
                     <div>${parts[1].replace(/\n/g, '<br>')}</div>
                     <div class="report-buttons">
-                        <button class="report-button accept" onclick="sendMessage('Тиймээ')">Тиймээ</button>
+                        <button class="report-button accept" onclick="sendMessage('Тийм')">Тийм</button>
                         <button class="report-button decline" onclick="sendMessage('Үгүй')">Үгүй</button>
                     </div>
                 `;
@@ -562,7 +552,7 @@
                 const downloadLink = document.createElement('a');
                 downloadLink.href = data.download_url;
                 downloadLink.className = 'download-link';
-                downloadLink.textContent = '📥 PDF Тайлан татаж авах';
+                downloadLink.textContent = 'Тайлан татаж авах';
                 downloadLink.target = '_blank';
                 contentDiv.appendChild(downloadLink);
             }
@@ -646,65 +636,11 @@
             loading.classList.toggle('active', show);
         }
 
-        async function refreshCache() {
-            try {
-                statusSpan.textContent = 'Мэдээлэл шинэчилж байна...';
-                cacheStatusSpan.textContent = 'Шинэчилж байна...';
-
-                const response = await fetch('/cache/refresh', { method: 'POST' });
-                const data = await response.json();
-
-                if (data.status === 'success') {
-                    cacheStatusSpan.textContent = 'Шинэчлэгдсэн';
-                    addMessage('✅ Дүүргийн мэдээлэл амжилттай шинэчлэгдлээ!', 'assistant');
-                } else {
-                    cacheStatusSpan.textContent = 'Алдаа';
-                    addMessage('❌ Мэдээлэл шинэчлэхэд алдаа гарлаа.', 'assistant');
-                }
-
-                statusSpan.textContent = 'Бэлэн байна';
-            } catch (error) {
-                console.error('Cache refresh error:', error);
-                cacheStatusSpan.textContent = 'Алдаа';
-                statusSpan.textContent = 'Алдаа';
-            }
-        }
-
-        async function checkStatus() {
-            try {
-                const [healthResponse, cacheResponse] = await Promise.all([
-                    fetch('/health'),
-                    fetch('/cache/status')
-                ]);
-
-                const healthData = await healthResponse.json();
-                const cacheData = await cacheResponse.json();
-
-                if (healthData.all_ready) {
-                    statusSpan.textContent = 'Бэлэн байна';
-                } else {
-                    statusSpan.textContent = 'Эхлүүлж байна...';
-                }
-
-                if (cacheData.status === 'success' && cacheData.cache.is_fresh) {
-                    cacheStatusSpan.textContent = `Шинэ (${cacheData.cache.age_days || 0} өдөр)`;
-                } else {
-                    cacheStatusSpan.textContent = 'Хуучирсан';
-                }
-
-            } catch (error) {
-                console.error('Status check error:', error);
-                statusSpan.textContent = 'Алдаа';
-                cacheStatusSpan.textContent = 'Тодорхойгүй';
-            }
-        }
 
         // Эхлүүлэх
-        checkStatus();
         userInput.focus();
 
         // Тогтмол статус шалгах
-        setInterval(checkStatus, 30000);
     </script>
 </body>
 </html>

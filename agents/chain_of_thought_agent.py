@@ -1,4 +1,3 @@
-# agents/chain_of_thought_agent.py - Хялбаршуулсан CoT агент
 import logging
 from typing import Dict, Any
 from langchain_core.prompts import ChatPromptTemplate
@@ -8,16 +7,12 @@ logger = logging.getLogger(__name__)
 
 
 class ChainOfThoughtAgent:
-    """Хялбаршуулсан сэтгэлгээний гинжин агент - зөвхөн шаардлагатай функцуудтай"""
-
     def __init__(self, llm):
         self.llm = llm
 
     async def enhance_response_with_reasoning(self, original_response: str, analysis_type: str,
                                               data: Dict[str, Any], user_query: str) -> str:
-        """Хариултыг сэтгэлгээний алхмуудаар сайжруулах"""
         try:
-            # Шинжилгээний төрлөөр система промпт сонгох
             if analysis_type == "property_analysis":
                 system_prompt = self._get_property_prompt()
             elif analysis_type == "district_comparison":
@@ -25,7 +20,7 @@ class ChainOfThoughtAgent:
             else:
                 system_prompt = self._get_market_prompt()
 
-            # CoT шинжилгээ үүсгэх
+
             prompt = ChatPromptTemplate.from_messages([
                 ("system", system_prompt),
                 ("human", """Data: {data}
@@ -39,13 +34,13 @@ Provide detailed analysis following the structure above. Write your response in 
                 "query": user_query
             })
 
-            # Үр дүнг нэгтгэх
-            return f"""**🧠 Дэлгэрэнгүй шинжилгээ:**
+
+            return f"""**Дэлгэрэнгүй шинжилгээ:**
 
 {cot_analysis}
 
 ---
-**💡 Хураангуй:**
+**Хураангуй:**
 {original_response}"""
 
         except Exception as e:
@@ -53,7 +48,6 @@ Provide detailed analysis following the structure above. Write your response in 
             return original_response
 
     def _get_property_prompt(self) -> str:
-        """Property analysis prompt in English"""
         return """You are a professional real estate analyst. Provide detailed property analysis with the following structure:
 
 1. **Price Analysis** - Is the price fair and reasonable?
@@ -70,7 +64,6 @@ For each section:
 CRITICAL: Your final response must be written entirely in Mongolian language."""
 
     def _get_district_prompt(self) -> str:
-        """District analysis prompt in English"""
         return """You are a real estate market analyst. Provide district analysis with the following structure:
 
 1. **Price Situation** - Current price levels and trends
@@ -87,7 +80,6 @@ For each section:
 CRITICAL: Your final response must be written entirely in Mongolian language."""
 
     def _get_market_prompt(self) -> str:
-        """Market analysis prompt in English"""
         return """You are a real estate market researcher. Provide market analysis with the following structure:
 
 1. **Market Conditions** - Current state of the market

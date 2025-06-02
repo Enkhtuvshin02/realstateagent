@@ -1,4 +1,4 @@
-# real_estate_assistant/config/constants.py - Тогтмол үтгүүд
+
 
 FEATURE_TRANSLATIONS = {
     'Шал': 'Floor', 'Тагт': 'Balcony', 'Ашиглалтанд орсон он': 'Year Built',
@@ -24,7 +24,7 @@ DISTRICT_URL_PATHS = {
 BASE_LISTING_URL = "https://www.unegui.mn/l-hdlh/l-hdlh-zarna/"
 MAX_PAGES_TO_SCRAPE_PER_DISTRICT = 3
 
-# Баримт бичиг үүсгэхэд ашиглах дүүргүүдийн тайлбар
+
 DISTRICT_DESCRIPTIONS = {
     "Хан-Уул": "Хан-Уул дүүрэг нь Улаанбаатар хотын баруун урд байрладаг. Энэ дүүрэг нь орон сууцны үнэ харьцангуй өндөр байдаг.",
     "Баянгол": "Баянгол дүүрэг нь Улаанбаатар хотын төв хэсэгт ойр байрладаг. Энэ дүүрэг нь дундаж үнэтэй орон сууц элбэг.",

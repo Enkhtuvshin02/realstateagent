@@ -1,4 +1,4 @@
-# agents/district_analyzer.py - Хялбаршуулсан дүүргийн шинжээч
+
 import logging
 import os
 from datetime import datetime, timedelta
@@ -25,51 +25,43 @@ class DistrictAnalyzer:
         self.cache_dir = Path("cache")
         self.cache_dir.mkdir(exist_ok=True)
 
-        # Анхны өгөгдлөөр эхлүүлэх
         self._initialize_with_static_data()
 
     def _initialize_with_static_data(self):
-        """Статик өгөгдлөөр векторын санг эхлүүлэх"""
-        logger.info("Статик өгөгдлөөр эхлүүлж байна...")
+        logger.info("Initializing with static data...")
 
         static_data = [
-            Document(page_content="""
-            Дүүрэг: Хан-Уул
+            Document(page_content="""Дүүрэг: Хан-Уул
             Нийт байрны 1м2 дундаж үнэ: 4 000 000 төгрөг
             2 өрөө байрны 1м2 дундаж үнэ: 4 100 000 төгрөг
             3 өрөө байрны 1м2 дундаж үнэ: 3 900 000 төгрөг
             Хан-Уул дүүрэг нь баруун урд байрладаг, үнэ өндөр дүүрэг.
             """),
-            Document(page_content="""
-            Дүүрэг: Баянгол
+            Document(page_content="""Дүүрэг: Баянгол
             Нийт байрны 1м2 дундаж үнэ: 3 500 000 төгрөг
             2 өрөө байрны 1м2 дундаж үнэ: 3 600 000 төгрөг
             3 өрөө байрны 1м2 дундаж үнэ: 3 400 000 төгрөг
             Баянгол дүүрэг нь төвтэй ойр, дундаж үнэтэй дүүрэг.
             """),
-            Document(page_content="""
-            Дүүрэг: Сүхбаатар
+            Document(page_content="""Дүүрэг: Сүхбаатар
             Нийт байрны 1м2 дундаж үнэ: 4 500 000 төгрөг
             2 өрөө байрны 1м2 дундаж үнэ: 4 600 000 төгрөг
             3 өрөө байрны 1м2 дундаж үнэ: 4 400 000 төгрөг
             Сүхбаатар дүүрэг нь хамгийн үнэтэй, төвийн дүүрэг.
             """),
-            Document(page_content="""
-            Дүүрэг: Чингэлтэй
+            Document(page_content="""Дүүрэг: Чингэлтэй
             Нийт байрны 1м2 дундаж үнэ: 3 800 000 төгрөг
             2 өрөө байрны 1м2 дундаж үнэ: 3 900 000 төгрөг
             3 өрөө байрны 1m2 дундаж үнэ: 3 700 000 төгрөг
             Чингэлтэй дүүрэг нь төв хэсэгтэй ойр байрладаг.
             """),
-            Document(page_content="""
-            Дүүрэг: Баянзүрх
+            Document(page_content="""Дүүрэг: Баянзүрх
             Нийт байрны 1м2 дундаж үнэ: 3 200 000 төгрөг
             2 өрөө байрны 1м2 дундаж үнэ: 3 300 000 төгрөг
             3 өрөө байрны 1м2 дундаж үнэ: 3 100 000 төгрөг
             Баянзүрх дүүрэг нь хамгийн том, дундаж үнэтэй дүүрэг.
             """),
-            Document(page_content="""
-            Дүүрэг: Сонгинохайрхан
+            Document(page_content="""Дүүрэг: Сонгинохайрхан
             Нийт байрны 1м2 дундаж үнэ: 2 800 000 төгрөг
             2 өрөө байрны 1м2 дундаж үнэ: 2 900 000 төгрөг
             3 өрөө байрны 1м2 дундаж үнэ: 2 700 000 төгрөг
@@ -78,16 +70,13 @@ class DistrictAnalyzer:
         ]
 
         self.vectorstore = FAISS.from_documents(static_data, self.embeddings_model)
-        logger.info("Векторын сан статик өгөгдлөөр бэлэн болсон")
+        logger.info("Vector store initialized with static data")
 
     async def analyze_district(self, location: str) -> str:
-        """Дүүргийн шинжилгээ хийх - хялбаршуулсан"""
-        logger.info(f"Дүүргийн шинжилгээ: '{location}'")
+        logger.info(f"Specific district analysis for: '{location}'")
 
-        # Шинэ өгөгдөл шалгах (1 долоо хоног тутам)
         await self._ensure_fresh_data()
 
-        # Барилга жагсаалт харьцуулах эсэхийг шалгах
         comparison_keywords = ['бүх дүүрэг', 'дүүрэг харьцуулах', 'дүүргүүд', 'compare']
         is_comparison = any(keyword in location.lower() for keyword in comparison_keywords)
 
@@ -97,11 +86,8 @@ class DistrictAnalyzer:
             return await self._analyze_specific_district(location)
 
     async def _analyze_specific_district(self, location: str) -> str:
-        """Тодорхой дүүргийн шинжилгээ"""
-        # Векторын санаас хайх
         results = self.vectorstore.similarity_search_with_score(location, k=3)
 
-        # Хамгийн сайн тохирохыг олох
         best_match = None
         for doc, score in results:
             if location.lower() in doc.page_content.lower():
@@ -110,11 +96,10 @@ class DistrictAnalyzer:
 
         if best_match:
             content = best_match.page_content
-            logger.info(f"Олдсон: {content.splitlines()[0]}")
+            logger.info(f"Found: {content.splitlines()[0]}")
         else:
-            content = "Тодорхой дүүргийн мэдээлэл олдсонгүй."
+            content = "No specific district information found."
 
-        # LLM-ээр шинжилгээ хийх
         prompt_template = """
         You are a real estate market analyst specializing in Ulaanbaatar districts. 
         Analyze the district information and provide insights.
@@ -143,7 +128,6 @@ class DistrictAnalyzer:
         return response
 
     async def _compare_all_districts(self, location: str) -> str:
-        """Бүх дүүргийн харьцуулалт"""
         all_docs = list(self.vectorstore.docstore._dict.values())
         all_content = "\n\n".join([doc.page_content for doc in all_docs])
 
@@ -174,7 +158,6 @@ class DistrictAnalyzer:
         return response
 
     async def _ensure_fresh_data(self):
-        """Шинэ өгөгдөл байгаа эсэхийг шалгах"""
         if not self.property_retriever:
             return
 
@@ -192,32 +175,28 @@ class DistrictAnalyzer:
                 should_update = True
 
         if should_update:
-            logger.info("Шинэ өгөгдөл татаж байна...")
+            logger.info("Fetching new data...")
             await self._update_with_realtime_data()
 
     async def _update_with_realtime_data(self):
-        """Бодит цагийн өгөгдлөөр шинэчлэх"""
         try:
             real_time_documents = await self.property_retriever.retrieve_vector_data()
 
             if real_time_documents:
-                # Шинэ векторын сан үүсгэх
                 self.vectorstore = FAISS.from_documents(real_time_documents, self.embeddings_model)
 
-                # Сүүлийн шинэчлэлийн огноог хадгалах
                 cache_file = self.cache_dir / "last_update.txt"
                 with open(cache_file, 'w') as f:
                     f.write(datetime.now().isoformat())
 
-                logger.info(f"Векторын сан {len(real_time_documents)} баримттайгаар шинэчлэгдсэн")
+                logger.info(f"Vector store updated with {len(real_time_documents)} documents")
             else:
-                logger.warning("Шинэ өгөгдөл татаж чадсангүй")
+                logger.warning("Failed to fetch new data")
 
         except Exception as e:
-            logger.error(f"Шинэ өгөгдөл татахад алдаа: {e}")
+            logger.error(f"Error fetching new data: {e}")
 
     def get_cache_status(self) -> dict:
-        """Кэшийн статусыг авах"""
         cache_file = self.cache_dir / "last_update.txt"
 
         if not cache_file.exists():
