@@ -1,4 +1,3 @@
-
 import logging
 import os
 from datetime import datetime, timedelta
@@ -65,7 +64,7 @@ class DistrictAnalyzer:
             Нийт байрны 1м2 дундаж үнэ: 2 800 000 төгрөг
             2 өрөө байрны 1м2 дундаж үнэ: 2 900 000 төгрөг
             3 өрөө байрны 1м2 дундаж үнэ: 2 700 000 төгрөг
-            Сонгинохайрхан дүүрэг нь баруун хэсэгт байрладаг том дүүрэг.
+            Сонгинохайрхан дүүрэг нь хотын баруун хэсэгт байрладаг том дүүрэг.
             """)
         ]
 
@@ -129,33 +128,59 @@ class DistrictAnalyzer:
 
     async def _compare_all_districts(self, location: str) -> str:
         all_docs = list(self.vectorstore.docstore._dict.values())
-        all_content = "\n\n".join([doc.page_content for doc in all_docs])
 
-        prompt_template = """
-        You are a real estate market analyst. Provide a comprehensive comparison of ALL districts.
+        # Extract structured data from documents for direct processing
+        districts_data = []
+        for doc in all_docs:
+            content = doc.page_content.strip()
+            district_info = {}
+            lines = content.split('\n')
+            for line in lines:
+                line = line.strip()
+                if 'Дүүрэг:' in line:
+                    district_info['name'] = line.replace('Дүүрэг:', '').strip()
+                elif 'Нийт байрны 1м2 дундаж үнэ:' in line:
+                    price_str = line.split(':', 1)[1].strip().replace('төгрөг', '').replace(' ', '').replace(',', '')
+                    district_info['overall_avg'] = float(price_str) if price_str.replace('.', '', 1).isdigit() else 0
+                elif '1 өрөө байрны 1м2 дундаж үнэ:' in line:
+                    price_str = line.split(':', 1)[1].strip().replace('төгрөг', '').replace(' ', '').replace(',', '')
+                    district_info['one_room_avg'] = float(price_str) if price_str.replace('.', '', 1).isdigit() else 0
+                elif '2 өрөө байрны 1м2 дундаж үнэ:' in line:
+                    price_str = line.split(':', 1)[1].strip().replace('төгрөг', '').replace(' ', '').replace(',', '')
+                    district_info['two_room_avg'] = float(price_str) if price_str.replace('.', '', 1).isdigit() else 0
+                elif '3 өрөө байрны 1м2 дундаж үнэ:' in line:
+                    price_str = line.split(':', 1)[1].strip().replace('төгрөг', '').replace(' ', '').replace(',', '')
+                    district_info['three_room_avg'] = float(price_str) if price_str.replace('.', '', 1).isdigit() else 0
+                # Add more room types if necessary, mirroring how PropertyAggregator generates them
 
-        Create analysis that includes:
-        1. Overview of all districts with their average prices
-        2. Price ranking from most expensive to least expensive
-        3. District categories (premium, mid-range, affordable)
-        4. Investment recommendations for different buyer types
-        5. Best value districts and reasons why
+            if district_info.get('name'):
+                districts_data.append(district_info)
 
-        Location query: {location}
-        All districts data: {context}
+        # Sort by overall average price for better presentation
+        districts_data_sorted = sorted(districts_data, key=lambda x: x.get('overall_avg', 0), reverse=True)
 
-        IMPORTANT: Respond ONLY in Mongolian language with comprehensive district comparison.
-        """
+        # Format the data for direct output
+        formatted_response = "Улаанбаатар хотын дүүргүүдийн 1м² дундаж үнэ:\n\n"
+        for d in districts_data_sorted:
+            formatted_response += f"**Дүүрэг: {d.get('name', 'N/A')}**\n"
+            if d.get('overall_avg', 0) > 0:
+                formatted_response += f"  Нийт дундаж: {int(d['overall_avg']):,}₮/м²\n".replace(',', ' ')
+            if d.get('one_room_avg', 0) > 0:
+                formatted_response += f"  1 өрөө: {int(d['one_room_avg']):,}₮/м²\n".replace(',', ' ')
+            if d.get('two_room_avg', 0) > 0:
+                formatted_response += f"  2 өрөө: {int(d['two_room_avg']):,}₮/м²\n".replace(',', ' ')
+            if d.get('three_room_avg', 0) > 0:
+                formatted_response += f"  3 өрөө: {int(d['three_room_avg']):,}₮/м²\n".replace(',', ' ')
+            # Add more room types here if they are extracted
+            formatted_response += "\n"
 
-        ANALYZE_PROMPT = PromptTemplate.from_template(prompt_template)
-        analysis_chain = ANALYZE_PROMPT | self.llm | StrOutputParser()
+        # Now, if we want an LLM summary, pass the formatted data to a *very constrained* LLM call
+        # For simplicity, we can return the formatted string directly first.
+        # If the user still asks for more general insights, that's where a more complex LLM call comes in.
 
-        response = await analysis_chain.ainvoke({
-            "location": location,
-            "context": all_content
-        })
-
-        return response
+        # Removed the direct LLM call here, as it was leading to hallucinations.
+        # The primary goal for "show all districts" is direct data presentation.
+        return formatted_response
 
     async def _ensure_fresh_data(self):
         if not self.property_retriever:

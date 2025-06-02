@@ -10,7 +10,6 @@ from agents.chain_of_thought_agent import ChainOfThoughtAgent
 
 logger = logging.getLogger(__name__)
 
-
 REPORT_KEYWORDS = ['Тийм', 'тийм', 'yes', 'тайлан']
 DISTRICT_NAMES = ["хан-уул", "баянгол", "сүхбаатар", "чингэлтэй", "баянзүрх", "сонгинохайрхан"]
 
@@ -52,6 +51,9 @@ class ChatService:
         message_lower = message.lower()
         if re.search(r'https?://\S+', message):
             return 'property'
+        comparison_keywords = ['бүх дүүрэг', 'дүүрэг харьцуулах', 'дүүргүүд', 'харьцуулах']
+        if any(keyword in message_lower for keyword in comparison_keywords):
+            return 'district_comparison'
         if any(district in message_lower for district in DISTRICT_NAMES):
             return 'district'
         market_keywords = ['зах зээл', 'үнийн чиглэл', 'market', 'тренд', 'статистик']
@@ -93,14 +95,30 @@ class ChatService:
     async def _handle_district(self, message: str, use_cot: bool) -> Dict[str, Any]:
         logger.info(f"Processing district information: {message}")
         try:
-            district_analysis = await self.district_analyzer.analyze_district(message)
-            response = await self._generate_district_response(message, district_analysis)
+            comparison_keywords = ['бүх дүүрэг', 'дүүрэг харьцуулах', 'дүүргүүд', 'харьцуулах']
+            is_comparison_request = any(keyword in message.lower() for keyword in comparison_keywords)
+
+            if is_comparison_request:
+                district_analysis_response = await self.district_analyzer._compare_all_districts(message)
+                response = district_analysis_response  # Direct use of the formatted string
+                analysis_type = "district_comparison"
+            else:
+                district_analysis = await self.district_analyzer.analyze_district(message)
+                response = await self._generate_district_response(message, district_analysis)
+                analysis_type = "district_analysis"
+
             if use_cot:
+                if is_comparison_request:
+                    cot_data = {"analysis": response, "query": message}
+                else:
+                    cot_data = {"analysis": district_analysis, "query": message}
+
                 response = await self.cot_agent.enhance_response_with_reasoning(
-                    response, "district_comparison",
-                    {"analysis": district_analysis, "query": message}, message
+                    response, analysis_type, cot_data, message
                 )
-            self.last_district = {"analysis": district_analysis, "query": message}
+
+            self.last_district = {"analysis": district_analysis,
+                                  "query": message}  # Keep original analysis for reporting
             return {
                 "response": response + "\n\n**Тайлан авах уу?**\nДүүргийн PDF тайлан авахыг хүсвэл Тийм гэж бичнэ үү.",
                 "offer_report": True,
@@ -121,7 +139,7 @@ class ChatService:
                     {"search": search_results, "query": message}, message
                 )
             return {
-                "response": response + "\n\n**Тайлан авах уу?**\nЗах зээлийн PDF тайлан авахыг хүсвэл **'Тийм'** гэж бичнэ үү.",
+                "response": response + "\n\n**Тайлан авах уу?**\nЗах зээлийн PDF тайлан авахыг хүсвэл Тийм гэж бичнэ үү.",
                 "offer_report": True,
                 "cot_enhanced": use_cot
             }
@@ -189,6 +207,7 @@ IMPORTANT: Respond ONLY in Mongolian language."""),
     async def _generate_district_response(self, query: str, district_analysis: str) -> str:
         prompt = ChatPromptTemplate.from_messages([
             ("system", """You are a real estate market analyst. Provide clear district analysis with specific insights.
+Respond strictly based on the provided 'District analysis' data. Do NOT include any external or generalized information, or unrelated examples.
 
 Focus on:
 1. Current price levels with numbers
@@ -207,6 +226,7 @@ IMPORTANT: Respond ONLY in Mongolian language."""),
     async def _generate_market_response(self, query: str, search_results: Any) -> str:
         prompt = ChatPromptTemplate.from_messages([
             ("system", """You are a real estate market researcher. Analyze search results and provide valuable market insights.
+Respond strictly based on the provided 'Search results' data. Do NOT include any external or generalized information, or unrelated examples.
 
 Focus on:
 1. Current market conditions
@@ -226,6 +246,7 @@ IMPORTANT: Respond ONLY in Mongolian language."""),
         prompt = ChatPromptTemplate.from_messages([
             ("system", """You are a professional real estate assistant specializing in Mongolia's property market. 
 Provide clear, helpful answers based on search results.
+Respond strictly based on the provided 'Search results' data. Do NOT include any external or generalized information, or unrelated examples.
 
 Provide:
 - Direct answer to the user's question
