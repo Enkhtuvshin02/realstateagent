@@ -20,7 +20,7 @@ class InitializationService:
         self.pdf_generator = None
 
     async def initialize(self):
-        logger.info("🔧 Initializing services...")
+        logger.info("Initializing services...")
 
 
         together_api_key = os.getenv("TOGETHER_API_KEY")

@@ -91,7 +91,7 @@ class ReportService:
             filename = Path(pdf_path).name
             download_url = f"/download-report/{filename}"
             return {
-                "message": f"✅ District comparison PDF report is ready!",
+                "message": f"Дүүргийн харьцуулсан PDF тайлан бэлэн боллоо!",
                 "filename": filename,
                 "download_url": download_url,
                 "success": True

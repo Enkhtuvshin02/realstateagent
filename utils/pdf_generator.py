@@ -1,4 +1,3 @@
-
 import logging
 import re
 from datetime import datetime
@@ -113,26 +112,28 @@ class XHTML2PDFGenerator:
             margin-bottom: 0.5em;
         }}
 
-        h1 {{ 
-            font-size: {FONT_SIZES["h1"]}; 
-            text-align: center; 
-            margin-bottom: 1em; 
+        h1 {{
+            font-size: {FONT_SIZES["h1"]};
+            text-align: center;
+            margin-bottom: 1em;
         }}
 
-        h2 {{ 
-            font-size: {FONT_SIZES["h2"]}; 
-            border-bottom: 1px solid {COLORS["border_light"]}; 
-            padding-bottom: 0.2em; 
+        h2 {{
+            font-size: {FONT_SIZES["h2"]};
+            border-bottom: 1px solid {COLORS["border_light"]};
+            padding-bottom: 0.2em;
             margin-top: {SPACING["margin_h2_top"]};
+            font-weight: bold; /* Added for bold titles */
         }}
 
-        h3 {{ 
-            font-size: {FONT_SIZES["h3"]}; 
-            margin-top: {SPACING["margin_h3_top"]}; 
+        h3 {{
+            font-size: {FONT_SIZES["h3"]};
+            margin-top: {SPACING["margin_h3_top"]};
+            font-weight: bold; /* Added for bold titles */
         }}
 
-        p {{ 
-            margin-bottom: {SPACING["margin_p_bottom"]}; 
+        p {{
+            margin-bottom: {SPACING["margin_p_bottom"]};
         }}
 
         .report-date, .footer-text {{
@@ -141,9 +142,9 @@ class XHTML2PDFGenerator:
             color: {COLORS["text_secondary"]};
         }}
 
-        .footer-text {{ 
-            text-align: center; 
-            margin-top: 2em; 
+        .footer-text {{
+            text-align: center;
+            margin-top: 2em;
         }}
 
         table {{
@@ -165,8 +166,8 @@ class XHTML2PDFGenerator:
             font-weight: bold;
         }}
 
-        .property-details div, .price-highlight div {{ 
-            margin-bottom: 5px; 
+        .property-details div, .price-highlight div {{
+            margin-bottom: 5px;
         }}
 
         .price-highlight {{
@@ -176,14 +177,21 @@ class XHTML2PDFGenerator:
             background-color: {COLORS["background_highlight"]};
         }}
 
-        .price-main {{ 
-            font-size: {FONT_SIZES["price_highlight"]}; 
-            font-weight: bold; 
+        .price-main {{
+            font-size: {FONT_SIZES["price_highlight"]};
+            font-weight: bold;
         }}
 
-        .section {{ 
-            margin-bottom: {SPACING["margin_section"]}; 
-            page-break-inside: avoid; 
+        .section {{
+            margin-bottom: {SPACING["margin_section"]};
+            page-break-inside: avoid;
+            padding-top: 1em; /* Added for better section separation */
+            border-top: 1px solid {COLORS["border_light"]}; /* Added for visual separation */
+        }}
+
+        .section:first-of-type {{
+            border-top: none; /* No border for the first section */
+            padding-top: 0;
         }}
 
         @page {{
@@ -191,9 +199,9 @@ class XHTML2PDFGenerator:
             margin: {PDF_PAGE_CONFIG["margin"]};
             @frame footer_frame {{
                 -pdf-frame-content: footer_content;
-                left: {PDF_PAGE_CONFIG["footer_left"]}; 
-                width: {PDF_PAGE_CONFIG["footer_width"]}; 
-                top: {PDF_PAGE_CONFIG["footer_top"]}; 
+                left: {PDF_PAGE_CONFIG["footer_left"]};
+                width: {PDF_PAGE_CONFIG["footer_width"]};
+                top: {PDF_PAGE_CONFIG["footer_top"]};
                 height: {PDF_PAGE_CONFIG["footer_height"]};
             }}
         }}
@@ -290,7 +298,7 @@ class XHTML2PDFGenerator:
         investment_advice = self._generate_investment_recommendation(price_per_sqm_numeric)
         html += f"""
             <div class="section">
-                <h2> {REPORT_TEMPLATES['property']['sections'][4]} (Жишээ)</h2>
+                <h2> {REPORT_TEMPLATES['property']['sections'][4]}</h2>
                 <p>{investment_advice}</p>
             </div>
         </body>
@@ -325,15 +333,13 @@ class XHTML2PDFGenerator:
             <title>{REPORT_TEMPLATES['district']['title']}</title>
         </head>
         <body>
-            <div id="footer_content" class="footer-text">
-                Тайлан үүсгэсэн: {now.strftime(DATE_FORMATS['display'])} | Хуудас <pdf:pagenumber />
-            </div>
+           
 
             <h1>{REPORT_TEMPLATES['district']['title']}</h1>
             <p class="report-date">Тайлангийн огноо: {now.strftime(DATE_FORMATS['mongolian'])}</p>
 
             <div class="section">
-                <h2{REPORT_TEMPLATES['district']['sections'][0]}</h2>
+                <h2>{REPORT_TEMPLATES['district']['sections'][0]}</h2> 
         """
 
         html += self._build_districts_table(districts_data)
@@ -341,7 +347,7 @@ class XHTML2PDFGenerator:
 
         html += f"""
             <div class="section">
-                <h2{REPORT_TEMPLATES['district']['sections'][1]}</h2>
+                <h2>{REPORT_TEMPLATES['district']['sections'][1]}</h2>
                 <p>{market_trends if market_trends else 'Зах зээлийн ерөнхий чиг хандлагын мэдээлэл олдсонгүй.'}</p>
             </div>
         """
@@ -349,13 +355,12 @@ class XHTML2PDFGenerator:
         if self._should_include_search_results(search_results):
             html += f"""
             <div class="section">
-                <h2{REPORT_TEMPLATES['district']['sections'][2]}</h2>
+                <h2>{REPORT_TEMPLATES['district']['sections'][2]}</h2> 
                 <p>{search_results}</p>
             </div>
             """
 
         html += """
-            <p class="footer-text">Үл хөдлөх хөрөнгийн мэргэжлийн туслах системээр автоматаар үүсгэсэн.</p>
         </body>
         </html>
         """

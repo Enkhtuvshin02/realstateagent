@@ -24,7 +24,10 @@
             height: 100vh;
             display: flex;
             flex-direction: column;
-            border: #2f5ffa 1px solid;
+            /* Changed from border to box-shadow for a softer look */
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08); /* Soft shadow for depth */
+            border-radius: 12px; /* Slightly rounded corners */
+            overflow: hidden; /* Ensures shadow and border-radius are applied correctly */
         }
 
         .chat-header {
@@ -329,10 +332,18 @@
         }
 
         @keyframes dots {
-            0%, 20% { content: ''; }
-            40% { content: '.'; }
-            60% { content: '..'; }
-            80%, 100% { content: '...'; }
+            0%, 20% {
+                content: '';
+            }
+            40% {
+                content: '.';
+            }
+            60% {
+                content: '..';
+            }
+            80%, 100% {
+                content: '...';
+            }
         }
 
         .error-message {
@@ -395,143 +406,147 @@
     </style>
 </head>
 <body>
-    <div class="chat-container">
-        <div class="chat-header">
-            <h1>Үл хөдлөх хөрөнгийн туслах</h1>
-            <p>Орон сууц, дүүрэг, зах зээлийн мэргэжлийн шинжилгээ</p>
-        </div>
+<div class="chat-container">
+    <div class="chat-header">
+        <h1>Үл хөдлөх хөрөнгийн туслах</h1>
+        <p>Орон сууц, дүүрэг, зах зээлийн мэргэжлийн шинжилгээ</p>
+    </div>
 
 
-        <div class="chat-messages" id="chat-messages">
-            <div class="message assistant">
-                <div class="assistant-label">Туслах</div>
-                <div class="message-content">
-                    <p>Сайн байна уу! Би Улаанбаатар хотын үл хөдлөх хөрөнгийн туслах.</p>
+    <div class="chat-messages" id="chat-messages">
+        <div class="message assistant">
+            <div class="assistant-label">Туслах</div>
+            <div class="message-content">
+                <p>Сайн байна уу! Улаанбаатар хотын үл хөдлөх хөрөнгийн зах зээлд тань туслахад бэлэн байна.</p>
 
-                    <p><strong>Миний чадварууд:</strong></p>
-                    <p>• Unegui.mn-ээс орон сууцны мэдээлэл татах<br>
-                    • Дүүргүүдийн үнэ харьцуулах<br>
-                    • Интернэтээс зах зээлийн мэдээлэл хайх<br>
-                    • Дэлгэрэнгүй PDF тайлан үүсгэх<br>
-                    • Алхам бүрийн шинжилгээтэй хариулт</p>
+                <p>Би танд дараах чиглэлээр дэмжлэг үзүүлнэ:</p>
+                <ul>
+                    <li>Unegui.mn сайтаас орон сууцны дэлгэрэнгүй мэдээлэл татах</li>
+                    <li>Дүүргүүдийн үнийн харьцуулсан шинжилгээ хийх</li>
+                    <li>Үл хөдлөх хөрөнгийн зах зээлийн өнөөгийн нөхцөл байдлыг судлах</li>
+                    <li>Бүрэн хэмжээний PDF тайлан үүсгэх</li>
+                </ul>
 
-                    <p>Та орон сууцны холбоос илгээх эсвэл дүүргийн талаар асуух боломжтой.</p>
-                </div>
-            </div>
-        </div>
-
-        <div class="loading" id="loading">
-            <span class="loading-dots">Шинжилгээ хийж байна</span>
-        </div>
-
-        <div class="chat-input-container">
-            <form class="chat-form" id="chat-form">
-                <textarea
-                    class="chat-input"
-                    id="user-input"
-                    placeholder="Орон сууцны холбоос эсвэл асуулт бичнэ үү..."
-                    rows="1"
-                ></textarea>
-                <button type="submit" class="send-button" id="send-button">Илгээх</button>
-            </form>
-
-            <div class="quick-actions">
-                <div class="quick-action" onclick="sendQuickMessage('Сүхбаатар дүүрэг')">Сүхбаатар дүүрэг</div>
-                <div class="quick-action" onclick="sendQuickMessage('Бүх дүүргийн үнэ харьцуулах')">Дүүрэг харьцуулах</div>
-                <div class="quick-action" onclick="sendQuickMessage('Орон сууцны зах зээлийн нөхцөл')">Зах зээлийн нөхцөл</div>
+                <p>Орон сууцны холбоос илгээх эсвэл дүүрэг, зах зээлийн талаарх асуултаа эхлүүлээрэй.</p>
             </div>
         </div>
     </div>
 
-    <script>
-        const chatForm = document.getElementById('chat-form');
-        const userInput = document.getElementById('user-input');
-        const sendButton = document.getElementById('send-button');
-        const chatMessages = document.getElementById('chat-messages');
-        const loading = document.getElementById('loading');
-        const statusSpan = document.getElementById('status');
+    <div class="loading" id="loading">
+        <span class="loading-dots">Шинжилгээ хийж байна</span>
+    </div>
 
-        // Textarea-г автоматаар өргөтгөх
-        userInput.addEventListener('input', function() {
-            this.style.height = 'auto';
-            this.style.height = this.scrollHeight + 'px';
-        });
+    <div class="chat-input-container">
+        <form class="chat-form" id="chat-form">
+                <textarea
+                        class="chat-input"
+                        id="user-input"
+                        placeholder="Орон сууцны холбоос эсвэл асуулт бичнэ үү..."
+                        rows="1"
+                ></textarea>
+            <button type="submit" class="send-button" id="send-button">Илгээх</button>
+        </form>
 
-        // Формын илгээлтийг боловсруулах
-        chatForm.addEventListener('submit', async function(e) {
-            e.preventDefault();
-            const message = userInput.value.trim();
-            if (!message) return;
+        <div class="quick-actions">
+            <div class="quick-action" onclick="sendQuickMessage('Сүхбаатар дүүрэг')">Сүхбаатар дүүрэг</div>
+            <div class="quick-action" onclick="sendQuickMessage('Чингэлтэй дүүрэг')">Чингэлтэй дүүрэг</div>
+            <div class="quick-action" onclick="sendQuickMessage('Бүх дүүргийн үнэ харьцуулах')">Дүүргүүдийг харьцуулах
+            </div>
+            <div class="quick-action" onclick="sendQuickMessage('Орон сууцны зах зээлийн нөхцөл')">Зах зээлийн нөхцөл
+                байдал
+            </div>
+        </div>
+    </div>
+</div>
 
-            await sendMessage(message);
-        });
+<script>
+    const chatForm = document.getElementById('chat-form');
+    const userInput = document.getElementById('user-input');
+    const sendButton = document.getElementById('send-button');
+    const chatMessages = document.getElementById('chat-messages');
+    const loading = document.getElementById('loading');
+    const statusSpan = document.getElementById('status');
 
-        // Мессеж илгээх функц
-        async function sendMessage(message) {
-            addMessage(message, 'user');
+    // Textarea-г автоматаар өргөтгөх
+    userInput.addEventListener('input', function () {
+        this.style.height = 'auto';
+        this.style.height = this.scrollHeight + 'px';
+    });
 
-            userInput.value = '';
-            userInput.style.height = 'auto';
-            setFormEnabled(false);
-            showLoading(true);
+    // Формын илгээлтийг боловсруулах
+    chatForm.addEventListener('submit', async function (e) {
+        e.preventDefault();
+        const message = userInput.value.trim();
+        if (!message) return;
 
-            try {
-                statusSpan.textContent = 'Шинжилгээ хийж байна...';
+        await sendMessage(message);
+    });
 
-                const formData = new FormData();
-                formData.append('user_message', message);
+    // Мессеж илгээх функц
+    async function sendMessage(message) {
+        addMessage(message, 'user');
 
-                const response = await fetch('/chat', {
-                    method: 'POST',
-                    body: formData
-                });
+        userInput.value = '';
+        userInput.style.height = 'auto';
+        setFormEnabled(false);
+        showLoading(true);
 
-                const data = await response.json();
+        try {
+            statusSpan.textContent = 'Шинжилгээ хийж байна...';
 
-                if (data.response) {
-                    addMessage(data.response, 'assistant', data);
-                } else {
-                    addMessage('Алдаа гарлаа. Дахин оролдоно уу.', 'assistant');
-                }
+            const formData = new FormData();
+            formData.append('user_message', message);
 
-                statusSpan.textContent = 'Бэлэн байна';
+            const response = await fetch('/chat', {
+                method: 'POST',
+                body: formData
+            });
 
-            } catch (error) {
-                console.error('Error:', error);
-                addMessage('Серверт холбогдоход алдаа гарлаа. Дахин оролдоно уу.', 'assistant');
-                statusSpan.textContent = 'Алдаа';
-            } finally {
-                setFormEnabled(true);
-                showLoading(false);
-                userInput.focus();
+            const data = await response.json();
+
+            if (data.response) {
+                addMessage(data.response, 'assistant', data);
+            } else {
+                addMessage('Алдаа гарлаа. Дахин оролдоно уу.', 'assistant');
             }
+
+
+        } catch (error) {
+            console.error('Error:', error);
+            addMessage('Серверт холбогдоход алдаа гарлаа. Дахин оролдоно уу.', 'assistant');
+            statusSpan.textContent = 'Алдаа';
+        } finally {
+            setFormEnabled(true);
+            showLoading(false);
+            userInput.focus();
+        }
+    }
+
+    // Чатад мессеж нэмэх
+    function addMessage(content, sender, data = {}) {
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `message ${sender}`;
+
+        if (sender === 'assistant') {
+            const labelDiv = document.createElement('div');
+            labelDiv.className = 'assistant-label';
+            labelDiv.textContent = 'Туслах';
+            messageDiv.appendChild(labelDiv);
         }
 
-        // Чатад мессеж нэмэх
-        function addMessage(content, sender, data = {}) {
-            const messageDiv = document.createElement('div');
-            messageDiv.className = `message ${sender}`;
+        const contentDiv = document.createElement('div');
+        contentDiv.className = 'message-content';
 
-            if (sender === 'assistant') {
-                const labelDiv = document.createElement('div');
-                labelDiv.className = 'assistant-label';
-                labelDiv.textContent = 'Туслах';
-                messageDiv.appendChild(labelDiv);
-            }
+        // Янз бүрийн төрлийн контентыг боловсруулах
+        if (content.includes('**Тайлан авах уу?**')) {
+            const parts = content.split('**Тайлан авах уу?**');
 
-            const contentDiv = document.createElement('div');
-            contentDiv.className = 'message-content';
+            const mainContent = parts[0].replace(/\n/g, '<br>');
+            contentDiv.innerHTML = mainContent;
 
-            // Янз бүрийн төрлийн контентыг боловсруулах
-            if (content.includes('**Тайлан авах уу?**')) {
-                const parts = content.split('**Тайлан авах уу?**');
-
-                const mainContent = parts[0].replace(/\n/g, '<br>');
-                contentDiv.innerHTML = mainContent;
-
-                const reportOfferDiv = document.createElement('div');
-                reportOfferDiv.className = 'report-offer';
-                reportOfferDiv.innerHTML = `
+            const reportOfferDiv = document.createElement('div');
+            reportOfferDiv.className = 'report-offer';
+            reportOfferDiv.innerHTML = `
                     <div class="report-title">Тайлан авах уу?</div>
                     <div>${parts[1].replace(/\n/g, '<br>')}</div>
                     <div class="report-buttons">
@@ -539,108 +554,108 @@
                         <button class="report-button decline" onclick="sendMessage('Үгүй')">Үгүй</button>
                     </div>
                 `;
-                contentDiv.appendChild(reportOfferDiv);
-            } else if (content.includes('**Дэлгэрэнгүй шинжилгээний алхмууд:**')) {
-                formatCotContent(content, contentDiv);
-            } else {
-                const formattedContent = content.replace(/\n/g, '<br>');
-                contentDiv.innerHTML = formattedContent;
-            }
-
-            // Тайлан үүсгэсэн бол татаж авах холбоос нэмэх
-            if (data.download_url) {
-                const downloadLink = document.createElement('a');
-                downloadLink.href = data.download_url;
-                downloadLink.className = 'download-link';
-                downloadLink.textContent = 'Тайлан татаж авах';
-                downloadLink.target = '_blank';
-                contentDiv.appendChild(downloadLink);
-            }
-
-            messageDiv.appendChild(contentDiv);
-            chatMessages.appendChild(messageDiv);
-            chatMessages.scrollTop = chatMessages.scrollHeight;
+            contentDiv.appendChild(reportOfferDiv);
+        } else if (content.includes('**Дэлгэрэнгүй шинжилгээний алхмууд:**')) {
+            formatCotContent(content, contentDiv);
+        } else {
+            const formattedContent = content.replace(/\n/g, '<br>');
+            contentDiv.innerHTML = formattedContent;
         }
 
-        // Сэтгэлгээний гинжин агуулгыг форматлах
-        function formatCotContent(content, container) {
-            const sections = content.split('\n\n');
+        // Тайлан үүсгэсэн бол татаж авах холбоос нэмэх
+        if (data.download_url) {
+            const downloadLink = document.createElement('a');
+            downloadLink.href = data.download_url;
+            downloadLink.className = 'download-link';
+            downloadLink.textContent = 'Тайлан татаж авах';
+            downloadLink.target = '_blank';
+            contentDiv.appendChild(downloadLink);
+        }
 
-            sections.forEach(section => {
-                if (section.includes('**Дэлгэрэнгүй шинжилгээний алхмууд:**')) {
-                    const cotDiv = document.createElement('div');
-                    cotDiv.className = 'cot-section';
+        messageDiv.appendChild(contentDiv);
+        chatMessages.appendChild(messageDiv);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
 
-                    const titleDiv = document.createElement('div');
-                    titleDiv.className = 'cot-title';
-                    titleDiv.innerHTML = '🧠 Дэлгэрэнгүй шинжилгээний алхмууд';
-                    cotDiv.appendChild(titleDiv);
+    // Сэтгэлгээний гинжин агуулгыг форматлах
+    function formatCotContent(content, container) {
+        const sections = content.split('\n\n');
 
-                    container.appendChild(cotDiv);
-                } else if (section.includes('**') && section.includes('.')) {
-                    const stepDiv = document.createElement('div');
-                    stepDiv.className = 'thinking-step';
+        sections.forEach(section => {
+            if (section.includes('**Дэлгэрэнгүй шинжилгээний алхмууд:**')) {
+                const cotDiv = document.createElement('div');
+                cotDiv.className = 'cot-section';
 
-                    const lines = section.split('\n');
-                    const title = lines[0].replace(/\*\*/g, '');
-                    const content = lines.slice(1).join(' ');
+                const titleDiv = document.createElement('div');
+                titleDiv.className = 'cot-title';
+                titleDiv.innerHTML = '🧠 Дэлгэрэнгүй шинжилгээний алхмууд';
+                cotDiv.appendChild(titleDiv);
 
-                    stepDiv.innerHTML = `
+                container.appendChild(cotDiv);
+            } else if (section.includes('**') && section.includes('.')) {
+                const stepDiv = document.createElement('div');
+                stepDiv.className = 'thinking-step';
+
+                const lines = section.split('\n');
+                const title = lines[0].replace(/\*\*/g, '');
+                const content = lines.slice(1).join(' ');
+
+                stepDiv.innerHTML = `
                         <div class="step-title">${title}</div>
                         <div class="step-content">${content}</div>
                     `;
 
-                    const lastCotSection = container.querySelector('.cot-section:last-child');
-                    if (lastCotSection) {
-                        lastCotSection.appendChild(stepDiv);
-                    }
-                } else if (section.includes('**Гол дүгнэлтүүд:**')) {
-                    const insightsDiv = document.createElement('div');
-                    insightsDiv.className = 'insights-section';
-
-                    const titleDiv = document.createElement('div');
-                    titleDiv.className = 'insights-title';
-                    titleDiv.textContent = 'Гол дүгнэлтүүд:';
-                    insightsDiv.appendChild(titleDiv);
-
-                    const insights = section.split('•').slice(1);
-                    insights.forEach(insight => {
-                        if (insight.trim()) {
-                            const insightDiv = document.createElement('div');
-                            insightDiv.className = 'insight-item';
-                            insightDiv.textContent = '• ' + insight.trim();
-                            insightsDiv.appendChild(insightDiv);
-                        }
-                    });
-
-                    container.appendChild(insightsDiv);
-                } else if (section.trim()) {
-                    const paraDiv = document.createElement('div');
-                    paraDiv.innerHTML = section.replace(/\n/g, '<br>').replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-                    paraDiv.style.marginBottom = '12px';
-                    container.appendChild(paraDiv);
+                const lastCotSection = container.querySelector('.cot-section:last-child');
+                if (lastCotSection) {
+                    lastCotSection.appendChild(stepDiv);
                 }
-            });
-        }
+            } else if (section.includes('**Гол дүгнэлтүүд:**')) {
+                const insightsDiv = document.createElement('div');
+                insightsDiv.className = 'insights-section';
 
-        function sendQuickMessage(message) {
-            sendMessage(message);
-        }
+                const titleDiv = document.createElement('div');
+                titleDiv.className = 'insights-title';
+                titleDiv.textContent = 'Гол дүгнэлтүүд:';
+                insightsDiv.appendChild(titleDiv);
 
-        function setFormEnabled(enabled) {
-            sendButton.disabled = !enabled;
-            userInput.disabled = !enabled;
-        }
+                const insights = section.split('•').slice(1);
+                insights.forEach(insight => {
+                    if (insight.trim()) {
+                        const insightDiv = document.createElement('div');
+                        insightDiv.className = 'insight-item';
+                        insightDiv.textContent = '• ' + insight.trim();
+                        insightsDiv.appendChild(insightDiv);
+                    }
+                });
 
-        function showLoading(show) {
-            loading.classList.toggle('active', show);
-        }
+                container.appendChild(insightsDiv);
+            } else if (section.trim()) {
+                const paraDiv = document.createElement('div');
+                paraDiv.innerHTML = section.replace(/\n/g, '<br>').replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+                paraDiv.style.marginBottom = '12px';
+                container.appendChild(paraDiv);
+            }
+        });
+    }
+
+    function sendQuickMessage(message) {
+        sendMessage(message);
+    }
+
+    function setFormEnabled(enabled) {
+        sendButton.disabled = !enabled;
+        userInput.disabled = !enabled;
+    }
+
+    function showLoading(show) {
+        loading.classList.toggle('active', show);
+    }
 
 
-        // Эхлүүлэх
-        userInput.focus();
+    // Эхлүүлэх
+    userInput.focus();
 
-        // Тогтмол статус шалгах
-    </script>
+    // Тогтмол статус шалгах
+</script>
 </body>
 </html>

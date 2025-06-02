@@ -102,7 +102,7 @@ class ChatService:
                 )
             self.last_district = {"analysis": district_analysis, "query": message}
             return {
-                "response": response + "\n\n**Тайлан авах уу?**\nДүүргийн PDF тайлан авахыг хүсвэл **'Тийм'** гэж бичнэ үү.",
+                "response": response + "\n\n**Тайлан авах уу?**\nДүүргийн PDF тайлан авахыг хүсвэл Тийм гэж бичнэ үү.",
                 "offer_report": True,
                 "cot_enhanced": use_cot
             }
