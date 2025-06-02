@@ -1489,3 +1489,84 @@ openai.APIConnectionError: Connection error.
 2025-06-02 01:40:23,309 - main - INFO -   • PDF report generation (ReportLab)
 2025-06-02 01:41:50,681 - services.initialization_service - INFO - 🧹 Property retriever агентийг хаасан
 2025-06-02 01:41:50,682 - main - INFO - 🧹 Services cleaned up successfully
+2025-06-02 08:15:45,144 - main - INFO - 🚀 Үл хөдлөх хөрөнгийн туслах серверийг эхлүүлж байна...
+2025-06-02 08:15:45,144 - main - INFO - 🧠 Chain-of-Thought шинжилгээ идэвхтэй!
+2025-06-02 08:15:45,144 - main - INFO - 📋 PDF тайлан үүсгэх боломжтой!
+2025-06-02 08:15:45,144 - services.initialization_service - INFO - 🔧 Үйлчилгээнүүдийг эхлүүлж байна...
+2025-06-02 08:15:45,144 - services.initialization_service - INFO - 🤖 LLM эхлүүлж байна...
+2025-06-02 08:15:45,254 - services.initialization_service - INFO - ✅ LLM эхэлсэн
+2025-06-02 08:15:45,254 - services.initialization_service - INFO - 🔍 Хайлтын хэрэгсэл эхлүүлж байна...
+2025-06-02 08:15:45,254 - services.initialization_service - INFO - ✅ Хайлтын хэрэгсэл эхэлсэн
+2025-06-02 08:15:45,254 - services.initialization_service - INFO - 🏠 Property retriever эхлүүлж байна...
+2025-06-02 08:15:45,265 - services.initialization_service - INFO - ✅ Property retriever эхэлсэн
+2025-06-02 08:15:45,265 - services.initialization_service - INFO - 📊 District analyzer эхлүүлж байна...
+2025-06-02 08:15:45,287 - agents.district_analyzer - INFO - Статик өгөгдлөөр эхлүүлж байна...
+2025-06-02 08:15:46,748 - httpx - INFO - HTTP Request: POST https://api.together.xyz/v1/embeddings "HTTP/1.1 200 OK"
+2025-06-02 08:15:47,384 - httpx - INFO - HTTP Request: POST https://api.together.xyz/v1/embeddings "HTTP/1.1 200 OK"
+2025-06-02 08:15:48,053 - httpx - INFO - HTTP Request: POST https://api.together.xyz/v1/embeddings "HTTP/1.1 200 OK"
+2025-06-02 08:15:48,527 - httpx - INFO - HTTP Request: POST https://api.together.xyz/v1/embeddings "HTTP/1.1 200 OK"
+2025-06-02 08:15:49,165 - httpx - INFO - HTTP Request: POST https://api.together.xyz/v1/embeddings "HTTP/1.1 200 OK"
+2025-06-02 08:15:49,642 - httpx - INFO - HTTP Request: POST https://api.together.xyz/v1/embeddings "HTTP/1.1 200 OK"
+2025-06-02 08:15:49,652 - faiss.loader - INFO - Loading faiss.
+2025-06-02 08:15:49,675 - faiss.loader - INFO - Successfully loaded faiss.
+2025-06-02 08:15:49,677 - faiss - INFO - Failed to load GPU Faiss: name 'GpuIndexIVFFlat' is not defined. Will not load constructor refs for GPU indexes. This is only an error if you're trying to use GPU Faiss.
+2025-06-02 08:15:49,678 - agents.district_analyzer - INFO - Векторын сан статик өгөгдлөөр бэлэн болсон
+2025-06-02 08:15:49,678 - services.initialization_service - INFO - ✅ District analyzer эхэлсэн
+2025-06-02 08:15:49,678 - services.initialization_service - INFO - 📄 PDF generator эхлүүлж байна...
+2025-06-02 08:15:49,678 - utils.xhtml2pdf_generator - INFO - XHTML2PDFGenerator initialized. Font path: file:///Users/enkhtuvshin/PycharmProjects/RealStateAssistant/static/fonts/NotoSans-Regular.ttf
+2025-06-02 08:15:49,678 - utils.xhtml2pdf_generator - INFO - ✅ PDF generator (xhtml2pdf) initialized for Mongolian Cyrillic.
+2025-06-02 08:15:49,678 - services.initialization_service - INFO - ✅ PDF generator эхэлсэн
+2025-06-02 08:15:49,678 - services.initialization_service - INFO - 📚 Анхны өгөгдөл ачаалж байна...
+2025-06-02 08:15:49,679 - services.initialization_service - INFO - 📊 Кэшийн статус: {'is_fresh': True, 'age_days': 1, 'last_update': '2025-05-31T20:32:29.681689'}
+2025-06-02 08:15:49,679 - services.initialization_service - INFO - 📅 Кэшийн өгөгдөл шинэ байна
+2025-06-02 08:15:49,679 - main - INFO - ✅ Бүх бүрэлдэхүүн амжилттай эхэлсэн!
+2025-06-02 08:15:49,679 - main - INFO - 🧠 Chain-of-Thought үйл ажиллагаатай!
+2025-06-02 08:15:49,679 - main - INFO - 📋 PDF тайлан үүсгэх боломжтой!
+2025-06-02 08:15:49,679 - main - INFO - 🔍 Боломжтой функцууд:
+2025-06-02 08:15:49,679 - main - INFO -   • Unegui.mn орон сууцны шинжилгээ
+2025-06-02 08:15:49,679 - main - INFO -   • 9 дүүргийн харьцуулалт
+2025-06-02 08:15:49,679 - main - INFO -   • Интернэт хайлт
+2025-06-02 08:15:49,679 - main - INFO -   • CoT сэтгэлгээний шинжилгээ
+2025-06-02 08:15:49,679 - main - INFO -   • PDF тайлан үүсгэх
+2025-06-02 08:16:35,371 - main - INFO - 📝 Мессеж хүлээн авсан: Сүхбаатар дүүрэг...
+2025-06-02 08:16:35,372 - services.chat_service - INFO - Мессеж боловсруулж байна: Сүхбаатар дүүрэг...
+2025-06-02 08:16:35,372 - services.chat_service - INFO - Дүүргийн асуулт боловсруулж байна
+2025-06-02 08:16:35,372 - agents.district_analyzer - INFO - Дүүргийн шинжилгээ: 'Сүхбаатар дүүрэг'
+2025-06-02 08:16:36,231 - httpx - INFO - HTTP Request: POST https://api.together.xyz/v1/embeddings "HTTP/1.1 200 OK"
+2025-06-02 08:16:36,250 - agents.district_analyzer - INFO - Олдсон: 
+2025-06-02 08:16:46,159 - httpx - INFO - HTTP Request: POST https://api.together.xyz/v1/chat/completions "HTTP/1.1 200 OK"
+2025-06-02 08:16:54,371 - httpx - INFO - HTTP Request: POST https://api.together.xyz/v1/chat/completions "HTTP/1.1 200 OK"
+2025-06-02 08:17:09,986 - httpx - INFO - HTTP Request: POST https://api.together.xyz/v1/chat/completions "HTTP/1.1 200 OK"
+2025-06-02 08:17:09,988 - main - INFO - ✅ Хариу үүсгэгдсэн: 34.62с
+2025-06-02 08:17:09,989 - main - INFO - 🚀 Хэрэглэсэн сайжруулалт: Chain-of-Thought шинжилгээ
+2025-06-02 08:17:17,958 - main - INFO - 📝 Мессеж хүлээн авсан: Тиймээ...
+2025-06-02 08:17:17,958 - services.chat_service - INFO - Мессеж боловсруулж байна: Тиймээ...
+2025-06-02 08:17:17,958 - services.report_service - INFO - Дүүргийн тайлан үүсгэж байна
+2025-06-02 08:17:30,818 - httpx - INFO - HTTP Request: POST https://api.together.xyz/v1/chat/completions "HTTP/1.1 200 OK"
+2025-06-02 08:17:45,350 - httpx - INFO - HTTP Request: POST https://api.together.xyz/v1/chat/completions "HTTP/1.1 200 OK"
+2025-06-02 08:17:45,413 - utils.xhtml2pdf_generator - INFO - xhtml2pdf report generated successfully: reports/district_summary_xhtml2pdf_20250602_081745.pdf
+2025-06-02 08:17:45,413 - main - INFO - ✅ Хариу үүсгэгдсэн: 27.46с
+2025-06-02 08:17:50,528 - main - INFO - 📥 Тайлан татаж байна: district_summary_xhtml2pdf_20250602_081745.pdf (19759 bytes)
+2025-06-02 08:18:41,100 - main - INFO - 📝 Мессеж хүлээн авсан: https://www.unegui.mn/adv/8295193_khurdyn-platinum-tower-t-161mk-5-oroo-shine-bair/...
+2025-06-02 08:18:41,101 - services.chat_service - INFO - Мессеж боловсруулж байна: https://www.unegui.mn/adv/8295193_khurdyn-platinum...
+2025-06-02 08:18:41,101 - services.chat_service - INFO - Орон сууцны URL боловсруулж байна: https://www.unegui.mn/adv/8295193_khurdyn-platinum-tower-t-161mk-5-oroo-shine-bair/
+2025-06-02 08:18:41,657 - httpx - INFO - HTTP Request: GET https://www.unegui.mn/adv/8295193_khurdyn-platinum-tower-t-161mk-5-oroo-shine-bair/ "HTTP/1.1 200 OK"
+2025-06-02 08:18:41,696 - utils.unegui_scraper - INFO - 💰 Price calculation: 1,220,000,000.0 ÷ 166.88 = 7,310,642 ₮/m²
+2025-06-02 08:18:41,697 - utils.unegui_scraper - INFO - ✅ Successfully extracted detailed property data for: Худ хурдын platinum tower-т 166.88мк 5 өрөө
+2025-06-02 08:18:41,697 - utils.unegui_scraper - INFO - 📋 Key details: Price: 1,220,000,000 ₮, Area: 166.88m², Rooms: 5, Price/m²: 7,310,642 ₮
+2025-06-02 08:18:41,697 - agents.district_analyzer - INFO - Дүүргийн шинжилгээ: 'Хан-Уул'
+2025-06-02 08:18:42,895 - httpx - INFO - HTTP Request: POST https://api.together.xyz/v1/embeddings "HTTP/1.1 200 OK"
+2025-06-02 08:18:56,125 - httpx - INFO - HTTP Request: POST https://api.together.xyz/v1/chat/completions "HTTP/1.1 200 OK"
+2025-06-02 08:19:02,782 - httpx - INFO - HTTP Request: POST https://api.together.xyz/v1/chat/completions "HTTP/1.1 200 OK"
+2025-06-02 08:19:09,539 - httpx - INFO - HTTP Request: POST https://api.together.xyz/v1/chat/completions "HTTP/1.1 200 OK"
+2025-06-02 08:19:09,541 - main - INFO - ✅ Хариу үүсгэгдсэн: 28.44с
+2025-06-02 08:19:09,541 - main - INFO - 🚀 Хэрэглэсэн сайжруулалт: Chain-of-Thought шинжилгээ
+2025-06-02 08:19:41,967 - main - INFO - 📝 Мессеж хүлээн авсан: Тиймээ...
+2025-06-02 08:19:41,967 - services.chat_service - INFO - Мессеж боловсруулж байна: Тиймээ...
+2025-06-02 08:19:41,967 - services.report_service - INFO - Орон сууцны тайлан үүсгэж байна
+2025-06-02 08:19:52,360 - httpx - INFO - HTTP Request: POST https://api.together.xyz/v1/chat/completions "HTTP/1.1 422 Unprocessable Entity"
+2025-06-02 08:19:52,362 - services.report_service - ERROR - Хайлтын үр дүн нэгтгэхэд алдаа: Error code: 422 - {'id': 'nwSZ1pp-6UHjtw-9492c7fd39e3fb67', 'error': {'message': 'Input validation error: invalid image: The image format could not be determined', 'type': 'invalid_request_error', 'param': None, 'code': None}}
+2025-06-02 08:19:59,633 - httpx - INFO - HTTP Request: POST https://api.together.xyz/v1/chat/completions "HTTP/1.1 200 OK"
+2025-06-02 08:19:59,727 - utils.xhtml2pdf_generator - INFO - xhtml2pdf report generated successfully: reports/property_analysis_xhtml2pdf_20250602_081959.pdf
+2025-06-02 08:19:59,728 - main - INFO - ✅ Хариу үүсгэгдсэн: 17.76с
+2025-06-02 08:20:02,260 - main - INFO - 📥 Тайлан татаж байна: property_analysis_xhtml2pdf_20250602_081959.pdf (19387 bytes)

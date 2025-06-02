@@ -1,8 +1,7 @@
-# real_estate_assistant/agents/district_analyzer.py - Дүүргийн шинжилгээ
+# agents/district_analyzer.py - Хялбаршуулсан дүүргийн шинжээч
 import logging
 import os
 from datetime import datetime, timedelta
-import pickle
 from pathlib import Path
 from langchain_core.prompts import PromptTemplate
 from langchain_core.output_parsers import StrOutputParser
@@ -25,263 +24,100 @@ class DistrictAnalyzer:
         self.vectorstore = None
         self.cache_dir = Path("cache")
         self.cache_dir.mkdir(exist_ok=True)
-        self.documents_cache_file = self.cache_dir / "district_documents.pkl"
-        self.last_update_file = self.cache_dir / "last_update.txt"
 
-        self._initialize_vectorstore()
+        # Анхны өгөгдлөөр эхлүүлэх
+        self._initialize_with_static_data()
 
-    def _initialize_vectorstore(self):
-        """# Хэрэв боломжтой ба шинэ бол кэш өгөгдөлтэй вектор санг эхлүүлэх, эсвэл статик өгөгдөл ашиглах"""
-        # Check if we have valid cached data
-        if self._should_use_cached_data():
-            logger.info("📦 Loading cached vectorstore data...")
-            if self._load_cached_vectorstore():
-                logger.info("✅ Successfully loaded cached vectorstore data")
-                return
-            else:
-                logger.warning("⚠️  Failed to load cached data, falling back to static data")
+    def _initialize_with_static_data(self):
+        """Статик өгөгдлөөр векторын санг эхлүүлэх"""
+        logger.info("Статик өгөгдлөөр эхлүүлж байна...")
 
-        # Use static fallback data
-        logger.info("📚 Initializing with static fallback data...")
-        static_district_data = [
+        static_data = [
             Document(page_content="""
             Дүүрэг: Хан-Уул
-            Нийт байрны 1м2 дундаж үнэ: 4 000 323 төгрөг
-            2 өрөө байрны 1м2 дундаж үнэ: 4 100 323 төгрөг
-            3 өрөө байрны 1м2 дундаж үнэ: 3 900 323 төгрөг
-            Хан-Уул дүүрэг нь Улаанбаатар хотын баруун урд байрладаг. Энэ дүүрэг нь орон сууцны үнэ харьцангуй өндөр байдаг.
+            Нийт байрны 1м2 дундаж үнэ: 4 000 000 төгрөг
+            2 өрөө байрны 1м2 дундаж үнэ: 4 100 000 төгрөг
+            3 өрөө байрны 1м2 дундаж үнэ: 3 900 000 төгрөг
+            Хан-Уул дүүрэг нь баруун урд байрладаг, үнэ өндөр дүүрэг.
             """),
             Document(page_content="""
             Дүүрэг: Баянгол
-            Нийт байрны 1м2 дундаж үнэ: 3 510 645 төгрөг
-            2 өрөө байрны 1м2 дундаж үнэ: 3 610 645 төгрөг
-            3 өрөө байрны 1м2 дундаж үнэ: 3 410 645 төгрөг
-            Баянгол дүүрэг нь Улаанбаатар хотын төв хэсэгт ойр байрладаг. Энэ дүүрэг нь дундаж үнэтэй орон сууц элбэг.
+            Нийт байрны 1м2 дундаж үнэ: 3 500 000 төгрөг
+            2 өрөө байрны 1м2 дундаж үнэ: 3 600 000 төгрөг
+            3 өрөө байрны 1м2 дундаж үнэ: 3 400 000 төгрөг
+            Баянгол дүүрэг нь төвтэй ойр, дундаж үнэтэй дүүрэг.
             """),
             Document(page_content="""
             Дүүрэг: Сүхбаатар
             Нийт байрны 1м2 дундаж үнэ: 4 500 000 төгрөг
             2 өрөө байрны 1м2 дундаж үнэ: 4 600 000 төгрөг
             3 өрөө байрны 1м2 дундаж үнэ: 4 400 000 төгрөг
-            Сүхбаатар дүүрэг нь хотын хамгийн үнэтэй бүсүүдийн нэг бөгөөд төвдөө ойрхон.
+            Сүхбаатар дүүрэг нь хамгийн үнэтэй, төвийн дүүрэг.
             """),
             Document(page_content="""
             Дүүрэг: Чингэлтэй
             Нийт байрны 1м2 дундаж үнэ: 3 800 000 төгрөг
             2 өрөө байрны 1м2 дундаж үнэ: 3 900 000 төгрөг
             3 өрөө байрны 1m2 дундаж үнэ: 3 700 000 төгрөг
-            Чингэлтэй дүүрэг нь хотын төв хэсэгт оршдог.
+            Чингэлтэй дүүрэг нь төв хэсэгтэй ойр байрладаг.
             """),
+            Document(page_content="""
+            Дүүрэг: Баянзүрх
+            Нийт байрны 1м2 дундаж үнэ: 3 200 000 төгрөг
+            2 өрөө байрны 1м2 дундаж үнэ: 3 300 000 төгрөг
+            3 өрөө байрны 1м2 дундаж үнэ: 3 100 000 төгрөг
+            Баянзүрх дүүрэг нь хамгийн том, дундаж үнэтэй дүүрэг.
+            """),
+            Document(page_content="""
+            Дүүрэг: Сонгинохайрхан
+            Нийт байрны 1м2 дундаж үнэ: 2 800 000 төгрөг
+            2 өрөө байрны 1м2 дундаж үнэ: 2 900 000 төгрөг
+            3 өрөө байрны 1м2 дундаж үнэ: 2 700 000 төгрөг
+            Сонгинохайрхан дүүрэг нь баруун хэсэгт байрладаг том дүүрэг.
+            """)
         ]
 
-        self.vectorstore = FAISS.from_documents(static_district_data, self.embeddings_model)
-        logger.info("FAISS vectorstore initialized with static data.")
-
-    def _should_use_cached_data(self) -> bool:
-        """# Кэш өгөгдөл байгаа эсэх ба 7 хоногоос бага настай эсэхийг шалгах"""
-        if not self.documents_cache_file.exists() or not self.last_update_file.exists():
-            logger.info("📊 No cached data found")
-            return False
-
-        try:
-            with open(self.last_update_file, 'r') as f:
-                last_update_str = f.read().strip()
-
-            last_update = datetime.fromisoformat(last_update_str)
-            age = datetime.now() - last_update
-
-            if age > timedelta(days=7):
-                logger.info(f"📅 Cached data is {age.days} days old, needs refresh")
-                return False
-            else:
-                logger.info(f"📅 Cached data is {age.days} days old, still fresh")
-                return True
-
-        except Exception as e:
-            logger.error(f"❌ Error checking cache age: {e}")
-            return False
-
-    def _load_cached_vectorstore(self) -> bool:
-        """# Кэшлэгдсэн баримтуудаас вектор санг ачаалах"""
-        try:
-            with open(self.documents_cache_file, 'rb') as f:
-                cached_documents = pickle.load(f)
-
-            # Recreate vectorstore from cached documents
-            self.vectorstore = FAISS.from_documents(cached_documents, self.embeddings_model)
-            logger.info(f"📦 Loaded {len(cached_documents)} documents from cache")
-            return True
-        except Exception as e:
-            logger.error(f"❌ Error loading cached documents: {e}")
-            return False
-
-    def _save_vectorstore_cache(self, documents):
-        """# Вектор сангийн оронд баримтуудыг кэш файлд хадгалах"""
-        try:
-            with open(self.documents_cache_file, 'wb') as f:
-                pickle.dump(documents, f)
-
-            with open(self.last_update_file, 'w') as f:
-                f.write(datetime.now().isoformat())
-
-            logger.info("💾 Documents cached successfully")
-            return True
-        except Exception as e:
-            logger.error(f"❌ Error saving documents cache: {e}")
-            return False
-
-    async def update_with_realtime_data(self, force_update: bool = False):
-        """# Зөвхөн шаардлагатай үед бодит цагийн цуглуулсан өгөгдлөөр вектор санг шинэчлэх"""
-        if not self.property_retriever:
-            logger.warning("No PropertyRetriever provided. Cannot update with real-time data.")
-            return False
-
-        # Check if update is needed
-        if not force_update and self._should_use_cached_data():
-            logger.info("📅 Cached data is still fresh, skipping update")
-            return True
-
-        try:
-            logger.info("🔄 Updating vectorstore with real-time data...")
-            real_time_documents = await self.property_retriever.retrieve_vector_data()
-
-            if real_time_documents:
-                # Create new vectorstore with real-time data
-                new_vectorstore = FAISS.from_documents(real_time_documents, self.embeddings_model)
-
-                # Save documents to cache (not the vectorstore object)
-                if self._save_vectorstore_cache(real_time_documents):
-                    self.vectorstore = new_vectorstore
-
-                logger.info(f"✅ Vectorstore updated with {len(real_time_documents)} real-time documents.")
-
-                # Log what districts we now have data for
-                districts = []
-                for doc in real_time_documents:
-                    lines = doc.page_content.split('\n')
-                    district_line = lines[0] if lines else ""
-                    if 'Дүүрэг:' in district_line:
-                        district_name = district_line.replace('Дүүрэг:', '').strip()
-                        districts.append(district_name)
-
-                logger.info(f"📍 Real-time data available for districts: {', '.join(districts)}")
-                return True
-            else:
-                logger.warning("⚠️  No real-time data retrieved. Keeping existing vectorstore.")
-                return False
-
-        except Exception as e:
-            logger.error(f"❌ Error updating vectorstore with real-time data: {e}")
-            logger.info("Continuing with existing vectorstore data.")
-            return False
-
-    async def ensure_fresh_data(self):
-        """# Шинэ өгөгдөлтэй байхыг баталгаажуулах, гэхдээ хүсэлт болгонд шинэчлэхгүй"""
-        if not self._should_use_cached_data():
-            logger.info("🔄 Data is stale or missing, updating...")
-            await self.update_with_realtime_data(force_update=True)
-        else:
-            logger.info("📊 Using cached data (fresh)")
-
-    # Fix for district_analyzer.py - Update the analyze_district method
+        self.vectorstore = FAISS.from_documents(static_data, self.embeddings_model)
+        logger.info("Векторын сан статик өгөгдлөөр бэлэн болсон")
 
     async def analyze_district(self, location: str) -> str:
-        """
-        Өгөгдсөн байршилд үндэслэн дүүргийн мэдээллийг шинжилж,
-        тохиромжтой үед кэшлэгдсэн эсвэл бодит цагийн өгөгдлийг ашиглана.
-        """
-        logger.info(f"🔍 Analyzing district for location: '{location}'")
+        """Дүүргийн шинжилгээ хийх - хялбаршуулсан"""
+        logger.info(f"Дүүргийн шинжилгээ: '{location}'")
 
-        # Only update data if it's stale (not on every request)
-        await self.ensure_fresh_data()
+        # Шинэ өгөгдөл шалгах (1 долоо хоног тутам)
+        await self._ensure_fresh_data()
 
-        # Check what districts are available in vectorstore
-        available_docs = list(self.vectorstore.docstore._dict.values())
-        available_districts = []
-        all_district_data = []
+        # Барилга жагсаалт харьцуулах эсэхийг шалгах
+        comparison_keywords = ['бүх дүүрэг', 'дүүрэг харьцуулах', 'дүүргүүд', 'compare']
+        is_comparison = any(keyword in location.lower() for keyword in comparison_keywords)
 
-        for doc in available_docs:
-            lines = doc.page_content.split('\n')
-            district_line = lines[0] if lines else ""
-            if 'Дүүрэг:' in district_line:
-                district_name = district_line.replace('Дүүрэг:', '').strip()
-                available_districts.append(district_name)
-                all_district_data.append(doc.page_content)
+        if is_comparison:
+            return await self._compare_all_districts(location)
+        else:
+            return await self._analyze_specific_district(location)
 
-        logger.info(f"📊 Available districts in vectorstore: {', '.join(available_districts)}")
+    async def _analyze_specific_district(self, location: str) -> str:
+        """Тодорхой дүүргийн шинжилгээ"""
+        # Векторын санаас хайх
+        results = self.vectorstore.similarity_search_with_score(location, k=3)
 
-        # Check if this is a comparison query (asking for all districts)
-        comparison_keywords = ['бүх дүүрэг', 'дүүрэг харьцуулах', 'дүүргүүд', 'харьцуулалт', 'compare', 'all districts']
-        is_comparison_query = any(keyword in location.lower() for keyword in comparison_keywords)
-
-        if is_comparison_query:
-            logger.info("🔄 Detected comparison query - analyzing all districts")
-            # Return comprehensive comparison of all districts
-            all_districts_content = "\n\n".join(all_district_data)
-
-            prompt_template = """
-            You are a real estate market analyst specializing in Ulaanbaatar districts. Provide a comprehensive comparison of ALL districts based on the available data.
-
-            Create a detailed comparison that includes:
-            1. Overview of all districts with their average prices
-            2. Price ranking from most expensive to least expensive
-            3. District categories (premium, mid-range, affordable)
-            4. Investment recommendations for different buyer types
-            5. Best value districts and reasons why
-            6. Market trends and insights
-
-            Location query: {location}
-            All districts data:
-            <context>
-            {price_context}
-            </context>
-
-            IMPORTANT: Respond ONLY in Mongolian language with comprehensive district comparison.
-            """
-
-            ANALYZE_PROMPT = PromptTemplate.from_template(prompt_template)
-            analysis_chain = ANALYZE_PROMPT | self.llm | StrOutputParser()
-
-            response = await analysis_chain.ainvoke({
-                "location": location,
-                "price_context": all_districts_content
-            })
-
-            logger.info(f"District comparison response generated (first 100 chars): {response[:100]}...")
-            return response
-
-        # For specific district queries, use existing logic
-        retrieved_results = self.vectorstore.similarity_search_with_score(location, k=len(available_docs))
-        retrieved_results.sort(key=lambda x: x[1])
-
-        # Find the best match
-        best_match_doc = None
-        for doc, score in retrieved_results:
-            logger.debug(f"  Doc Score: {score:.4f}, Content (first 50 chars): {doc.page_content.strip()[:50]}...")
+        # Хамгийн сайн тохирохыг олох
+        best_match = None
+        for doc, score in results:
             if location.lower() in doc.page_content.lower():
-                best_match_doc = doc
-                logger.info(f"✅ Found direct match for '{location}' with score {score:.4f}.")
+                best_match = doc
                 break
 
-        if best_match_doc:
-            retrieved_content = best_match_doc.page_content
-
-            # Check if this is real-time data (has timestamp) or static data
-            if 'Дата цуглуулсан огноо:' in retrieved_content:
-                logger.info("📊 Using REAL-TIME scraped data for analysis")
-            else:
-                logger.info("📚 Using STATIC fallback data for analysis")
-
-            logger.info(f"Retrieved district info: {retrieved_content.splitlines()[0]}...")
-            logger.debug(f"Full retrieved_content being passed to LLM: \n{retrieved_content}")
+        if best_match:
+            content = best_match.page_content
+            logger.info(f"Олдсон: {content.splitlines()[0]}")
         else:
-            # If no specific district found, provide general info about available districts
-            retrieved_content = f"Одоогоор дараах дүүргүүдийн мэдээлэл байгаа: {', '.join(available_districts)}. Тодорхой дүүргийн нэрийг дурдаж асуулт асуугаарай."
-            logger.warning(
-                f"❌ No exact district information found in vectorstore for: '{location}'. Providing available districts list.")
+            content = "Тодорхой дүүргийн мэдээлэл олдсонгүй."
 
+        # LLM-ээр шинжилгээ хийх
         prompt_template = """
-        You are a real estate market analyst specializing in Ulaanbaatar districts. Analyze the district information and provide insights based on the available data.
+        You are a real estate market analyst specializing in Ulaanbaatar districts. 
+        Analyze the district information and provide insights.
 
         If specific district data is available, provide:
         1. District name and location
@@ -290,74 +126,113 @@ class DistrictAnalyzer:
         4. Investment potential and recommendations
         5. Market characteristics and trends
 
-        If no specific district is found, guide the user to ask about available districts.
-
         Location query: {location}
-        Available data:
-        <context>
-        {price_context}
-        </context>
+        Available data: {context}
 
-        IMPORTANT: Focus ONLY on Mongolian real estate market data. Do NOT reference any foreign markets (US, Europe, etc.). Respond ONLY in Mongolian language.
+        IMPORTANT: Respond ONLY in Mongolian language.
         """
 
         ANALYZE_PROMPT = PromptTemplate.from_template(prompt_template)
         analysis_chain = ANALYZE_PROMPT | self.llm | StrOutputParser()
 
-        logger.debug(
-            f"Invoking analysis_chain with location='{location}' and price_context (first 100 chars): '{retrieved_content[:100]}...'")
+        response = await analysis_chain.ainvoke({
+            "location": location,
+            "context": content
+        })
+
+        return response
+
+    async def _compare_all_districts(self, location: str) -> str:
+        """Бүх дүүргийн харьцуулалт"""
+        all_docs = list(self.vectorstore.docstore._dict.values())
+        all_content = "\n\n".join([doc.page_content for doc in all_docs])
+
+        prompt_template = """
+        You are a real estate market analyst. Provide a comprehensive comparison of ALL districts.
+
+        Create analysis that includes:
+        1. Overview of all districts with their average prices
+        2. Price ranking from most expensive to least expensive
+        3. District categories (premium, mid-range, affordable)
+        4. Investment recommendations for different buyer types
+        5. Best value districts and reasons why
+
+        Location query: {location}
+        All districts data: {context}
+
+        IMPORTANT: Respond ONLY in Mongolian language with comprehensive district comparison.
+        """
+
+        ANALYZE_PROMPT = PromptTemplate.from_template(prompt_template)
+        analysis_chain = ANALYZE_PROMPT | self.llm | StrOutputParser()
 
         response = await analysis_chain.ainvoke({
             "location": location,
-            "price_context": retrieved_content
+            "context": all_content
         })
 
-        logger.info(f"District analysis LLM raw response (first 100 chars): {response[:100]}...")
         return response
 
-    def get_all_districts_summary(self) -> str:
-        """# Вектор сан дахь бүх дүүргийн товч мэдээллийг авах"""
-        if not self.vectorstore:
-            return "Дүүргийн мэдээлэл байхгүй."
+    async def _ensure_fresh_data(self):
+        """Шинэ өгөгдөл байгаа эсэхийг шалгах"""
+        if not self.property_retriever:
+            return
 
-        all_docs = list(self.vectorstore.docstore._dict.values())
-        summary_parts = []
+        cache_file = self.cache_dir / "last_update.txt"
+        should_update = True
 
-        for doc in all_docs:
-            lines = doc.page_content.strip().split('\n')
-            if lines:
-                district_line = lines[0].strip()
-                summary_parts.append(district_line)
-
-        return "\n".join(summary_parts) if summary_parts else "Дүүргийн мэдээлэл байхгүй."
-
-    def get_cache_status(self) -> dict:
-        """# Кэшийн төлвийн тухай мэдээлэл авах"""
-        status = {
-            "cache_exists": self.documents_cache_file.exists(),
-            "last_update_exists": self.last_update_file.exists(),
-            "is_fresh": False,
-            "age_days": None,
-            "last_update": None
-        }
-
-        if status["last_update_exists"]:
+        if cache_file.exists():
             try:
-                with open(self.last_update_file, 'r') as f:
+                with open(cache_file, 'r') as f:
                     last_update_str = f.read().strip()
-
                 last_update = datetime.fromisoformat(last_update_str)
                 age = datetime.now() - last_update
+                should_update = age > timedelta(days=7)
+            except:
+                should_update = True
 
-                status["is_fresh"] = age <= timedelta(days=7)
-                status["age_days"] = age.days
-                status["last_update"] = last_update_str
+        if should_update:
+            logger.info("Шинэ өгөгдөл татаж байна...")
+            await self._update_with_realtime_data()
 
-            except Exception as e:
-                logger.error(f"Error reading cache status: {e}")
+    async def _update_with_realtime_data(self):
+        """Бодит цагийн өгөгдлөөр шинэчлэх"""
+        try:
+            real_time_documents = await self.property_retriever.retrieve_vector_data()
 
-        return status
+            if real_time_documents:
+                # Шинэ векторын сан үүсгэх
+                self.vectorstore = FAISS.from_documents(real_time_documents, self.embeddings_model)
 
-    async def force_update(self):
-        """# Вектор сангийн өгөгдлийг нэн даруй шинэчлэх"""
-        return await self.update_with_realtime_data(force_update=True)
+                # Сүүлийн шинэчлэлийн огноог хадгалах
+                cache_file = self.cache_dir / "last_update.txt"
+                with open(cache_file, 'w') as f:
+                    f.write(datetime.now().isoformat())
+
+                logger.info(f"Векторын сан {len(real_time_documents)} баримттайгаар шинэчлэгдсэн")
+            else:
+                logger.warning("Шинэ өгөгдөл татаж чадсангүй")
+
+        except Exception as e:
+            logger.error(f"Шинэ өгөгдөл татахад алдаа: {e}")
+
+    def get_cache_status(self) -> dict:
+        """Кэшийн статусыг авах"""
+        cache_file = self.cache_dir / "last_update.txt"
+
+        if not cache_file.exists():
+            return {"is_fresh": False, "age_days": None}
+
+        try:
+            with open(cache_file, 'r') as f:
+                last_update_str = f.read().strip()
+            last_update = datetime.fromisoformat(last_update_str)
+            age = datetime.now() - last_update
+
+            return {
+                "is_fresh": age <= timedelta(days=7),
+                "age_days": age.days,
+                "last_update": last_update_str
+            }
+        except:
+            return {"is_fresh": False, "age_days": None}

@@ -4,90 +4,394 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Үл хөдлөх хөрөнгийн туслах</title>
-    <!-- Үндсэн загварын CSS -->
-    <link rel="stylesheet" href="/static/css/chat.css">
-    
-    <!-- JavaScript функцууд -->
-    <script src="/static/js/chat.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background-color: #ffffff;
+            color: #2d2d2d;
+            line-height: 1.6;
+        }
 
+        .chat-container {
+            max-width: 768px;
+            margin: 0 auto;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            border: #2f5ffa 1px solid;
+        }
 
+        .chat-header {
+            padding: 20px;
+            border-bottom: 1px solid #e5e5e5;
+            background: #ffffff;
+        }
 
+        .chat-header h1 {
+            font-size: 20px;
+            font-weight: 600;
+            color: #2d2d2d;
+            margin-bottom: 4px;
+        }
 
+        .chat-header p {
+            font-size: 14px;
+            color: #6b7280;
+        }
 
+        .status-bar {
+            padding: 8px 20px;
+            background: #f9fafb;
+            border-bottom: 1px solid #e5e5e5;
+            font-size: 12px;
+            color: #6b7280;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
 
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
 
+        .status-dot {
+            width: 6px;
+            height: 6px;
+            background: #10b981;
+            border-radius: 50%;
+        }
 
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            background: #ffffff;
+        }
 
+        .message {
+            margin-bottom: 24px;
+            max-width: 100%;
+        }
 
+        .message-content {
+            font-size: 15px;
+            line-height: 1.7;
+            color: #2d2d2d;
+        }
 
+        .message.user {
+            margin-left: 60px;
+        }
 
+        .message.user .message-content {
+            background: #f3f4f6;
+            padding: 12px 16px;
+            border-radius: 12px;
+            border: 1px solid #e5e7eb;
+        }
 
+        .message.assistant .message-content {
+            padding: 0;
+        }
 
+        .assistant-label {
+            font-size: 13px;
+            color: #6b7280;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
 
-            // Кэшийг шинэчлэх
-            window.refreshCache = async function() {
-                try {
-                    statusSpan.textContent = 'Мэдээлэл шинэчилж байна...';
-                    cacheStatusSpan.textContent = 'Шинэчилж байна...';
+        .cot-section {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 16px;
+            margin: 16px 0;
+        }
 
-                    const response = await fetch('/cache/refresh', { method: 'POST' });
-                    const data = await response.json();
+        .cot-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
 
-                    if (data.status === 'success') {
-                        cacheStatusSpan.textContent = 'Шинэчлэгдсэн';
-                        addMessage('✅ Дүүргийн мэдээлэл амжилттай шинэчлэгдлээ!', 'assistant');
-                    } else {
-                        cacheStatusSpan.textContent = 'Алдаа';
-                        addMessage('❌ Мэдээлэл шинэчлэхэд алдаа гарлаа.', 'assistant');
-                    }
+        .thinking-step {
+            margin-bottom: 12px;
+            padding: 12px;
+            background: #ffffff;
+            border-radius: 6px;
+            border-left: 3px solid #3b82f6;
+        }
 
-                    statusSpan.textContent = 'Бэлэн байна';
-                } catch (error) {
-                    console.error('Cache refresh error:', error);
-                    cacheStatusSpan.textContent = 'Алдаа';
-                    statusSpan.textContent = 'Алдаа';
-                }
+        .step-title {
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 4px;
+            font-size: 14px;
+        }
+
+        .step-content {
+            color: #4b5563;
+            font-size: 14px;
+        }
+
+        .insights-section {
+            background: #fffbeb;
+            border: 1px solid #fbbf24;
+            border-radius: 8px;
+            padding: 16px;
+            margin: 16px 0;
+        }
+
+        .insights-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #92400e;
+            margin-bottom: 8px;
+        }
+
+        .insight-item {
+            margin-bottom: 6px;
+            color: #92400e;
+            font-size: 14px;
+        }
+
+        .report-offer {
+            background: #f0f9ff;
+            border: 1px solid #0ea5e9;
+            border-radius: 8px;
+            padding: 16px;
+            margin: 16px 0;
+        }
+
+        .report-title {
+            font-weight: 600;
+            color: #0369a1;
+            margin-bottom: 8px;
+        }
+
+        .report-buttons {
+            display: flex;
+            gap: 8px;
+            margin-top: 12px;
+        }
+
+        .report-button {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: background-color 0.2s;
+        }
+
+        .report-button.accept {
+            background: #3b82f6;
+            color: white;
+        }
+
+        .report-button.accept:hover {
+            background: #2563eb;
+        }
+
+        .report-button.decline {
+            background: #e5e7eb;
+            color: #374151;
+        }
+
+        .report-button.decline:hover {
+            background: #d1d5db;
+        }
+
+        .download-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: #10b981;
+            color: white;
+            padding: 8px 12px;
+            border-radius: 6px;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            margin-top: 12px;
+        }
+
+        .download-link:hover {
+            background: #059669;
+        }
+
+        .chat-input-container {
+            padding: 20px;
+            border-top: 1px solid #e5e5e5;
+            background: #ffffff;
+        }
+
+        .chat-form {
+            display: flex;
+            gap: 8px;
+            align-items: flex-end;
+        }
+
+        .chat-input {
+            flex: 1;
+            padding: 12px 16px;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            font-size: 15px;
+            resize: none;
+            min-height: 44px;
+            max-height: 120px;
+            outline: none;
+            transition: border-color 0.2s;
+            font-family: inherit;
+        }
+
+        .chat-input:focus {
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .send-button {
+            background: #3b82f6;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: background-color 0.2s;
+            height: 44px;
+        }
+
+        .send-button:hover:not(:disabled) {
+            background: #2563eb;
+        }
+
+        .send-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .quick-actions {
+            margin-top: 12px;
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .quick-action {
+            background: #f9fafb;
+            border: 1px solid #d1d5db;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: #374151;
+        }
+
+        .quick-action:hover {
+            background: #f3f4f6;
+            border-color: #9ca3af;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+            color: #6b7280;
+            font-size: 14px;
+        }
+
+        .loading.active {
+            display: block;
+        }
+
+        .loading-dots::after {
+            content: '';
+            animation: dots 1.5s infinite;
+        }
+
+        @keyframes dots {
+            0%, 20% { content: ''; }
+            40% { content: '.'; }
+            60% { content: '..'; }
+            80%, 100% { content: '...'; }
+        }
+
+        .error-message {
+            background: #fef2f2;
+            color: #dc2626;
+            border: 1px solid #fecaca;
+            border-radius: 8px;
+            padding: 12px;
+            margin: 12px 0;
+            font-size: 14px;
+        }
+
+        .success-message {
+            background: #f0fdf4;
+            color: #166534;
+            border: 1px solid #bbf7d0;
+            border-radius: 8px;
+            padding: 12px;
+            margin: 12px 0;
+            font-size: 14px;
+        }
+
+        @media (max-width: 768px) {
+            .chat-container {
+                height: 100vh;
             }
 
-            // Системийн статусыг шалгах
-            async function checkStatus() {
-                try {
-                    const [healthResponse, cacheResponse] = await Promise.all([
-                        fetch('/health'),
-                        fetch('/cache/status')
-                    ]);
-
-                    const healthData = await healthResponse.json();
-                    const cacheData = await cacheResponse.json();
-
-                    if (healthData.all_ready) {
-                        statusSpan.textContent = 'Бэлэн байна';
-                    } else {
-                        statusSpan.textContent = 'Эхлүүлж байна...';
-                    }
-
-                    if (cacheData.status === 'success' && cacheData.cache.is_fresh) {
-                        cacheStatusSpan.textContent = `Шинэ (${cacheData.cache.age_days || 0} өдөр)`;
-                    } else {
-                        cacheStatusSpan.textContent = 'Хуучирсан';
-                    }
-
-                } catch (error) {
-                    console.error('Status check error:', error);
-                    statusSpan.textContent = 'Алдаа';
-                    cacheStatusSpan.textContent = 'Тодорхойгүй';
-                }
+            .message.user {
+                margin-left: 0;
             }
 
-            // Эхлүүлэх
-            checkStatus();
-            userInput.focus();
+            .quick-actions {
+                overflow-x: auto;
+                flex-wrap: nowrap;
+                padding-bottom: 4px;
+            }
 
-            // Тогтмол статус шалгах
-            setInterval(checkStatus, 30000);
-        });
-    </script>
+            .quick-action {
+                white-space: nowrap;
+            }
+        }
+
+        /* Scrollbar styling */
+        .chat-messages::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .chat-messages::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+
+        .chat-messages::-webkit-scrollbar-thumb {
+            background: #c1c1c1;
+            border-radius: 3px;
+        }
+
+        .chat-messages::-webkit-scrollbar-thumb:hover {
+            background: #a8a8a8;
+        }
+    </style>
 </head>
 <body>
     <div class="chat-container">
@@ -111,7 +415,7 @@
                 <div class="assistant-label">Туслах</div>
                 <div class="message-content">
                     <p>Сайн байна уу! Би Улаанбаатар хотын үл хөдлөх хөрөнгийн туслах.</p>
-                    
+
                     <p><strong>Миний чадварууд:</strong></p>
                     <p>• Unegui.mn-ээс орон сууцны мэдээлэл татах<br>
                     • Дүүргүүдийн үнэ харьцуулах<br>
@@ -147,5 +451,260 @@
             </div>
         </div>
     </div>
+
+    <script>
+        const chatForm = document.getElementById('chat-form');
+        const userInput = document.getElementById('user-input');
+        const sendButton = document.getElementById('send-button');
+        const chatMessages = document.getElementById('chat-messages');
+        const loading = document.getElementById('loading');
+        const statusSpan = document.getElementById('status');
+        const cacheStatusSpan = document.getElementById('cache-status');
+
+        // Textarea-г автоматаар өргөтгөх
+        userInput.addEventListener('input', function() {
+            this.style.height = 'auto';
+            this.style.height = this.scrollHeight + 'px';
+        });
+
+        // Формын илгээлтийг боловсруулах
+        chatForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const message = userInput.value.trim();
+            if (!message) return;
+
+            await sendMessage(message);
+        });
+
+        // Мессеж илгээх функц
+        async function sendMessage(message) {
+            addMessage(message, 'user');
+
+            userInput.value = '';
+            userInput.style.height = 'auto';
+            setFormEnabled(false);
+            showLoading(true);
+
+            try {
+                statusSpan.textContent = 'Шинжилгээ хийж байна...';
+
+                const formData = new FormData();
+                formData.append('user_message', message);
+
+                const response = await fetch('/chat', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+
+                if (data.response) {
+                    addMessage(data.response, 'assistant', data);
+                } else {
+                    addMessage('Алдаа гарлаа. Дахин оролдоно уу.', 'assistant');
+                }
+
+                statusSpan.textContent = 'Бэлэн байна';
+
+            } catch (error) {
+                console.error('Error:', error);
+                addMessage('Серверт холбогдоход алдаа гарлаа. Дахин оролдоно уу.', 'assistant');
+                statusSpan.textContent = 'Алдаа';
+            } finally {
+                setFormEnabled(true);
+                showLoading(false);
+                userInput.focus();
+            }
+        }
+
+        // Чатад мессеж нэмэх
+        function addMessage(content, sender, data = {}) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${sender}`;
+
+            if (sender === 'assistant') {
+                const labelDiv = document.createElement('div');
+                labelDiv.className = 'assistant-label';
+                labelDiv.textContent = 'Туслах';
+                messageDiv.appendChild(labelDiv);
+            }
+
+            const contentDiv = document.createElement('div');
+            contentDiv.className = 'message-content';
+
+            // Янз бүрийн төрлийн контентыг боловсруулах
+            if (content.includes('**Тайлан авах уу?**')) {
+                const parts = content.split('**Тайлан авах уу?**');
+
+                const mainContent = parts[0].replace(/\n/g, '<br>');
+                contentDiv.innerHTML = mainContent;
+
+                const reportOfferDiv = document.createElement('div');
+                reportOfferDiv.className = 'report-offer';
+                reportOfferDiv.innerHTML = `
+                    <div class="report-title">Тайлан авах уу?</div>
+                    <div>${parts[1].replace(/\n/g, '<br>')}</div>
+                    <div class="report-buttons">
+                        <button class="report-button accept" onclick="sendMessage('Тиймээ')">Тиймээ</button>
+                        <button class="report-button decline" onclick="sendMessage('Үгүй')">Үгүй</button>
+                    </div>
+                `;
+                contentDiv.appendChild(reportOfferDiv);
+            } else if (content.includes('**Дэлгэрэнгүй шинжилгээний алхмууд:**')) {
+                formatCotContent(content, contentDiv);
+            } else {
+                const formattedContent = content.replace(/\n/g, '<br>');
+                contentDiv.innerHTML = formattedContent;
+            }
+
+            // Тайлан үүсгэсэн бол татаж авах холбоос нэмэх
+            if (data.download_url) {
+                const downloadLink = document.createElement('a');
+                downloadLink.href = data.download_url;
+                downloadLink.className = 'download-link';
+                downloadLink.textContent = '📥 PDF Тайлан татаж авах';
+                downloadLink.target = '_blank';
+                contentDiv.appendChild(downloadLink);
+            }
+
+            messageDiv.appendChild(contentDiv);
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        // Сэтгэлгээний гинжин агуулгыг форматлах
+        function formatCotContent(content, container) {
+            const sections = content.split('\n\n');
+
+            sections.forEach(section => {
+                if (section.includes('**Дэлгэрэнгүй шинжилгээний алхмууд:**')) {
+                    const cotDiv = document.createElement('div');
+                    cotDiv.className = 'cot-section';
+
+                    const titleDiv = document.createElement('div');
+                    titleDiv.className = 'cot-title';
+                    titleDiv.innerHTML = '🧠 Дэлгэрэнгүй шинжилгээний алхмууд';
+                    cotDiv.appendChild(titleDiv);
+
+                    container.appendChild(cotDiv);
+                } else if (section.includes('**') && section.includes('.')) {
+                    const stepDiv = document.createElement('div');
+                    stepDiv.className = 'thinking-step';
+
+                    const lines = section.split('\n');
+                    const title = lines[0].replace(/\*\*/g, '');
+                    const content = lines.slice(1).join(' ');
+
+                    stepDiv.innerHTML = `
+                        <div class="step-title">${title}</div>
+                        <div class="step-content">${content}</div>
+                    `;
+
+                    const lastCotSection = container.querySelector('.cot-section:last-child');
+                    if (lastCotSection) {
+                        lastCotSection.appendChild(stepDiv);
+                    }
+                } else if (section.includes('**Гол дүгнэлтүүд:**')) {
+                    const insightsDiv = document.createElement('div');
+                    insightsDiv.className = 'insights-section';
+
+                    const titleDiv = document.createElement('div');
+                    titleDiv.className = 'insights-title';
+                    titleDiv.textContent = 'Гол дүгнэлтүүд:';
+                    insightsDiv.appendChild(titleDiv);
+
+                    const insights = section.split('•').slice(1);
+                    insights.forEach(insight => {
+                        if (insight.trim()) {
+                            const insightDiv = document.createElement('div');
+                            insightDiv.className = 'insight-item';
+                            insightDiv.textContent = '• ' + insight.trim();
+                            insightsDiv.appendChild(insightDiv);
+                        }
+                    });
+
+                    container.appendChild(insightsDiv);
+                } else if (section.trim()) {
+                    const paraDiv = document.createElement('div');
+                    paraDiv.innerHTML = section.replace(/\n/g, '<br>').replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+                    paraDiv.style.marginBottom = '12px';
+                    container.appendChild(paraDiv);
+                }
+            });
+        }
+
+        function sendQuickMessage(message) {
+            sendMessage(message);
+        }
+
+        function setFormEnabled(enabled) {
+            sendButton.disabled = !enabled;
+            userInput.disabled = !enabled;
+        }
+
+        function showLoading(show) {
+            loading.classList.toggle('active', show);
+        }
+
+        async function refreshCache() {
+            try {
+                statusSpan.textContent = 'Мэдээлэл шинэчилж байна...';
+                cacheStatusSpan.textContent = 'Шинэчилж байна...';
+
+                const response = await fetch('/cache/refresh', { method: 'POST' });
+                const data = await response.json();
+
+                if (data.status === 'success') {
+                    cacheStatusSpan.textContent = 'Шинэчлэгдсэн';
+                    addMessage('✅ Дүүргийн мэдээлэл амжилттай шинэчлэгдлээ!', 'assistant');
+                } else {
+                    cacheStatusSpan.textContent = 'Алдаа';
+                    addMessage('❌ Мэдээлэл шинэчлэхэд алдаа гарлаа.', 'assistant');
+                }
+
+                statusSpan.textContent = 'Бэлэн байна';
+            } catch (error) {
+                console.error('Cache refresh error:', error);
+                cacheStatusSpan.textContent = 'Алдаа';
+                statusSpan.textContent = 'Алдаа';
+            }
+        }
+
+        async function checkStatus() {
+            try {
+                const [healthResponse, cacheResponse] = await Promise.all([
+                    fetch('/health'),
+                    fetch('/cache/status')
+                ]);
+
+                const healthData = await healthResponse.json();
+                const cacheData = await cacheResponse.json();
+
+                if (healthData.all_ready) {
+                    statusSpan.textContent = 'Бэлэн байна';
+                } else {
+                    statusSpan.textContent = 'Эхлүүлж байна...';
+                }
+
+                if (cacheData.status === 'success' && cacheData.cache.is_fresh) {
+                    cacheStatusSpan.textContent = `Шинэ (${cacheData.cache.age_days || 0} өдөр)`;
+                } else {
+                    cacheStatusSpan.textContent = 'Хуучирсан';
+                }
+
+            } catch (error) {
+                console.error('Status check error:', error);
+                statusSpan.textContent = 'Алдаа';
+                cacheStatusSpan.textContent = 'Тодорхойгүй';
+            }
+        }
+
+        // Эхлүүлэх
+        checkStatus();
+        userInput.focus();
+
+        // Тогтмол статус шалгах
+        setInterval(checkStatus, 30000);
+    </script>
 </body>
 </html>
