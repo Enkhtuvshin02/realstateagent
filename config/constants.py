@@ -1,5 +1,3 @@
-
-
 FEATURE_TRANSLATIONS = {
     'Шал': 'Floor', 'Тагт': 'Balcony', 'Ашиглалтанд орсон он': 'Year Built',
     'Гараж': 'Garage', 'Цонх': 'Window Type', 'Барилгын давхар': 'Building Floors',

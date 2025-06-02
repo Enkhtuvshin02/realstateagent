@@ -14,6 +14,29 @@ class ChainOfThoughtAgent:
     def __init__(self, llm):
         self.llm = llm
 
+    async def enhance_with_cot(self, user_query: str, original_response: str, analysis_type: str = "district_analysis") -> str:
+        """
+        Wrapper method for enhance_response_with_reasoning to maintain backward compatibility.
+        
+        Args:
+            user_query: The original user query
+            original_response: The response to enhance with chain of thought reasoning
+            analysis_type: The type of analysis to perform (default: "district_analysis")
+            
+        Returns:
+            Enhanced response with chain of thought reasoning
+        """
+        logger.info(f"CoT Agent: Enhancing response with CoT for {analysis_type}")
+        
+        # Create a simple data dictionary for the enhancement
+        data = {
+            "query": user_query,
+            "response": original_response,
+            "analysis_type": analysis_type
+        }
+        
+        return await self.enhance_response_with_reasoning(original_response, analysis_type, data, user_query)
+        
     async def enhance_response_with_reasoning(self,
                                               original_response: str,
                                               analysis_type: str,
@@ -126,23 +149,7 @@ Instructions:
 CRITICAL: Таны эцсийн хариулт БҮХЭЛДЭЭ МОНГОЛ хэлээр бичигдсэн байх ёстой. Хариултаа шууд Монгол хэлээр эхлүүлнэ үү, жишээ нь: "1. Үнийн Түвшин ба Тренд: ..." """
 
     def _get_district_comparison_prompt(self) -> str:
-        # System prompt body in English, output instruction remains critical for Mongolian.
-        return """You are a real estate market analyst. The 'Provided Data for Analysis' contains a 'district_comparison_summary' which lists average prices for various districts.
-Your task is to provide deeper insights and a structured comparison based on this summary. The section titles in your response must be exactly as listed below.
-
-Follow this structure:
-1.  **Ерөнхий Дүгнэлт (Overall Summary)**: Based on the information in 'district_comparison_summary', provide an overview of Ulaanbaatar's district apartment prices. Name the most expensive and least expensive districts.
-2.  **Үнийн Ялгаатай Байдлын Шинжилгээ (Price Variation Analysis)**: Explain general assumptions why some districts might be more expensive or cheaper than others (e.g., location, infrastructure, reputation), linking to 'district_comparison_summary' (If the summary lacks this info, mention general factors).
-3.  **Хөрөнгө Оруулалтын Ангилал (Investment Categorization)**: Based on price data in 'district_comparison_summary', categorize districts for high-end, mid-range, and affordable investment opportunities.
-4.  **Худалдан Авагчдад Өгөх Зөвлөмж (Buyer Recommendations)**: Depending on budget and needs, recommend which types of buyers might be more interested in which districts (e.g., "Young families on a budget might consider X district because...").
-5.  **Анхаарах Зүйлс (Points to Consider)**: Remind users what factors other than average price should be considered when choosing a district.
-
-Instructions:
--   Analysis MUST be based primarily on the 'district_comparison_summary' within 'Provided Data for Analysis'.
--   You can infer general real estate principles if the summary is purely numerical.
--   Provide clear reasoning.
-
-CRITICAL: Таны эцсийн хариулт БҮХЭЛДЭЭ МОНГОЛ хэлээр бичигдсэн байх ёстой. Хариултаа шууд Монгол хэлээр эхлүүлнэ үү, жишээ нь: "1. Ерөнхий Дүгнэлт: ..." """
+        return "You are a real estate market analyst. The 'Provided Data for Analysis' contains a 'district_comparison_summary' which lists average prices for various districts."
 
     def _get_market_prompt(self) -> str:
         # System prompt body in English, output instruction remains critical for Mongolian.

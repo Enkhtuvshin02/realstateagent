@@ -1,661 +1,813 @@
 <!DOCTYPE html>
 <html lang="mn">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Үл хөдлөх хөрөнгийн туслах</title>
     <style>
-        /* General styles */
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+      /* General styles */
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
 
-        body {
-            font-family: -apple-system, BlinkMacMacFont, 'Segoe UI', sans-serif;
-            background-color: #ffffff;
-            color: #2d2d2d;
-            line-height: 1.6;
-        }
+      body {
+        font-family: -apple-system, BlinkMacMacFont, "Segoe UI", sans-serif;
+        background-color: #ffffff;
+        color: #2d2d2d;
+        line-height: 1.6;
+      }
 
-        /* Chat container */
+      /* Chat container */
+      .chat-container {
+        max-width: 768px;
+        margin: 20px auto; /* Added margin-top/bottom for spacing */
+        height: calc(
+          100vh - 40px
+        ); /* Adjust height considering the new margin */
+        display: flex;
+        flex-direction: column;
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08); /* Slightly stronger shadow */
+        border-radius: 12px;
+        overflow: hidden;
+        background-color: #f9fafb; /* Light background for the container */
+      }
+
+      /* Header */
+      .chat-header {
+        padding: 20px;
+        border-bottom: 1px solid #e5e5e5;
+        background: #ffffff;
+        text-align: center; /* Centered header text */
+      }
+
+      .chat-header h1 {
+        font-size: 22px; /* Slightly larger title */
+        font-weight: 700; /* Bolder title */
+        color: #2d2d2d;
+        margin-bottom: 4px;
+      }
+
+      .chat-header p {
+        font-size: 15px; /* Slightly larger description */
+        color: #6b7280;
+      }
+
+      /* Chat messages area */
+      .chat-messages {
+        flex: 1;
+        overflow-y: auto;
+        padding: 20px;
+        background: #ffffff;
+      }
+
+      .message {
+        margin-bottom: 24px;
+        max-width: 100%;
+      }
+
+      .message-content {
+        font-size: 15px;
+        line-height: 1.7;
+        color: #2d2d2d;
+      }
+
+      .message.user {
+        margin-left: auto; /* Aligns user messages to the right */
+        text-align: right; /* Aligns text inside user message bubble */
+      }
+
+      .message.user .message-content {
+        background: #e0f2fe; /* Light blue for user message */
+        padding: 12px 16px;
+        border-radius: 12px;
+        border: 1px solid #a7d9f8;
+        display: inline-block; /* Makes bubble fit content */
+        text-align: left; /* Ensures text inside bubble is left-aligned */
+      }
+
+      .message.assistant .message-content {
+        padding: 0;
+        text-align: left;
+      }
+
+      .assistant-label {
+        font-size: 13px;
+        color: #6b7280;
+        margin-bottom: 8px;
+        font-weight: 500;
+      }
+
+      /* Chain of Thought (COT) section */
+      .cot-section {
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        padding: 16px;
+        margin: 16px 0;
+      }
+
+      .cot-title {
+        font-size: 14px;
+        font-weight: 600;
+        color: #374151;
+        margin-bottom: 12px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+
+      .thinking-step {
+        margin-bottom: 12px;
+        padding: 12px;
+        background: #ffffff;
+        border-radius: 6px;
+        border-left: 3px solid #3b82f6;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04); /* Subtle shadow for steps */
+      }
+
+      .step-title {
+        font-weight: 600;
+        color: #1f2937;
+        margin-bottom: 4px;
+        font-size: 14px;
+      }
+
+      .step-content {
+        color: #4b5563;
+        font-size: 14px;
+      }
+
+      /* Insights section */
+      .insights-section {
+        background: #fffbeb;
+        border: 1px solid #fbbf24;
+        border-radius: 8px;
+        padding: 16px;
+        margin: 16px 0;
+      }
+
+      .insights-title {
+        font-size: 14px;
+        font-weight: 600;
+        color: #92400e;
+        margin-bottom: 8px;
+      }
+
+      .insight-item {
+        margin-bottom: 6px;
+        color: #92400e;
+        font-size: 14px;
+      }
+
+      /* Report offer section */
+      .report-offer {
+        background: #f0f9ff;
+        border: 1px solid #0ea5e9;
+        border-radius: 8px;
+        padding: 16px;
+        margin: 16px 0;
+      }
+
+      .report-title {
+        font-weight: 600;
+        color: #0369a1;
+        margin-bottom: 8px;
+      }
+
+      .report-buttons {
+        display: flex;
+        gap: 8px;
+        margin-top: 12px;
+      }
+
+      .report-button {
+        padding: 8px 16px;
+        border: none;
+        border-radius: 6px;
+        font-size: 14px;
+        cursor: pointer;
+        font-weight: 500;
+        transition: background-color 0.2s;
+      }
+
+      .report-button.accept {
+        background: #3b82f6;
+        color: white;
+      }
+
+      .report-button.accept:hover {
+        background: #2563eb;
+      }
+
+      .report-button.decline {
+        background: #e5e7eb;
+        color: #374151;
+      }
+
+      .report-button.decline:hover {
+        background: #d1d5db;
+      }
+
+      /* Download button */
+      .download-button {
+        background: #10b981;
+        color: white;
+        border: none;
+        padding: 10px 16px;
+        border-radius: 6px;
+        font-size: 14px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: background-color 0.2s;
+        margin-top: 12px;
+        display: inline-block;
+        text-decoration: none;
+      }
+
+      .download-button:hover:not(:disabled) {
+        background: #059669;
+      }
+
+      .download-button:disabled {
+        background: #9ca3af;
+        cursor: not-allowed;
+        opacity: 0.6;
+      }
+
+      .download-button.loading {
+        background: #6b7280;
+      }
+
+      /* Download status message */
+      .download-status {
+        font-size: 13px;
+        margin-top: 8px;
+        padding: 4px 0;
+        display: none;
+      }
+
+      .download-status.success {
+        color: #059669;
+      }
+
+      .download-status.error {
+        color: #dc2626;
+      }
+
+      /* Chat input area */
+      .chat-input-container {
+        padding: 20px;
+        border-top: 1px solid #e5e5e5;
+        background: #ffffff;
+      }
+
+      .chat-form {
+        display: flex;
+        gap: 8px;
+        align-items: flex-end;
+      }
+
+      .chat-input {
+        flex: 1;
+        padding: 12px 16px;
+        border: 1px solid #d1d5db;
+        border-radius: 8px;
+        font-size: 15px;
+        resize: none;
+        min-height: 44px;
+        max-height: 120px;
+        outline: none;
+        transition: border-color 0.2s;
+        font-family: inherit;
+      }
+
+      .chat-input:focus {
+        border-color: #3b82f6;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+      }
+
+      .send-button {
+        background: #3b82f6;
+        color: white;
+        border: none;
+        padding: 12px 20px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 14px;
+        font-weight: 500;
+        transition: background-color 0.2s;
+        height: 44px;
+      }
+
+      .send-button:hover:not(:disabled) {
+        background: #2563eb;
+      }
+
+      .send-button:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+
+      /* Quick actions */
+      .quick-actions {
+        margin-top: 12px;
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap; /* Allow wrapping */
+      }
+
+      .quick-action {
+        background: #f9fafb;
+        border: 1px solid #d1d5db;
+        padding: 8px 14px; /* Slightly more padding */
+        border-radius: 20px; /* Pill shape */
+        font-size: 13px;
+        cursor: pointer;
+        transition: all 0.2s;
+        color: #374151;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05); /* Subtle shadow */
+      }
+
+      .quick-action:hover {
+        background: #f3f4f6;
+        border-color: #9ca3af;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+      }
+
+      /* Loading state */
+      .loading {
+        display: none;
+        text-align: center;
+        padding: 20px;
+        color: #6b7280;
+        font-size: 14px;
+      }
+
+      .loading.active {
+        display: block;
+      }
+
+      .loading-dots::after {
+        content: "";
+        animation: dots 1.5s infinite;
+      }
+
+      @keyframes dots {
+        0%,
+        20% {
+          content: "";
+        }
+        40% {
+          content: ".";
+        }
+        60% {
+          content: "..";
+        }
+        80%,
+        100% {
+          content: "...";
+        }
+      }
+
+      /* Messages states */
+      .error-message {
+        background: #fef2f2;
+        color: #dc2626;
+        border: 1px solid #fecaca;
+        border-radius: 8px;
+        padding: 12px;
+        margin: 12px 0;
+        font-size: 14px;
+      }
+
+      .success-message {
+        background: #f0fdf4;
+        color: #166534;
+        border: 1px solid #bbf7d0;
+        border-radius: 8px;
+        padding: 12px;
+        margin: 12px 0;
+        font-size: 14px;
+      }
+
+      /* Responsive adjustments */
+      @media (max-width: 768px) {
         .chat-container {
-            max-width: 768px;
-            margin: 20px auto; /* Added margin-top/bottom for spacing */
-            height: calc(100vh - 40px); /* Adjust height considering the new margin */
-            display: flex;
-            flex-direction: column;
-            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08); /* Slightly stronger shadow */
-            border-radius: 12px;
-            overflow: hidden;
-            background-color: #f9fafb; /* Light background for the container */
-        }
-
-        /* Header */
-        .chat-header {
-            padding: 20px;
-            border-bottom: 1px solid #e5e5e5;
-            background: #ffffff;
-            text-align: center; /* Centered header text */
-        }
-
-        .chat-header h1 {
-            font-size: 22px; /* Slightly larger title */
-            font-weight: 700; /* Bolder title */
-            color: #2d2d2d;
-            margin-bottom: 4px;
-        }
-
-        .chat-header p {
-            font-size: 15px; /* Slightly larger description */
-            color: #6b7280;
-        }
-
-        /* Chat messages area */
-        .chat-messages {
-            flex: 1;
-            overflow-y: auto;
-            padding: 20px;
-            background: #ffffff;
-        }
-
-        .message {
-            margin-bottom: 24px;
-            max-width: 100%;
-        }
-
-        .message-content {
-            font-size: 15px;
-            line-height: 1.7;
-            color: #2d2d2d;
+          margin: 0;
+          height: 100vh;
+          border-radius: 0;
+          box-shadow: none;
         }
 
         .message.user {
-            margin-left: auto; /* Aligns user messages to the right */
-            text-align: right; /* Aligns text inside user message bubble */
+          margin-left: 0;
         }
 
-        .message.user .message-content {
-            background: #e0f2fe; /* Light blue for user message */
-            padding: 12px 16px;
-            border-radius: 12px;
-            border: 1px solid #a7d9f8;
-            display: inline-block; /* Makes bubble fit content */
-            text-align: left; /* Ensures text inside bubble is left-aligned */
-        }
-
-        .message.assistant .message-content {
-            padding: 0;
-            text-align: left;
-        }
-
-        .assistant-label {
-            font-size: 13px;
-            color: #6b7280;
-            margin-bottom: 8px;
-            font-weight: 500;
-        }
-
-        /* Chain of Thought (COT) section */
-        .cot-section {
-            background: #f8fafc;
-            border: 1px solid #e2e8f0;
-            border-radius: 8px;
-            padding: 16px;
-            margin: 16px 0;
-        }
-
-        .cot-title {
-            font-size: 14px;
-            font-weight: 600;
-            color: #374151;
-            margin-bottom: 12px;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-
-        .thinking-step {
-            margin-bottom: 12px;
-            padding: 12px;
-            background: #ffffff;
-            border-radius: 6px;
-            border-left: 3px solid #3b82f6;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04); /* Subtle shadow for steps */
-        }
-
-        .step-title {
-            font-weight: 600;
-            color: #1f2937;
-            margin-bottom: 4px;
-            font-size: 14px;
-        }
-
-        .step-content {
-            color: #4b5563;
-            font-size: 14px;
-        }
-
-        /* Insights section */
-        .insights-section {
-            background: #fffbeb;
-            border: 1px solid #fbbf24;
-            border-radius: 8px;
-            padding: 16px;
-            margin: 16px 0;
-        }
-
-        .insights-title {
-            font-size: 14px;
-            font-weight: 600;
-            color: #92400e;
-            margin-bottom: 8px;
-        }
-
-        .insight-item {
-            margin-bottom: 6px;
-            color: #92400e;
-            font-size: 14px;
-        }
-
-        /* Report offer section */
-        .report-offer {
-            background: #f0f9ff;
-            border: 1px solid #0ea5e9;
-            border-radius: 8px;
-            padding: 16px;
-            margin: 16px 0;
-        }
-
-        .report-title {
-            font-weight: 600;
-            color: #0369a1;
-            margin-bottom: 8px;
-        }
-
-        .report-buttons {
-            display: flex;
-            gap: 8px;
-            margin-top: 12px;
-        }
-
-        .report-button {
-            padding: 8px 16px;
-            border: none;
-            border-radius: 6px;
-            font-size: 14px;
-            cursor: pointer;
-            font-weight: 500;
-            transition: background-color 0.2s;
-        }
-
-        .report-button.accept {
-            background: #3b82f6;
-            color: white;
-        }
-
-        .report-button.accept:hover {
-            background: #2563eb;
-        }
-
-        .report-button.decline {
-            background: #e5e7eb;
-            color: #374151;
-        }
-
-        .report-button.decline:hover {
-            background: #d1d5db;
-        }
-
-        /* Download link */
-        .download-link {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            background: #10b981;
-            color: white;
-            padding: 8px 12px;
-            border-radius: 6px;
-            text-decoration: none;
-            font-size: 14px;
-            font-weight: 500;
-            margin-top: 12px;
-            margin-left: 4px;
-        }
-
-        .download-link:hover {
-            background: #059669;
-        }
-
-        /* Chat input area */
-        .chat-input-container {
-            padding: 20px;
-            border-top: 1px solid #e5e5e5;
-            background: #ffffff;
-        }
-
-        .chat-form {
-            display: flex;
-            gap: 8px;
-            align-items: flex-end;
-        }
-
-        .chat-input {
-            flex: 1;
-            padding: 12px 16px;
-            border: 1px solid #d1d5db;
-            border-radius: 8px;
-            font-size: 15px;
-            resize: none;
-            min-height: 44px;
-            max-height: 120px;
-            outline: none;
-            transition: border-color 0.2s;
-            font-family: inherit;
-        }
-
-        .chat-input:focus {
-            border-color: #3b82f6;
-            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-        }
-
-        .send-button {
-            background: #3b82f6;
-            color: white;
-            border: none;
-            padding: 12px 20px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 14px;
-            font-weight: 500;
-            transition: background-color 0.2s;
-            height: 44px;
-        }
-
-        .send-button:hover:not(:disabled) {
-            background: #2563eb;
-        }
-
-        .send-button:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-
-        /* Quick actions */
         .quick-actions {
-            margin-top: 12px;
-            display: flex;
-            gap: 8px;
-            flex-wrap: wrap; /* Allow wrapping */
+          overflow-x: auto;
+          flex-wrap: nowrap;
+          padding-bottom: 4px;
+          -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
         }
 
         .quick-action {
-            background: #f9fafb;
-            border: 1px solid #d1d5db;
-            padding: 8px 14px; /* Slightly more padding */
-            border-radius: 20px; /* Pill shape */
-            font-size: 13px;
-            cursor: pointer;
-            transition: all 0.2s;
-            color: #374151;
-            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05); /* Subtle shadow */
+          white-space: nowrap;
         }
+      }
 
-        .quick-action:hover {
-            background: #f3f4f6;
-            border-color: #9ca3af;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
-        }
+      /* Scrollbar styling */
+      .chat-messages::-webkit-scrollbar {
+        width: 6px;
+      }
 
-        /* Loading state */
-        .loading {
-            display: none;
-            text-align: center;
-            padding: 20px;
-            color: #6b7280;
-            font-size: 14px;
-        }
+      .chat-messages::-webkit-scrollbar-track {
+        background: #f1f1f1;
+      }
 
-        .loading.active {
-            display: block;
-        }
+      .chat-messages::-webkit-scrollbar-thumb {
+        background: #c1c1c1;
+        border-radius: 3px;
+      }
 
-        .loading-dots::after {
-            content: '';
-            animation: dots 1.5s infinite;
-        }
-
-        @keyframes dots {
-            0%, 20% {
-                content: '';
-            }
-            40% {
-                content: '.';
-            }
-            60% {
-                content: '..';
-            }
-            80%, 100% {
-                content: '...';
-            }
-        }
-
-        /* Messages states */
-        .error-message {
-            background: #fef2f2;
-            color: #dc2626;
-            border: 1px solid #fecaca;
-            border-radius: 8px;
-            padding: 12px;
-            margin: 12px 0;
-            font-size: 14px;
-        }
-
-        .success-message {
-            background: #f0fdf4;
-            color: #166534;
-            border: 1px solid #bbf7d0;
-            border-radius: 8px;
-            padding: 12px;
-            margin: 12px 0;
-            font-size: 14px;
-        }
-
-        /* Responsive adjustments */
-        @media (max-width: 768px) {
-            .chat-container {
-                margin: 0;
-                height: 100vh;
-                border-radius: 0;
-                box-shadow: none;
-            }
-
-            .message.user {
-                margin-left: 0;
-            }
-
-            .quick-actions {
-                overflow-x: auto;
-                flex-wrap: nowrap;
-                padding-bottom: 4px;
-                -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
-            }
-
-            .quick-action {
-                white-space: nowrap;
-            }
-        }
-
-        /* Scrollbar styling */
-        .chat-messages::-webkit-scrollbar {
-            width: 6px;
-        }
-
-        .chat-messages::-webkit-scrollbar-track {
-            background: #f1f1f1;
-        }
-
-        .chat-messages::-webkit-scrollbar-thumb {
-            background: #c1c1c1;
-            border-radius: 3px;
-        }
-
-        .chat-messages::-webkit-scrollbar-thumb:hover {
-            background: #a8a8a8;
-        }
+      .chat-messages::-webkit-scrollbar-thumb:hover {
+        background: #a8a8a8;
+      }
     </style>
-</head>
-<body>
-<div class="chat-container">
-    <div class="chat-header">
+  </head>
+  <body>
+    <div class="chat-container">
+      <div class="chat-header">
         <h1>Үл хөдлөх хөрөнгийн туслах</h1>
         <p>Орон сууц, дүүрэг, зах зээлийн мэргэжлийн шинжилгээ</p>
-    </div>
+      </div>
 
-
-    <div class="chat-messages" id="chat-messages">
+      <div class="chat-messages" id="chat-messages">
         <div class="message assistant">
-            <div class="assistant-label">Туслах</div>
-            <div class="message-content">
-                <p>Сайн байна уу! Улаанбаатар хотын үл хөдлөх хөрөнгийн зах зээлд тань туслахад бэлэн байна.</p>
+          <div class="assistant-label">Туслах</div>
+          <div class="message-content">
+            <p>
+              Сайн байна уу! Улаанбаатар хотын үл хөдлөх хөрөнгийн зах зээлд
+              тань туслахад бэлэн байна.
+            </p>
 
-                <p>Би танд дараах чиглэлээр дэмжлэг үзүүлнэ:</p>
-                <ul>
-                    <li>Unegui.mn сайтаас орон сууцны дэлгэрэнгүй мэдээлэл татах</li>
-                    <li>Дүүргүүдийн үнийн харьцуулсан шинжилгээ хийх</li>
-                    <li>Үл хөдлөх хөрөнгийн зах зээлийн өнөөгийн нөхцөл байдлыг судлах</li>
-                    <li>Бүрэн хэмжээний PDF тайлан үүсгэх</li>
-                </ul>
+            <p>Би танд дараах чиглэлээр дэмжлэг үзүүлнэ:</p>
+            <ul>
+              <li>Unegui.mn сайтаас орон сууцны дэлгэрэнгүй мэдээлэл татах</li>
+              <li>Дүүргүүдийн үнийн харьцуулсан шинжилгээ хийх</li>
+              <li>
+                Үл хөдлөх хөрөнгийн зах зээлийн өнөөгийн нөхцөл байдлыг судлах
+              </li>
+              <li>Бүрэн хэмжээний PDF тайлан үүсгэх</li>
+            </ul>
 
-                <p>Орон сууцны холбоос илгээх эсвэл дүүрэг, зах зээлийн талаарх асуултаа эхлүүлээрэй.</p>
-            </div>
+            <p>
+              Орон сууцны холбоос илгээх эсвэл дүүрэг, зах зээлийн талаарх
+              асуултаа эхлүүлээрэй.
+            </p>
+          </div>
         </div>
-    </div>
+      </div>
 
-    <div class="loading" id="loading">
+      <div class="loading" id="loading">
         <span class="loading-dots">Шинжилгээ хийж байна</span>
-    </div>
+      </div>
 
-    <div class="chat-input-container">
+      <div class="chat-input-container">
         <form class="chat-form" id="chat-form">
-                <textarea
-                        class="chat-input"
-                        id="user-input"
-                        placeholder="Орон сууцны холбоос эсвэл асуулт бичнэ үү..."
-                        rows="1"
-                ></textarea>
-            <button type="submit" class="send-button" id="send-button">Илгээх</button>
+          <textarea
+            class="chat-input"
+            id="user-input"
+            placeholder="Орон сууцны холбоос эсвэл асуулт бичнэ үү..."
+            rows="1"
+          ></textarea>
+          <button type="submit" class="send-button" id="send-button">
+            Илгээх
+          </button>
         </form>
 
         <div class="quick-actions">
-            <div class="quick-action" onclick="sendQuickMessage('Сүхбаатар дүүрэг')">Сүхбаатар дүүрэг</div>
-            <div class="quick-action" onclick="sendQuickMessage('Чингэлтэй дүүрэг')">Чингэлтэй дүүрэг</div>
-            <div class="quick-action" onclick="sendQuickMessage('Бүх дүүргийн үнэ харьцуулах')">Дүүргүүдийг харьцуулах
-            </div>
-            <div class="quick-action" onclick="sendQuickMessage('Орон сууцны зах зээлийн нөхцөл')">Зах зээлийн нөхцөл
-                байдал
-            </div>
+          <div
+            class="quick-action"
+            onclick="sendQuickMessage('Сүхбаатар дүүрэг')"
+          >
+            Сүхбаатар дүүрэг
+          </div>
+          <div
+            class="quick-action"
+            onclick="sendQuickMessage('Чингэлтэй дүүрэг')"
+          >
+            Чингэлтэй дүүрэг
+          </div>
+          <div
+            class="quick-action"
+            onclick="sendQuickMessage('Бүх дүүргийн үнэ харьцуулах')"
+          >
+            Дүүргүүдийг харьцуулах
+          </div>
+          <div
+            class="quick-action"
+            onclick="sendQuickMessage('Орон сууцны зах зээлийн нөхцөл')"
+          >
+            Зах зээлийн нөхцөл байдал
+          </div>
         </div>
+      </div>
     </div>
-</div>
 
-<script>
-    const chatForm = document.getElementById('chat-form');
-    const userInput = document.getElementById('user-input');
-    const sendButton = document.getElementById('send-button');
-    const chatMessages = document.getElementById('chat-messages');
-    const loading = document.getElementById('loading');
+    <script>
+      const chatForm = document.getElementById("chat-form");
+      const userInput = document.getElementById("user-input");
+      const sendButton = document.getElementById("send-button");
+      const chatMessages = document.getElementById("chat-messages");
+      const loading = document.getElementById("loading");
 
-    // Textarea-г автоматаар өргөтгөх
-    userInput.addEventListener('input', function () {
-        this.style.height = 'auto';
-        this.style.height = this.scrollHeight + 'px';
-    });
+      // Textarea-г автоматаар өргөтгөх
+      userInput.addEventListener("input", function () {
+        this.style.height = "auto";
+        this.style.height = this.scrollHeight + "px";
+      });
 
-    // Формын илгээлтийг боловсруулах
-    chatForm.addEventListener('submit', async function (e) {
+      // Формын илгээлтийг боловсруулах
+      chatForm.addEventListener("submit", async function (e) {
         e.preventDefault();
         const message = userInput.value.trim();
         if (!message) return;
 
         await sendMessage(message);
-    });
+      });
 
-    // Мессеж илгээх функц
-    async function sendMessage(message) {
-        addMessage(message, 'user');
+      // Download button functionality
+      function createDownloadButton(downloadUrl, filename, reportType = 'тайлан') {
+        const button = document.createElement('button');
+        button.className = 'download-button';
+        button.textContent = `${reportType} татах`;
 
-        userInput.value = '';
-        userInput.style.height = 'auto';
+        // Create status div
+        const statusDiv = document.createElement('div');
+        statusDiv.className = 'download-status';
+
+        button.onclick = async function() {
+          const originalText = this.textContent;
+
+          // Show loading state
+          this.textContent = 'Татаж байна...';
+          this.disabled = true;
+          this.classList.add('loading');
+
+          try {
+            const response = await fetch(downloadUrl);
+            if (!response.ok) {
+              throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+
+            // Create temporary download link
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename || 'report.pdf';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
+
+            // Show success
+            statusDiv.textContent = 'Амжилттай татагдлаа';
+            statusDiv.className = 'download-status success';
+            statusDiv.style.display = 'block';
+
+            this.textContent = 'Татагдлаа';
+
+            setTimeout(() => {
+              statusDiv.style.display = 'none';
+              this.textContent = originalText;
+              this.disabled = false;
+              this.classList.remove('loading');
+            }, 3000);
+
+          } catch (error) {
+            console.error('Download error:', error);
+
+            // Show error
+            statusDiv.textContent = 'Алдаа гарлаа. Дахин оролдоно уу.';
+            statusDiv.className = 'download-status error';
+            statusDiv.style.display = 'block';
+
+            this.textContent = 'Алдаа гарлаа';
+
+            setTimeout(() => {
+              statusDiv.style.display = 'none';
+              this.textContent = originalText;
+              this.disabled = false;
+              this.classList.remove('loading');
+            }, 3000);
+          }
+        };
+
+        // Create container
+        const container = document.createElement('div');
+        container.appendChild(button);
+        container.appendChild(statusDiv);
+
+        return container;
+      }
+
+      // Мессеж илгээх функц
+      async function sendMessage(message) {
+        addMessage(message, "user");
+
+        userInput.value = "";
+        userInput.style.height = "auto";
         setFormEnabled(false);
         showLoading(true);
 
         try {
-            const formData = new FormData();
-            formData.append('user_message', message);
+          const formData = new FormData();
+          formData.append("user_message", message);
 
-            const response = await fetch('/chat', {
-                method: 'POST',
-                body: formData
-            });
+          const response = await fetch("/chat", {
+            method: "POST",
+            body: formData,
+          });
 
-            const data = await response.json();
+          const data = await response.json();
 
-            if (data.response) {
-                addMessage(data.response, 'assistant', data);
-            } else {
-                addMessage('Алдаа гарлаа. Дахин оролдоно уу.', 'assistant');
-            }
+          if (data.response || data.message) {
+            addMessage(data.response || data.message, "assistant", data);
+          } else {
+            addMessage("Алдаа гарлаа. Дахин оролдоно уу.", "assistant");
+          }
         } catch (error) {
-            console.error('Error:', error);
-            addMessage('Серверт холбогдоход алдаа гарлаа. Дахин оролдоно уу.', 'assistant');
+          console.error("Error:", error);
+          addMessage(
+            "Серверт холбогдоход алдаа гарлаа. Дахин оролдоно уу.",
+            "assistant"
+          );
         } finally {
-            setFormEnabled(true);
-            showLoading(false);
-            userInput.focus();
+          setFormEnabled(true);
+          showLoading(false);
+          userInput.focus();
         }
-    }
+      }
 
-    // Чатад мессеж нэмэх
-    function addMessage(content, sender, data = {}) {
-        const messageDiv = document.createElement('div');
+      // Чатад мессеж нэмэх
+      function addMessage(content, sender, data = {}) {
+        const messageDiv = document.createElement("div");
         messageDiv.className = `message ${sender}`;
 
-        if (sender === 'assistant') {
-            const labelDiv = document.createElement('div');
-            labelDiv.className = 'assistant-label';
-            labelDiv.textContent = 'Туслах';
-            messageDiv.appendChild(labelDiv);
+        if (sender === "assistant") {
+          const labelDiv = document.createElement("div");
+          labelDiv.className = "assistant-label";
+          labelDiv.textContent = "Туслах";
+          messageDiv.appendChild(labelDiv);
         }
 
-        const contentDiv = document.createElement('div');
-        contentDiv.className = 'message-content';
+        const contentDiv = document.createElement("div");
+        contentDiv.className = "message-content";
 
         // Янз бүрийн төрлийн контентыг боловсруулах
-        if (content.includes('**Тайлан авах уу?**')) {
-            const parts = content.split('**Тайлан авах уу?**');
+        if (content.includes("**Тайлан авах уу?**")) {
+          const parts = content.split("**Тайлан авах уу?**");
 
-            const mainContent = parts[0].replace(/\n/g, '<br>');
-            contentDiv.innerHTML = mainContent;
+          const mainContent = parts[0].replace(/\n/g, "<br>");
+          contentDiv.innerHTML = mainContent;
 
-            const reportOfferDiv = document.createElement('div');
-            reportOfferDiv.className = 'report-offer';
-            reportOfferDiv.innerHTML = `
+          const reportOfferDiv = document.createElement("div");
+          reportOfferDiv.className = "report-offer";
+          reportOfferDiv.innerHTML = `
                     <div class="report-title">Тайлан авах уу?</div>
-                    <div>${parts[1].replace(/\n/g, '<br>')}</div>
+                    <div>${parts[1].replace(/\n/g, "<br>")}</div>
                     <div class="report-buttons">
                         <button class="report-button accept" onclick="sendMessage('Тийм')">Тийм</button>
                         <button class="report-button decline" onclick="sendMessage('Үгүй')">Үгүй</button>
                     </div>
                 `;
-            contentDiv.appendChild(reportOfferDiv);
-        } else if (content.includes('**Дэлгэрэнгүй шинжилгээний алхмууд:**')) {
-            formatCotContent(content, contentDiv);
+          contentDiv.appendChild(reportOfferDiv);
+        } else if (content.includes("**Дэлгэрэнгүй шинжилгээний алхмууд:**")) {
+          formatCotContent(content, contentDiv);
         } else {
-            const formattedContent = content.replace(/\n/g, '<br>');
-            contentDiv.innerHTML = formattedContent;
+          const formattedContent = content.replace(/\n/g, "<br>");
+          contentDiv.innerHTML = formattedContent;
         }
 
-        // Тайлан үүсгэсэн бол татаж авах холбоос нэмэх
+        // Handle download URL - determine report type from content or filename
         if (data.download_url) {
-            const downloadLink = document.createElement('a');
-            downloadLink.href = data.download_url;
-            downloadLink.className = 'download-link';
-            downloadLink.textContent = 'Тайлан татаж авах';
-            downloadLink.target = '_blank';
-            contentDiv.appendChild(downloadLink);
+          let reportType = 'PDF тайлан';
+
+          // Determine report type from filename or content
+          if (data.filename) {
+            if (data.filename.includes('property_analysis') || data.filename.includes('орон_сууц')) {
+              reportType = 'Орон сууцны тайлан';
+            } else if (data.filename.includes('district_summary') || data.filename.includes('дүүрэг')) {
+              reportType = 'Дүүргийн тайлан';
+            } else if (data.filename.includes('market_analysis') || data.filename.includes('зах_зээл')) {
+              reportType = 'Зах зээлийн тайлан';
+            }
+          }
+
+          const downloadContainer = createDownloadButton(
+            data.download_url,
+            data.filename || 'report.pdf',
+            reportType
+          );
+          contentDiv.appendChild(downloadContainer);
         }
 
         messageDiv.appendChild(contentDiv);
         chatMessages.appendChild(messageDiv);
         chatMessages.scrollTop = chatMessages.scrollHeight;
-    }
+      }
 
-    // Сэтгэлгээний гинжин агуулгыг форматлах
-    function formatCotContent(content, container) {
-        const sections = content.split('\n\n');
+      // Сэтгэлгээний гинжин агуулгыг форматлах
+      function formatCotContent(content, container) {
+        const sections = content.split("\n\n");
 
-        sections.forEach(section => {
-            if (section.includes('**Дэлгэрэнгүй шинжилгээний алхмууд:**')) {
-                const cotDiv = document.createElement('div');
-                cotDiv.className = 'cot-section';
+        sections.forEach((section) => {
+          if (section.includes("**Дэлгэрэнгүй шинжилгээний алхмууд:**")) {
+            const cotDiv = document.createElement("div");
+            cotDiv.className = "cot-section";
 
-                const titleDiv = document.createElement('div');
-                titleDiv.className = 'cot-title';
-                titleDiv.innerHTML = '🧠 Дэлгэрэнгүй шинжилгээний алхмууд';
-                cotDiv.appendChild(titleDiv);
+            const titleDiv = document.createElement("div");
+            titleDiv.className = "cot-title";
+            titleDiv.innerHTML = "Дэлгэрэнгүй шинжилгээний алхмууд";
+            cotDiv.appendChild(titleDiv);
 
-                container.appendChild(cotDiv);
-            } else if (section.includes('**') && section.includes('.')) {
-                const stepDiv = document.createElement('div');
-                stepDiv.className = 'thinking-step';
+            container.appendChild(cotDiv);
+          } else if (section.includes("**") && section.includes(".")) {
+            const stepDiv = document.createElement("div");
+            stepDiv.className = "thinking-step";
 
-                const lines = section.split('\n');
-                const title = lines[0].replace(/\*\*/g, '');
-                const stepContent = lines.slice(1).join(' '); // Renamed variable to avoid conflict
+            const lines = section.split("\n");
+            const title = lines[0].replace(/\*\*/g, "");
+            const stepContent = lines.slice(1).join(" "); // Renamed variable to avoid conflict
 
-                stepDiv.innerHTML = `
+            stepDiv.innerHTML = `
                         <div class="step-title">${title}</div>
                         <div class="step-content">${stepContent}</div>
                     `;
 
-                const lastCotSection = container.querySelector('.cot-section:last-child');
-                if (lastCotSection) {
-                    lastCotSection.appendChild(stepDiv);
-                }
-            } else if (section.includes('**Гол дүгнэлтүүд:**')) {
-                const insightsDiv = document.createElement('div');
-                insightsDiv.className = 'insights-section';
-
-                const titleDiv = document.createElement('div');
-                titleDiv.className = 'insights-title';
-                titleDiv.textContent = 'Гол дүгнэлтүүд:';
-                insightsDiv.appendChild(titleDiv);
-
-                const insights = section.split('•').slice(1);
-                insights.forEach(insight => {
-                    if (insight.trim()) {
-                        const insightDiv = document.createElement('div');
-                        insightDiv.className = 'insight-item';
-                        insightDiv.textContent = '• ' + insight.trim();
-                        insightsDiv.appendChild(insightDiv);
-                    }
-                });
-
-                container.appendChild(insightsDiv);
-            } else if (section.trim()) {
-                const paraDiv = document.createElement('div');
-                paraDiv.innerHTML = section.replace(/\n/g, '<br>').replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-                paraDiv.style.marginBottom = '12px';
-                container.appendChild(paraDiv);
+            const lastCotSection = container.querySelector(
+              ".cot-section:last-child"
+            );
+            if (lastCotSection) {
+              lastCotSection.appendChild(stepDiv);
             }
+          } else if (section.includes("**Гол дүгнэлтүүд:**")) {
+            const insightsDiv = document.createElement("div");
+            insightsDiv.className = "insights-section";
+
+            const titleDiv = document.createElement("div");
+            titleDiv.className = "insights-title";
+            titleDiv.textContent = "Гол дүгнэлтүүд:";
+            insightsDiv.appendChild(titleDiv);
+
+            const insights = section.split("•").slice(1);
+            insights.forEach((insight) => {
+              if (insight.trim()) {
+                const insightDiv = document.createElement("div");
+                insightDiv.className = "insight-item";
+                insightDiv.textContent = "• " + insight.trim();
+                insightsDiv.appendChild(insightDiv);
+              }
+            });
+
+            container.appendChild(insightsDiv);
+          } else if (section.trim()) {
+            const paraDiv = document.createElement("div");
+            paraDiv.innerHTML = section
+              .replace(/\n/g, "<br>")
+              .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>");
+            paraDiv.style.marginBottom = "12px";
+            container.appendChild(paraDiv);
+          }
         });
-    }
+      }
 
-    function sendQuickMessage(message) {
+      function sendQuickMessage(message) {
         sendMessage(message);
-    }
+      }
 
-    userInput.addEventListener('keydown', function (event) {
-        if (event.key === 'Enter' && !event.shiftKey) {
-            event.preventDefault(); // Prevent the default behavior of the Enter key
-            chatForm.dispatchEvent(new Event('submit')); // Trigger the form submission
+      userInput.addEventListener("keydown", function (event) {
+        if (event.key === "Enter" && !event.shiftKey) {
+          event.preventDefault(); // Prevent the default behavior of the Enter key
+          chatForm.dispatchEvent(new Event("submit")); // Trigger the form submission
         }
-    });
+      });
 
-    function setFormEnabled(enabled) {
+      function setFormEnabled(enabled) {
         sendButton.disabled = !enabled;
         userInput.disabled = !enabled;
-    }
+      }
 
-    function showLoading(show) {
-        loading.classList.toggle('active', show);
-    }
+      function showLoading(show) {
+        loading.classList.toggle("active", show);
+      }
 
-
-    // Эхлүүлэх
-    userInput.focus();
-</script>
-</body>
+      // Эхлүүлэх
+      userInput.focus();
+    </script>
+  </body>
 </html>

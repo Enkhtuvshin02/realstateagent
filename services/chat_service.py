@@ -1,501 +1,612 @@
 import logging
 import re
 import json
-from typing import Dict, Any
-from datetime import datetime  # Ensure this is imported
+from datetime import datetime
+from typing import Dict, Any, Optional
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import StrOutputParser
 
 from services.report_service import ReportService
 from agents.chain_of_thought_agent import ChainOfThoughtAgent
 
-# from agents.district_analyzer import DistrictAnalyzer # For type hinting if needed
-
 logger = logging.getLogger(__name__)
 
 REPORT_KEYWORDS = ['тийм', 'yes', 'тайлан', 'report']
-DISTRICT_NAMES = ["хан-уул", "баянгол", "сүхбаатар", "чингэлтэй", "баянзүрх", "сонгинохайрхан"]
-COMPARISON_KEYWORDS = ['бүх дүүрэг', 'дүүрэг харьцуулах', 'дүүргүүд', 'харьцуулах', 'compare all districts',
-                       'compare districts']
+DISTRICT_NAMES = [
+    "хан-уул", "хануул", "khan-uul", "khanuul", "хан уул",
+    "баянгол", "bayngol",
+    "сүхбаатар", "сухбаатар", "sukhbaatar", "suhbaatar",
+    "чингэлтэй", "чингэлтэи", "chingeltei",
+    "баянзүрх", "баянзурх", "bayanzurkh", "bayanzurh",
+    "сонгинохайрхан", "сонгино", "songinokhairkhan",
+    "багануур", "baganuur",
+    "налайх", "nalaikh",
+    "багахангай", "bagakhangai"
+]
+COMPARISON_KEYWORDS = ['бүх дүүрэг', 'дүүрэг харьцуулах', 'дүүргүүд', 'харьцуулах', 'compare']
+MARKET_KEYWORDS = ['зах зээл', 'үнийн чиглэл', 'market', 'тренд', 'статистик']
 
+class ResponseValidator:
+    @staticmethod
+    def is_garbage_response(text: str) -> bool:
+        if not text or len(text.strip()) < 20:
+            return True
+        if re.search(r'(.)\1{15,}', text):
+            return True
+        if re.search(r'(\w+)(\s+\1){5,}', text):
+            return True
+        mongolian_patterns = [
+            r'(өөрөө){8,}',
+            r'(рөөрөө){8,}',
+            r'(\w{3,5})\1{10,}'
+        ]
+        for pattern in mongolian_patterns:
+            if re.search(pattern, text):
+                return True
+        return False
+    @staticmethod
+    def clean_response(text: str) -> str:
+        if not text:
+            return ""
+        text = re.sub(r'(.)\1{5,}', r'\1', text)
+        text = re.sub(r'\b(\w+)(\s+\1){3,}', r'\1', text)
+        text = re.sub(r'(өөрөө){3,}', 'өөрөө', text)
+        text = re.sub(r'(рөөрөө){3,}', '', text)
+        words = text.split()
+        cleaned_words = [word for word in words if len(word) < 80]
+        text = ' '.join(cleaned_words)
+        text = re.sub(r'\s+', ' ', text).strip()
+        return text
+    @staticmethod
+    def validate_response(text: str) -> Dict[str, Any]:
+        if not text:
+            return {"is_valid": False, "reason": "empty", "can_clean": False}
+        if ResponseValidator.is_garbage_response(text):
+            cleaned = ResponseValidator.clean_response(text)
+            if len(cleaned) > 50 and not ResponseValidator.is_garbage_response(cleaned):
+                return {
+                    "is_valid": True,
+                    "reason": "cleaned_garbage",
+                    "can_clean": True,
+                    "cleaned_text": cleaned
+                }
+            else:
+                return {"is_valid": False, "reason": "garbage_detected", "can_clean": False}
+        if len(text.strip()) < 50:
+            return {"is_valid": False, "reason": "too_short", "can_clean": False}
+        english_words = ['the', 'and', 'or', 'in', 'of', 'to', 'for', 'with', 'by',
+                         'analysis', 'price', 'district', 'property', 'market', 'investment']
+        english_count = sum(1 for word in english_words if word.lower() in text.lower())
+        if english_count > 8:
+            return {"is_valid": False, "reason": "too_much_english", "can_clean": False}
+        error_patterns = [
+            "мэдээлэл олдсонгүй",
+            "алдаа гарлаа",
+            "боловсруулахад алдаа",
+            "error occurred"
+        ]
+        has_errors = any(pattern in text.lower() for pattern in error_patterns)
+        if has_errors:
+            return {"is_valid": False, "reason": "contains_errors", "can_clean": False}
+        return {"is_valid": True, "reason": "valid", "can_clean": False}
 
 class ChatService:
-
     def __init__(self, llm, search_tool, property_retriever, district_analyzer, pdf_generator):
         self.llm = llm
         self.search_tool = search_tool
         self.property_retriever = property_retriever
         self.district_analyzer = district_analyzer
         self.pdf_generator = pdf_generator
-
         self.report_service = ReportService(llm, district_analyzer, pdf_generator, search_tool)
         self.cot_agent = ChainOfThoughtAgent(llm)
-        self.last_property_analysis_context = None
-        self.last_district_analysis_context = None
-        self.last_market_analysis_context = None
-
-
+        self.validator = ResponseValidator()
+        self.last_property_context = None
+        self.last_district_context = None
+        self.last_market_context = None
     async def process_message(self, user_message: str) -> Dict[str, Any]:
-        logger.info(f"Processing message: {user_message[:100]}...")
+        logger.info(f"Processing: {user_message[:50]}...")
         try:
             if self._wants_report(user_message):
-                return await self._generate_report(user_message)
-
+                return await self._generate_report()
             message_type = self._classify_message(user_message)
-            use_cot = len(user_message) > 20 or message_type in ['property', 'district', 'district_comparison',
-                                                                 'market']
-
+            use_cot = len(user_message) > 20 or message_type in ['property', 'district', 'market']
             if message_type == 'property':
                 return await self._handle_property(user_message, use_cot)
-            elif message_type == 'district' or message_type == 'district_comparison':
-                return await self._handle_district(user_message, use_cot, message_type)
+            elif message_type == 'district':
+                return await self._handle_district(user_message, use_cot)
             elif message_type == 'market':
                 return await self._handle_market(user_message, use_cot)
-            else:  # general
+            else:
                 return await self._handle_general(user_message)
-
         except Exception as e:
-            logger.exception(f"Error processing message: {user_message[:100]}")
-            return {"response": "Уучлаарай, таны хүсэлтийг боловсруулахад алдаа гарлаа. Дахин оролдоно уу.",
-                    "offer_report": False}
-
+            logger.error(f"Error processing message: {e}")
+            return {
+                "response": "Уучлаарай, хүсэлтийг боловсруулахад алдаа гарлаа. Дахин оролдоно уу.",
+                "offer_report": False,
+                "status": "error"
+            }
     def _classify_message(self, message: str) -> str:
         message_lower = message.lower()
         if re.search(r'https?://\S+', message):
-            logger.debug("Classified message as 'property' due to URL.")
             return 'property'
-
         if any(keyword in message_lower for keyword in COMPARISON_KEYWORDS):
-            logger.debug("Classified message as 'district_comparison'.")
-            return 'district_comparison'
-
-        if any(district in message_lower for district in DISTRICT_NAMES):
-            logger.debug(f"Classified message as 'district' due to district name: {message_lower}.")
             return 'district'
-
-        market_keywords = ['зах зээл', 'үнийн чиглэл', 'market', 'тренд', 'статистик', 'хэтийн төлөв', 'төлөв байдал']
-        if any(keyword in message_lower for keyword in market_keywords):
-            logger.debug("Classified message as 'market'.")
+        if any(district in message_lower for district in DISTRICT_NAMES):
+            return 'district'
+        if 'дүүрэг' in message_lower:
+            return 'district'
+        if any(keyword in message_lower for keyword in MARKET_KEYWORDS):
             return 'market'
-
-        logger.debug("Classified message as 'general'.")
         return 'general'
-
     def _wants_report(self, message: str) -> bool:
         message_lower = message.lower().strip()
-        is_report_request = any(keyword == message_lower for keyword in REPORT_KEYWORDS) or \
-                            (message_lower.startswith("тийм") and len(message_lower) < 10) or \
-                            (message_lower.startswith("yes") and len(message_lower) < 10)
+        is_report_request = (
+                any(keyword == message_lower for keyword in REPORT_KEYWORDS) or
+                (message_lower.startswith("тийм") and len(message_lower) < 10) or
+                (message_lower.startswith("yes") and len(message_lower) < 10)
+        )
+        has_context = any([
+            self.last_property_context,
+            self.last_district_context,
+            self.last_market_context
+        ])
+        return is_report_request and has_context
+    async def _handle_district(self, message: str, use_cot: bool) -> Dict[str, Any]:
+        logger.info(f"Processing district query: {message[:50]}...")
+        try:
+            if hasattr(self.district_analyzer, 'get_vectorstore_status'):
+                status = self.district_analyzer.get_vectorstore_status()
+                logger.info(f"Vectorstore status: {status}")
+            analysis = await self.district_analyzer.analyze_district(message)
+            validation = self.validator.validate_response(analysis)
+            logger.info(f"Analysis validation: {validation}")
+            if not validation["is_valid"]:
+                if validation["reason"] == "garbage_detected":
+                    logger.warning("Detected garbage response, generating fallback")
+                    analysis = await self._generate_fallback_district_response(message)
+                elif validation["reason"] == "too_much_english":
+                    logger.warning("Response contains too much English, regenerating")
+                    analysis = await self._regenerate_mongolian_response(message, "district")
+                elif validation["can_clean"]:
+                    logger.info("Cleaning response with minor issues")
+                    analysis = validation["cleaned_text"]
+                else:
+                    logger.warning(f"Invalid response: {validation['reason']}")
+                    analysis = await self._generate_fallback_district_response(message)
+            analysis_quality = self._assess_analysis_quality(analysis)
+            logger.info(f"Analysis quality: {analysis_quality}")
+            if analysis_quality['is_valid']:
+                final_response = analysis
+                if use_cot and analysis_quality['is_high_quality']:
+                    try:
+                        analysis_type = "district_comparison" if "харьцуулалт" in analysis else "district_analysis"
+                        cot_data = {"district_analysis_text": analysis, "user_query": message}
+                        cot_response = await self.cot_agent.enhance_response_with_reasoning(
+                            original_response=analysis,
+                            analysis_type=analysis_type,
+                            data=cot_data,
+                            user_query=message
+                        )
+                        cot_validation = self.validator.validate_response(cot_response)
+                        if cot_validation["is_valid"]:
+                            final_response = cot_response
+                        else:
+                            logger.warning("CoT response invalid, using original")
+                    except Exception as e:
+                        logger.warning(f"CoT enhancement failed: {e}")
+                self.last_district_context = {
+                    "query": message,
+                    "analysis_content": analysis,
+                    "quality": analysis_quality,
+                    "timestamp": datetime.now().isoformat()
+                }
+                self._clear_other_contexts("district")
+                return {
+                    "response": final_response + "\n\nТайлан үүсгэх үү?\nДүүргийн PDF тайлан үүсгэхийг хүсвэл Тийм гэж бичнэ үү.",
+                    "offer_report": True,
+                    "cot_enhanced": use_cot and analysis_quality['is_high_quality'],
+                    "status": "success",
+                    "vectorstore_used": analysis_quality.get('used_vectorstore', False)
+                }
+            else:
+                return {
+                    "response": analysis,
+                    "offer_report": False,
+                    "status": "partial_success",
+                    "vectorstore_used": False
+                }
+        except Exception as e:
+            logger.error(f"District handling error: {e}")
+            return {
+                "response": "Дүүргийн мэдээлэл боловсруулахад алдаа гарлаа. Дахин оролдоно уу.",
+                "offer_report": False,
+                "status": "error"
+            }
+    async def _generate_fallback_district_response(self, message: str) -> str:
+        district_match = re.search(r'(хан-уул|баянгол|сүхбаатар|чингэлтэй|баянзүрх|сонгинохайрхан)', message.lower())
+        district_name = district_match.group(1).title() if district_match else "тодорхойгүй дүүрэг"
+        return f"""**{district_name} дүүргийн ерөнхий мэдээлэл**
 
-        if is_report_request and (
-                self.last_property_analysis_context or self.last_district_analysis_context or self.last_market_analysis_context):
-            logger.info("User wants a report based on previous context.")
-            return True
-        logger.debug(
-            f"Message '{message_lower}' not identified as a direct report request or no prior context for report.")
-        return False
+Уучлаарай, {district_name} дүүргийн дэлгэрэнгүй шинжилгээг одоогоор боловсруулж чадахгүй байна.
 
+**Ерөнхий зөвлөмж:**
+- Дүүргийн үнийн түвшинг судлахын тулд олон эх сурвалжийг харьцуулаарай
+- Орон нутгийн үл хөдлөх хөрөнгийн агентуудтай зөвлөлдөөрэй  
+- Дүүргийн инфраструктур, боловсролын байгууллага, тээврийн хүртээмжийг анхаарна уу
+
+Дэлгэрэнгүй мэдээллийг авахын тулд дахин асууна уу."""
+    async def _regenerate_mongolian_response(self, message: str, response_type: str) -> str:
+        district_match = re.search(r'(хан-уул|баянгол|сүхбаатар|чингэлтэй|баянзүрх|сонгинохайрхан)', message.lower())
+        district_name = district_match.group(1).title() if district_match else "дүүрэг"
+        prompt = ChatPromptTemplate.from_messages([
+            ("system", """Та ЗӨВХӨН монгол хэлээр хариулдаг үл хөдлөх хөрөнгийн зөвлөх. \n\nХАТУУ ШААРДЛАГА:\n- Зөвхөн МОНГОЛ хэлээр бичнэ үү \n- Англи үг огт хэрэглэхгүй байх\n- 100 үгээс хэтрэхгүй байх\n- Давтан бичихгүй байх\n- Тодорхой, товч мэдээлэл өгнө үү"""),
+            ("human", "{district} дүүргийн талаар товч мэдээлэл өгнө үү.")
+        ])
+        try:
+            chain = prompt | self.llm | StrOutputParser()
+            response = await chain.ainvoke({"district": district_name})
+            validation = self.validator.validate_response(response)
+            if validation["is_valid"]:
+                return response
+            else:
+                return await self._generate_fallback_district_response(message)
+        except Exception as e:
+            logger.error(f"Response regeneration failed: {e}")
+            return await self._generate_fallback_district_response(message)
+    def _assess_analysis_quality(self, analysis: str) -> Dict[str, Any]:
+        if not analysis or len(analysis.strip()) < 100:
+            return {
+                "is_valid": False,
+                "is_high_quality": False,
+                "reason": "too_short"
+            }
+        analysis_lower = analysis.lower()
+        error_indicators = [
+            "мэдээлэл олдсонгүй",
+            "алдаа гарлаа",
+            "хайлтаас мэдээлэл олдсонгүй",
+            "интернетээс мэдээлэл олдсонгүй",
+            "боловсруулж чадахгүй"
+        ]
+        has_errors = any(indicator in analysis_lower for indicator in error_indicators)
+        quality_indicators = [
+            "төгрөг",
+            "дундаж үнэ",
+            "дүүрэг",
+            "хөрөнгө оруулалт",
+            "зөвлөмж"
+        ]
+        quality_score = sum(1 for indicator in quality_indicators if indicator in analysis_lower)
+        has_specific_numbers = bool(re.search(r'\d{1,3}[, ]\d{3}[, ]\d{3}', analysis))
+        used_vectorstore = "(Энэ мэдээлэл интернет хайлтаас авсан болно.)" not in analysis
+        garbage_validation = self.validator.validate_response(analysis)
+        is_clean = garbage_validation["is_valid"]
+        is_valid = not has_errors and is_clean and quality_score >= 2
+        is_high_quality = is_valid and quality_score >= 4 and has_specific_numbers
+        return {
+            "is_valid": is_valid,
+            "is_high_quality": is_high_quality,
+            "quality_score": quality_score,
+            "has_specific_numbers": has_specific_numbers,
+            "used_vectorstore": used_vectorstore,
+            "has_errors": has_errors,
+            "is_clean": is_clean,
+            "reason": "quality_assessed"
+        }
     async def _handle_property(self, message: str, use_cot: bool) -> Dict[str, Any]:
         url_match = re.search(r'https?://\S+', message)
         if not url_match:
-            return {"response": "Орон сууцны мэдээлэл авахын тулд URL хаягийг оруулна уу.", "offer_report": False}
-
+            return {
+                "response": "Орон сууцны мэдээлэл авахын тулд URL хаягийг оруулна уу.",
+                "offer_report": False
+            }
         url = url_match.group(0)
-        logger.info(f"Handling property URL: {url}")
-
-        logger.info("Before fetching district analysis for property, current vectorstore state:")
-        self._log_district_analyzer_vectorstore_content()
-
+        logger.info(f"Processing property URL: {url}")
         try:
             property_data = await self.property_retriever.retrieve_property_details(url)
             if not property_data or property_data.get("error"):
-                error_msg = property_data.get("error", "Үл хөдлөх хөрөнгийн мэдээллийг авахад алдаа гарлаа.")
-                logger.error(f"Error retrieving property data from {url}: {error_msg}")
+                error_msg = property_data.get("error", "Үл хөдлөх хөрөнгийн мэдээлэл авахад алдаа гарлаа.")
                 return {"response": f"Алдаа: {error_msg}", "offer_report": False}
-
-            district_name = property_data.get("district")
-            district_analysis_str = "Дүүргийн мэдээлэл олдсонгүй."
-            if district_name and isinstance(district_name, str) and district_name.lower() != 'n/a':
-                logger.info(f"Fetching district analysis for: {district_name}")
-                district_analysis_str = await self.district_analyzer.analyze_district(district_name)
-            else:
-                logger.warning(
-                    f"No valid district found for property at {url}. Property data district: {district_name}")
-
-            summary_response = await self._generate_property_response(message, property_data, district_analysis_str)
-
-            final_response = summary_response
+            district_name = property_data.get("district", "")
+            district_analysis = "Дүүргийн мэдээлэл олдсонгүй."
+            if district_name and district_name.lower() != 'n/a':
+                try:
+                    district_analysis = await self.district_analyzer.analyze_district(district_name)
+                    validation = self.validator.validate_response(district_analysis)
+                    if not validation["is_valid"]:
+                        district_analysis = f"{district_name} дүүргийн мэдээлэл одоогоор боловсруулах боломжгүй."
+                except Exception as e:
+                    logger.warning(f"District analysis failed: {e}")
+                    district_analysis = f"{district_name} дүүргийн мэдээлэл авахад алдаа гарлаа."
+            summary = await self._generate_property_summary_with_validation(message, property_data, district_analysis)
+            final_response = summary
             if use_cot:
-                logger.info(f"Enhancing property response with CoT for query: {message[:50]}...")
-                cot_input_data = {
-                    "property_details": property_data,
-                    "district_analysis_text": district_analysis_str  # This is the string passed to CoT
-                }
-                final_response = await self.cot_agent.enhance_response_with_reasoning(
-                    original_response=summary_response,
-                    analysis_type="property_analysis",
-                    data=cot_input_data,
-                    user_query=message
-                )
-
-            self.last_property_analysis_context = {
+                try:
+                    cot_data = {
+                        "property_details": property_data,
+                        "district_analysis_text": district_analysis
+                    }
+                    cot_response = await self.cot_agent.enhance_response_with_reasoning(
+                        original_response=summary,
+                        analysis_type="property_analysis",
+                        data=cot_data,
+                        user_query=message
+                    )
+                    cot_validation = self.validator.validate_response(cot_response)
+                    if cot_validation["is_valid"]:
+                        final_response = cot_response
+                    else:
+                        logger.warning("CoT response validation failed, using summary")
+                except Exception as e:
+                    logger.warning(f"CoT enhancement failed: {e}")
+            self.last_property_context = {
                 "property_data": property_data,
-                "district_analysis_string": district_analysis_str,  # Stored with this key
+                "district_analysis_string": district_analysis,
                 "user_query": message,
                 "url": url,
                 "timestamp": datetime.now().isoformat()
             }
-            self.last_district_analysis_context = None
-            self.last_market_analysis_context = None
-
+            self._clear_other_contexts("property")
             return {
-                "response": final_response + "\n\nТайлан үүсгэх үү?\nДээрх үл хөдлөх хөрөнгийн талаар PDF тайлан үүсгэхийг хүсвэл Тийм эсвэл Тайлан гэж бичнэ үү.",
+                "response": final_response + "\n\nТайлан үүсгэх үү?\nПDF тайлан үүсгэхийг хүсвэл Тийм гэж бичнэ үү.",
                 "offer_report": True,
-                "cot_enhanced": use_cot
+                "cot_enhanced": use_cot,
+                "status": "success"
             }
-
         except Exception as e:
-            logger.exception(f"Error handling property message for URL {url}")
-            return {"response": "Уучлаарай, үл хөдлөх хөрөнгийн мэдээллийг боловсруулахад алдаа гарлаа.",
-                    "offer_report": False}
+            logger.error(f"Property handling error: {e}")
+            return {
+                "response": "Үл хөдлөх хөрөнгийн мэдээлэл боловсруулахад алдаа гарлаа.",
+                "offer_report": False,
+                "status": "error"
+            }
+    async def _generate_property_summary_with_validation(self, query: str, property_data: Dict,
+                                                         district_analysis: str) -> str:
+        prompt = ChatPromptTemplate.from_messages([
+            ("system", """Та үл хөдлөх хөрөнгийн мэргэжилтэн. 
 
-    async def _handle_district(self, message: str, use_cot: bool, message_type: str) -> Dict[str, Any]:
-        logger.info(f"Handling district query ({message_type}): {message[:50]}...")
-
-        logger.info("Before analyzing district(s), current vectorstore state:")
-        self._log_district_analyzer_vectorstore_content()
-
+            ШААРДЛАГА:
+            - ЗӨВХӨН монгол хэлээр бичнэ үү
+            - Англи үг хэрэглэхгүй байх
+            - 150 үгээс хэтрэхгүй байх
+            - Давтан бичихгүй байх
+            - Тодорхой мэдээлэл өгнө үү"""),
+            ("human", "Орон сууц: {property}\nДүүрэг: {district}\n\nТовч дүгнэлт өгнө үү.")
+        ])
         try:
-            analysis_type_for_cot = "district_analysis"  # Default
-            base_response = ""
-            cot_input_data = {}
-
-            if message_type == "district_comparison":
-                district_data_summary = await self.district_analyzer.analyze_district(message)
-                analysis_type_for_cot = "district_comparison"
-                base_response = district_data_summary
-                cot_input_data = {"district_comparison_summary": district_data_summary, "user_query": message}
-            else:  # specific district
-                district_analysis_str = await self.district_analyzer.analyze_district(message)
-                base_response = await self._generate_district_response(message, district_analysis_str)
-                cot_input_data = {"district_analysis_text": district_analysis_str, "user_query": message}
-
-            final_response = base_response
-            if use_cot:
-                logger.info(f"Enhancing district response with CoT for query: {message[:50]}...")
-                final_response = await self.cot_agent.enhance_response_with_reasoning(
-                    original_response=base_response,
-                    analysis_type=analysis_type_for_cot,
-                    data=cot_input_data,
-                    user_query=message
-                )
-
-            self.last_district_analysis_context = {
-                "type": message_type,
-                "query": message,
-                "analysis_content": base_response,
-                "timestamp": datetime.now().isoformat()
-            }
-            if message_type == "district_comparison" and "district_comparison_summary" in cot_input_data:
-                self.last_district_analysis_context["comparison_data_for_report"] = cot_input_data[
-                    "district_comparison_summary"]
-            elif message_type == "district" and "district_analysis_text" in cot_input_data:
-                self.last_district_analysis_context["single_district_text_for_report"] = cot_input_data[
-                    "district_analysis_text"]
-
-            self.last_property_analysis_context = None
-            self.last_market_analysis_context = None
-
-            return {
-                "response": final_response + "\n\n Тайлан үүсгэх үү?\nДүүргийн мэдээллийн талаар PDF тайлан үүсгэхийг хүсвэл Тийм эсвэл Тайлан гэж бичнэ үү.",
-                "offer_report": True,
-                "cot_enhanced": use_cot
-            }
+            chain = prompt | self.llm | StrOutputParser()
+            response = await chain.ainvoke({
+                "property": json.dumps(property_data, ensure_ascii=False, indent=2)[:500],
+                "district": district_analysis[:300]
+            })
+            validation = self.validator.validate_response(response)
+            if validation["is_valid"]:
+                return validation.get("cleaned_text", response)
+            else:
+                return self._generate_safe_property_fallback(property_data)
         except Exception as e:
-            logger.exception(f"Error handling district message: {message[:50]}")
-            return {"response": "Уучлаарай, дүүргийн мэдээллийг боловсруулахад алдаа гарлаа.", "offer_report": False}
+            logger.error(f"Property summary generation failed: {e}")
+            return self._generate_safe_property_fallback(property_data)
+    def _generate_safe_property_fallback(self, property_data: Dict) -> str:
+        title = property_data.get('title', 'Орон сууц')[:50]
+        price = property_data.get('price_raw', 'Тодорхойгүй')
+        area = property_data.get('area_sqm', 'Тодорхойгүй')
+        return f"""**Орон сууцны мэдээлэл**
 
+**Гарчиг:** {title}
+**Үнэ:** {price}
+**Талбай:** {area} м²
+
+Дэлгэрэнгүй шинжилгээний тулд дахин асууна уу."""
     async def _handle_market(self, message: str, use_cot: bool) -> Dict[str, Any]:
-        logger.info(f"Handling market query: {message[:50]}...")
+        logger.info(f"Processing market query: {message[:50]}...")
         try:
-            logger.debug(f"Performing Tavily search for market query: {message}")
-            search_results_raw = self.search_tool.invoke({"query": f"Mongolia real estate market trends {message}"})
-
-            search_content = ""
-            if isinstance(search_results_raw, list):
-                for res in search_results_raw:
-                    if isinstance(res, dict) and "content" in res:
-                        search_content += res["content"] + "\n\n"
-            elif isinstance(search_results_raw,
-                            dict) and "answer" in search_results_raw:  # Tavily can return a direct answer
-                search_content = search_results_raw["answer"]
-            else:
-                search_content = str(search_results_raw)
-
-            if not search_content.strip():
-                logger.warning(f"No content found from Tavily search for market query: {message}")
-                no_data_response = "Зах зээлийн талаарх одоогийн хайлтын илэрц хоосон байна. Та асуулгаа өөрөөр лавлана уу."
-                return {"response": no_data_response, "offer_report": False}
-
-            logger.debug(f"Tavily search content length: {len(search_content)}")
-            base_response = await self._generate_market_response(message, search_content)
-
-            final_response = base_response
+            search_query = f"Mongolia real estate market trends {message}"
+            search_results = await self.search_tool.ainvoke(search_query)
+            if not search_results:
+                return {
+                    "response": "Зах зээлийн мэдээлэл хайлтаас олдсонгүй.",
+                    "offer_report": False,
+                    "status": "no_data"
+                }
+            search_content = self._process_search_results(search_results)
+            if not search_content:
+                return {
+                    "response": "Зах зээлийн боловсруулах мэдээлэл олдсонгүй.",
+                    "offer_report": False,
+                    "status": "no_data"
+                }
+            analysis = await self._generate_market_analysis_with_validation(message, search_content)
+            final_response = analysis
             if use_cot:
-                logger.info(f"Enhancing market response with CoT for query: {message[:50]}...")
-                cot_input_data = {"search_results_text": search_content, "user_query": message}
-                final_response = await self.cot_agent.enhance_response_with_reasoning(
-                    original_response=base_response,
-                    analysis_type="market_analysis",
-                    data=cot_input_data,
-                    user_query=message
-                )
-
-            self.last_market_analysis_context = {
+                try:
+                    cot_data = {"search_results_text": search_content, "user_query": message}
+                    cot_response = await self.cot_agent.enhance_response_with_reasoning(
+                        original_response=analysis,
+                        analysis_type="market_analysis",
+                        data=cot_data,
+                        user_query=message
+                    )
+                    cot_validation = self.validator.validate_response(cot_response)
+                    if cot_validation["is_valid"]:
+                        final_response = cot_response
+                except Exception as e:
+                    logger.warning(f"CoT enhancement failed: {e}")
+            self.last_market_context = {
                 "query": message,
-                "search_content": search_content,  # Store the raw search content
-                "generated_analysis": base_response,  # Store the initial LLM summary of search_content
+                "search_content": search_content,
+                "generated_analysis": analysis,
                 "timestamp": datetime.now().isoformat()
             }
-            self.last_property_analysis_context = None
-            self.last_district_analysis_context = None
-
+            self._clear_other_contexts("market")
             return {
-                "response": final_response + "\n\n📈 Тайлан үүсгэх үү?\nЗах зээлийн мэдээллийн талаар PDF тайлан үүсгэхийг хүсвэл Тийм эсвэл Тайлан гэж бичнэ үү.",
+                "response": final_response + "\n\n Тайлан үүсгэх үү?\nЗах зээлийн PDF тайлан үүсгэхийг хүсвэл Тийм гэж бичнэ үү.",
                 "offer_report": True,
-                "cot_enhanced": use_cot
+                "cot_enhanced": use_cot,
+                "status": "success"
             }
         except Exception as e:
-            logger.exception(f"Error handling market message: {message[:50]}")
-            return {"response": "Уучлаарай, зах зээлийн мэдээллийг боловсруулахад алдаа гарлаа.", "offer_report": False}
+            logger.error(f"Market handling error: {e}")
+            return {
+                "response": "Зах зээлийн мэдээлэл боловсруулахад алдаа гарлаа.",
+                "offer_report": False,
+                "status": "error"
+            }
+    async def _generate_market_analysis_with_validation(self, query: str, search_content: str) -> str:
+        prompt = ChatPromptTemplate.from_messages([
+            ("system", """Та үл хөдлөх хөрөнгийн зах зээлийн судлаач. 
 
-    async def _handle_general(self, message: str) -> Dict[str, Any]:
-        logger.info(f"Handling general query: {message[:50]}...")
+            ШААРДЛАГА:
+            - ЗӨВХӨН монгол хэлээр бичнэ үү
+            - Англи үг хэрэглэхгүй байх
+            - 120 үгээс хэтрэхгүй байх
+            - Давтан бичихгүй байх"""),
+            ("human", "Асуулт: {query}\nМэдээлэл: {content}\n\nЗах зээлийн шинжилгээ өгнө үү.")
+        ])
         try:
-            logger.debug(f"Performing Tavily search for general query: {message}")
-            search_results_raw = self.search_tool.invoke({"query": message})
-
-            search_content = ""
-            if isinstance(search_results_raw, list):
-                for res in search_results_raw:
-                    if isinstance(res, dict) and "content" in res:
-                        search_content += res["content"] + "\n\n"
-            elif isinstance(search_results_raw, dict) and "answer" in search_results_raw:
-                search_content = search_results_raw["answer"]
+            chain = prompt | self.llm | StrOutputParser()
+            response = await chain.ainvoke({
+                "query": query,
+                "content": search_content[:2000]
+            })
+            validation = self.validator.validate_response(response)
+            if validation["is_valid"]:
+                return validation.get("cleaned_text", response)
             else:
-                search_content = str(search_results_raw)
-
-            if not search_content.strip():
-                logger.warning(f"No content found from Tavily search for general query: {message}")
-                return {"response": "Уучлаарай, таны асуултын дагуу мэдээлэл олдсонгүй. Та өөрөөр лавлаж үзнэ үү.",
-                        "offer_report": False}
-
-            logger.debug(
-                f"Tavily search content for general query (length {len(search_content)}): {search_content[:200]}...")
-            response = await self._generate_general_response(message, search_content)
-            return {"response": response, "offer_report": False}
-
+                return "Зах зээлийн одоогийн мэдээллээр дэлгэрэнгүй шинжилгээ хийх боломжгүй байна. Дахин асууна уу."
         except Exception as e:
-            logger.exception(f"Error handling general message: {message[:50]}")
-            return {"response": "Уучлаарай, ерөнхий асуултад хариулахад алдаа гарлаа.", "offer_report": False}
-
-    async def _generate_report(self, user_message: str) -> Dict[
-        str, Any]:  # Added user_message to potentially guide report type
-        logger.info("Report generation requested.")
-        report_type_determined = None
+            logger.error(f"Market analysis generation failed: {e}")
+            return "Зах зээлийн шинжилгээ үүсгэхэд алдаа гарлаа."
+    async def _handle_general(self, message: str) -> Dict[str, Any]:
+        logger.info(f"Processing general query: {message[:50]}...")
         try:
-            # Determine which context is most recent and relevant
-            last_prop_time = datetime.min
-            last_dist_time = datetime.min
-            last_mark_time = datetime.min
-
-            if self.last_property_analysis_context and "timestamp" in self.last_property_analysis_context:
-                try:
-                    last_prop_time = datetime.fromisoformat(self.last_property_analysis_context["timestamp"])
-                except ValueError:
-                    logger.error(
-                        f"Invalid timestamp in prop context: {self.last_property_analysis_context['timestamp']}")
-
-            if self.last_district_analysis_context and "timestamp" in self.last_district_analysis_context:
-                try:
-                    last_dist_time = datetime.fromisoformat(self.last_district_analysis_context["timestamp"])
-                except ValueError:
-                    logger.error(
-                        f"Invalid timestamp in dist context: {self.last_district_analysis_context['timestamp']}")
-
-            if self.last_market_analysis_context and "timestamp" in self.last_market_analysis_context:
-                try:
-                    last_mark_time = datetime.fromisoformat(self.last_market_analysis_context["timestamp"])
-                except ValueError:
-                    logger.error(
-                        f"Invalid timestamp in market context: {self.last_market_analysis_context['timestamp']}")
-
-            # Choose the most recent context if user just says "yes"
-            if self.last_property_analysis_context and last_prop_time >= last_dist_time and last_prop_time >= last_mark_time:
-                report_type_determined = "property"
-                logger.info(
-                    f"Generating property report based on last context: {self.last_property_analysis_context.get('url', 'N/A')}")
-                result = await self.report_service.generate_property_report(self.last_property_analysis_context)
-            elif self.last_district_analysis_context and last_dist_time >= last_mark_time:
-                report_type_determined = "district"
-                logger.info(
-                    f"Generating district report based on last context: {self.last_district_analysis_context.get('query', 'N/A')}")
-                result = await self.report_service.generate_district_report(
-                    self.last_district_analysis_context)  # Pass context
-            elif self.last_market_analysis_context:
-                report_type_determined = "market"
-                logger.info(
-                    f"Generating market report based on last context: {self.last_market_analysis_context.get('query', 'N/A')}")
-                result = await self.report_service.generate_market_report(
-                    self.last_market_analysis_context)  # Pass context
+            search_results = await self.search_tool.ainvoke(message)
+            if not search_results:
+                return {
+                    "response": "Уучлаарай, таны асуултын хариу олдсонгүй.",
+                    "offer_report": False,
+                    "status": "no_data"
+                }
+            search_content = self._process_search_results(search_results)
+            if search_content:
+                response = await self._generate_general_response_with_validation(message, search_content)
             else:
-                logger.warning("Report requested, but no relevant context found.")
-                return {
-                    "response": "Уучлаарай, ямар тайлан үүсгэх нь тодорхойгүй байна. Та эхлээд дүн шинжилгээ хийлгэнэ үү.",
-                    "offer_report": False}
+                response = "Хайлтын үр дүнг боловсруулахад алдаа гарлаа."
+            return {
+                "response": response,
+                "offer_report": False,
+                "status": "success"
+            }
+        except Exception as e:
+            logger.error(f"General handling error: {e}")
+            return {
+                "response": "Ерөнхий асуултад хариулахад алдаа гарлаа.",
+                "offer_report": False,
+                "status": "error"
+            }
+    async def _generate_general_response_with_validation(self, query: str, search_content: str) -> str:
+        prompt = ChatPromptTemplate.from_messages([
+            ("system", """Та туслах робот. 
 
-            # Clear the context used for the report
-            if report_type_determined == "property":
-                self.last_property_analysis_context = None
-            elif report_type_determined == "district":
-                self.last_district_analysis_context = None
-            elif report_type_determined == "market":
-                self.last_market_analysis_context = None
-
-            if isinstance(result, dict) and result.get("success"):
-                logger.info(f"Report generated successfully: {result.get('filename')}")
+            ШААРДЛАГА:
+            - ЗӨВХӨН монгол хэлээр бичнэ үү
+            - Англи үг хэрэглэхгүй байх
+            - 100 үгээс хэтрэхгүй байх
+            - Тодорхой хариулт өгнө үү"""),
+            ("human", "Асуулт: {query}\nМэдээлэл: {content}\n\nХариулт өгнө үү.")
+        ])
+        try:
+            chain = prompt | self.llm | StrOutputParser()
+            response = await chain.ainvoke({
+                "query": query,
+                "content": search_content[:1500]
+            })
+            validation = self.validator.validate_response(response)
+            if validation["is_valid"]:
+                return validation.get("cleaned_text", response)
+            else:
+                return "Таны асуултын хариуг одоогоор өгөх боломжгүй байна. Өөрөөр асууж үзнэ үү."
+        except Exception as e:
+            logger.error(f"General response generation failed: {e}")
+            return "Хариулт үүсгэхэд алдаа гарлаа."
+    async def _generate_report(self) -> Dict[str, Any]:
+        try:
+            contexts = [
+                ("property", self.last_property_context),
+                ("district", self.last_district_context),
+                ("market", self.last_market_context)
+            ]
+            recent_context = None
+            recent_type = None
+            recent_time = datetime.min
+            for context_type, context in contexts:
+                if context and "timestamp" in context:
+                    try:
+                        context_time = datetime.fromisoformat(context["timestamp"])
+                        if context_time > recent_time:
+                            recent_time = context_time
+                            recent_context = context
+                            recent_type = context_type
+                    except ValueError:
+                        continue
+            if not recent_context:
                 return {
-                    "response": result["message"],
-                    "download_url": result.get("download_url"),
-                    "filename": result.get("filename"),
+                    "response": "Тайлан үүсгэх контекст олдсонгүй. Эхлээд шинжилгээ хийлгэнэ үү.",
                     "offer_report": False
                 }
+            if recent_type == "property":
+                result = await self.report_service.generate_property_report(recent_context)
+            elif recent_type == "district":
+                result = await self.report_service.generate_district_report(recent_context)
+            elif recent_type == "market":
+                result = await self.report_service.generate_market_report(recent_context)
             else:
-                error_message = result.get("message", "Тайлан үүсгэхэд тодорхойгүй алдаа гарлаа.")
-                logger.error(f"Report generation failed: {error_message}")
-                return {"response": error_message, "offer_report": False}
-
+                return {
+                    "response": "Тодорхойгүй тайлангийн төрөл.",
+                    "offer_report": False
+                }
+            if recent_type == "property":
+                self.last_property_context = None
+            elif recent_type == "district":
+                self.last_district_context = None
+            elif recent_type == "market":
+                self.last_market_context = None
+            return result if isinstance(result, dict) else {
+                "response": "Тайлан үүсгэхэд алдаа гарлаа.",
+                "offer_report": False
+            }
         except Exception as e:
-            logger.exception("Critical error during report generation dispatcher")
-            return {"response": "Уучлаарай, тайлан үүсгэх явцад ноцтой алдаа гарлаа.", "offer_report": False}
-
-    async def _get_district_analysis(self, district: str) -> str:  # Keep this for potential direct use
-        if district and isinstance(district, str) and district.lower() != "n/a":
-            logger.info(f"Getting district analysis for: {district} (via _get_district_analysis helper)")
-            return await self.district_analyzer.analyze_district(district)
-        logger.warning(f"District name invalid or N/A in _get_district_analysis: '{district}'")
-        return "Дүүргийн мэдээлэл тодорхойгүй байна."
-
-    async def _generate_property_response(self, query: str, property_data: Dict, district_analysis_str: str) -> str:
-        logger.debug(f"Generating initial property response. Property title: {property_data.get('title', 'N/A')[:50]}")
-        prompt = ChatPromptTemplate.from_messages([
-            ("system", """You are a professional real estate expert. Analyze this property and provide valuable insights for a property summary.
-
-Focus on:
-1. Price evaluation (Summary):
-   - From the 'Property details', identify the property's specific price per square meter (price/m²).
-   - From the 'District analysis', identify the average price/m² for similar properties (e.g., same number of rooms) in its district.
-   - Briefly state if the property's price/m² is higher, lower, or similar to the district average for its type.
-   - Conclude if the asking price seems fair, high, or low based on this comparison.
-2. Key location benefits and potential drawbacks (from 'Property details' and 'District analysis').
-3. Brief investment potential note (e.g., "good for investment due to location", "price suggests quick sale").
-4. One or two key recommendations for the user.
-
-Keep the summary concise, using key numbers. This is not the full detailed analysis yet.
-IMPORTANT: Respond ONLY in Mongolian language."""),
-            ("human",
-             "User query: {query}\nProperty details: {property_json}\nDistrict analysis: {district_analysis_text}\n\nProvide a concise property summary analysis in Mongolian.")
-        ])
-        chain = prompt | self.llm | StrOutputParser()
-        property_json_str = json.dumps(property_data, ensure_ascii=False, indent=2)
-
-        return await chain.ainvoke({
-            "query": query,
-            "property_json": property_json_str,
-            "district_analysis_text": district_analysis_str
-        })
-
-    async def _generate_district_response(self, query: str, district_analysis_str: str) -> str:
-        logger.debug(f"Generating initial district response for query: {query[:50]}")
-        prompt = ChatPromptTemplate.from_messages([
-            ("system", """You are a real estate market analyst. Provide a clear summary of the district analysis.
-Respond strictly based on the provided 'District analysis text'. Do NOT include any external or generalized information.
-
-Focus on summarizing:
-1. Current price levels with numbers if available in the text.
-2. Comparison to other districts if mentioned.
-3. Investment opportunities or characteristics noted.
-4. Who might be interested in this district (e.g., families, investors) if suggested by the text.
-5. Any future outlook or trends mentioned.
-
-Keep the summary concise.
-IMPORTANT: Respond ONLY in Mongolian language."""),
-            ("human",
-             "User query: {query}\nDistrict analysis text: {analysis_text}\n\nProvide a district analysis summary in Mongolian.")
-        ])
-        chain = prompt | self.llm | StrOutputParser()
-        return await chain.ainvoke({"query": query, "analysis_text": district_analysis_str})
-
-    async def _generate_market_response(self, query: str, search_results_text: str) -> str:
-        logger.debug(f"Generating initial market response for query: {query[:50]}")
-        prompt = ChatPromptTemplate.from_messages([
-            ("system", """You are a real estate market researcher. Summarize the provided search results to give market insights.
-Respond strictly based on the 'Search results text'. Do NOT include external or generalized information.
-
-Focus on summarizing:
-1. Current market conditions mentioned.
-2. Price trends with specifics if detailed in the text.
-3. Investment opportunities or risks highlighted.
-4. Actionable recommendations if any are present in the text.
-
-Keep the summary concise and directly tied to the provided text.
-IMPORTANT: Respond ONLY in Mongolian language."""),
-            ("human",
-             "User query: {query}\nSearch results text: {results_text}\n\nProvide a market analysis summary in Mongolian based on the text.")
-        ])
-        chain = prompt | self.llm | StrOutputParser()
-        return await chain.ainvoke({"query": query, "results_text": search_results_text})
-
-    async def _generate_general_response(self, query: str, search_results_text: Any) -> str:
-        logger.debug(f"Generating general response for query: {query[:50]}")
-        prompt = ChatPromptTemplate.from_messages([
-            ("system", """You are a helpful AI assistant specializing in providing information based on search results, with a focus on real estate topics when relevant.
-Provide a clear, helpful answer to the user's question based strictly on the provided 'Search results text'.
-Do NOT include any external or generalized information, or unrelated examples.
-
-If the question is about real estate in Mongolia, use that context.
-Provide:
-- A direct answer to the user's question.
-- Relevant facts and data from the text.
-- Practical advice if applicable and supported by the text.
-
-Keep the answer concise and informative.
-IMPORTANT: Respond ONLY in Mongolian language."""),
-            ("human",
-             "User question: {query}\nSearch results text: {results_text}\n\nProvide an answer in Mongolian based on the text.")
-        ])
-
-        chain = prompt | self.llm | StrOutputParser()
-        return await chain.ainvoke({"query": query, "results_text": str(search_results_text)})
-
-    def _log_district_analyzer_vectorstore_content(self):
-        """Helper function to log the current content of DistrictAnalyzer's vectorstore."""
-        if not self.district_analyzer or not self.district_analyzer.vectorstore:
-            logger.info("VECTORSTORE_DEBUG: DistrictAnalyzer or its vectorstore is not initialized or available.")
-            return
-
-        try:
-            if hasattr(self.district_analyzer.vectorstore, 'docstore') and \
-                    hasattr(self.district_analyzer.vectorstore.docstore, '_dict') and \
-                    self.district_analyzer.vectorstore.docstore._dict is not None:  # Added check for _dict not None
-                all_docs = list(self.district_analyzer.vectorstore.docstore._dict.values())
-                logger.info(f"VECTORSTORE_DEBUG: Current DistrictAnalyzer.vectorstore ({len(all_docs)} documents):")
-                if not all_docs:
-                    logger.info("VECTORSTORE_DEBUG: Vectorstore is empty.")
-                for i, doc in enumerate(all_docs):
-                    logger.info(f"VECTORSTORE_DEBUG: Document {i + 1}:\n{doc.page_content}\n---")
-            else:
-                logger.info(
-                    "VECTORSTORE_DEBUG: Vectorstore docstore not in expected format for direct listing or is empty.")
-        except Exception as e:
-            logger.error(f"VECTORSTORE_DEBUG: Error logging vectorstore content: {e}", exc_info=True)
+            logger.error(f"Report generation error: {e}")
+            return {
+                "response": "Тайлан үүсгэхэд алдаа гарлаа.",
+                "offer_report": False
+            }
+    def _process_search_results(self, results) -> str:
+        if not results:
+            return ""
+        content_parts = []
+        seen_content = set()
+        if isinstance(results, list):
+            for result in results[:3]:
+                if isinstance(result, dict):
+                    content = result.get('content', '') or result.get('snippet', '')
+                    if content and len(content) > 30 and content not in seen_content:
+                        content = re.sub(r'<[^>]+>', '', content)
+                        content = re.sub(r'\s+', ' ', content).strip()
+                        if len(content) > 300:
+                            content = content[:300] + "..."
+                        content_parts.append(content)
+                        seen_content.add(content)
+        elif isinstance(results, dict):
+            if "answer" in results:
+                content_parts.append(str(results["answer"])[:500])
+            elif "content" in results:
+                content_parts.append(str(results["content"])[:500])
+        return "\n\n".join(content_parts)
+    def _clear_other_contexts(self, keep_type: str):
+        if keep_type != "property":
+            self.last_property_context = None
+        if keep_type != "district":
+            self.last_district_context = None
+        if keep_type != "market":
+            self.last_market_context = None
