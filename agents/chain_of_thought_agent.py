@@ -15,20 +15,9 @@ class ChainOfThoughtAgent:
         self.llm = llm
 
     async def enhance_with_cot(self, user_query: str, original_response: str, analysis_type: str = "district_analysis") -> str:
-        """
-        Wrapper method for enhance_response_with_reasoning to maintain backward compatibility.
-        
-        Args:
-            user_query: The original user query
-            original_response: The response to enhance with chain of thought reasoning
-            analysis_type: The type of analysis to perform (default: "district_analysis")
-            
-        Returns:
-            Enhanced response with chain of thought reasoning
-        """
+       
         logger.info(f"CoT Agent: Enhancing response with CoT for {analysis_type}")
         
-        # Create a simple data dictionary for the enhancement
         data = {
             "query": user_query,
             "response": original_response,
@@ -62,7 +51,6 @@ class ChainOfThoughtAgent:
             prompt_data_str = json.dumps(data, ensure_ascii=False, indent=2)
             logger.debug(f"CoT Agent: Data for prompt ({analysis_type}):\n{prompt_data_str}")
 
-            # Human message remains the same, reinforcing Mongolian output.
             prompt = ChatPromptTemplate.from_messages([
                 ("system", system_prompt),
                 ("human", """Original User Query: {user_query}
@@ -104,7 +92,6 @@ Write your entire response in Mongolian language.""")
 {original_response}"""
 
     def _get_property_prompt(self) -> str:
-        # System prompt body in English, output instruction remains critical for Mongolian.
         return """You are a professional real estate analyst. From the 'Provided Data for Analysis', extract property details and relevant district analysis text. Then, provide a detailed property analysis with the following structure. The section titles in your response must be exactly as listed below (e.g., 1. **Үнийн Шинжилгээ (Price Analysis)**).
 
 1.  **Үнийн Шинжилгээ (Price Analysis)**
@@ -130,7 +117,6 @@ CRITICAL: Таны эцсийн хариулт БҮХЭЛДЭЭ МОНГОЛ х�
 CRITICAL: For the price analysis, you must compare the property's price per square meter with the average price per square meter of similarly sized (number of rooms) properties in the district, as mentioned above, and state the numerical difference."""
 
     def _get_district_prompt(self) -> str:
-        # System prompt body in English, output instruction remains critical for Mongolian.
         return """You are a real estate market analyst. From the 'Provided Data for Analysis' (which contains 'district_analysis_text'), provide a detailed district analysis. The section titles in your response must be exactly as listed below.
 
 Follow this structure:
@@ -152,7 +138,6 @@ CRITICAL: Таны эцсийн хариулт БҮХЭЛДЭЭ МОНГОЛ х�
         return "You are a real estate market analyst. The 'Provided Data for Analysis' contains a 'district_comparison_summary' which lists average prices for various districts."
 
     def _get_market_prompt(self) -> str:
-        # System prompt body in English, output instruction remains critical for Mongolian.
         return """You are a real estate market researcher. From the 'Provided Data for Analysis' (which contains 'search_results_text' from a web search), provide a detailed market analysis. The section titles in your response must be exactly as listed below.
 
 Follow this structure:

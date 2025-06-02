@@ -46,39 +46,32 @@ DISTRICT_VARIATIONS = {
 
 
 class ResponseValidator:
-    """Enhanced response validator to handle garbage outputs"""
 
     @staticmethod
     def is_garbage_response(text: str) -> bool:
-        """Detect if response contains garbage/repeated content"""
         if not text or len(text.strip()) < 20:
             return True
 
-        # Check for excessive repetition of characters
         if re.search(r'(.)\1{20,}', text):
             logger.warning("Detected excessive character repetition")
             return True
 
-        # Check for repeated words/phrases
         words = text.split()
         if len(words) > 10:
-            # Count repeated consecutive words
             repeated_count = 0
             for i in range(len(words) - 1):
                 if words[i] == words[i + 1]:
                     repeated_count += 1
 
-            # If more than 30% of words are repeated consecutively
             if repeated_count / len(words) > 0.3:
                 logger.warning("Detected excessive word repetition")
                 return True
 
-        # Check for repeated Mongolian syllables/patterns
         mongolian_patterns = [
             r'(өөрөө){10,}',
             r'(рөөрөө){10,}',
             r'(хөхөхө){10,}',
-            r'(\w{2,4})\1{15,}'  # Any 2-4 character pattern repeated 15+ times
+            r'(\w{2,4})\1{15,}'
         ]
 
         for pattern in mongolian_patterns:
@@ -94,21 +87,17 @@ class ResponseValidator:
         if not text:
             return ""
 
-        # Remove excessive character repetition (keep max 2)
         text = re.sub(r'(.)\1{3,}', r'\1\1', text)
 
-        # Remove repeated word patterns
         text = re.sub(r'\b(\w+)(\s+\1){3,}', r'\1', text)
 
-        # Remove repeated Mongolian patterns
         text = re.sub(r'(өөрөө){3,}', 'өөрөө', text)
         text = re.sub(r'(рөөрөө){3,}', '', text)
 
-        # Remove excessively long words (probably garbage)
         words = text.split()
         cleaned_words = []
         for word in words:
-            if len(word) < 100:  # Keep words under 100 chars
+            if len(word) < 100:
                 cleaned_words.append(word)
             else:
                 logger.warning(f"Removed excessively long word: {word[:50]}...")
@@ -506,7 +495,6 @@ class DistrictAnalyzer:
         return await self._generate_fallback_analysis(district_name, vector_content)
 
     async def _generate_fallback_analysis(self, district_name: str, vector_content: str) -> str:
-        """Generate a simple, safe fallback analysis"""
         try:
             # Extract basic info manually
             price_match = re.search(r'Нийт байрны 1м2 дундаж үнэ:\s*([\d\s,]+)\s*төгрөг', vector_content)
@@ -565,7 +553,6 @@ class DistrictAnalyzer:
 
     async def _generate_search_analysis_with_validation(self, district_name: str, query: str,
                                                         search_content: str) -> str:
-        """Generate search analysis with validation"""
 
         prompt = PromptTemplate.from_template(
             """Та Монгол үл хөдлөх хөрөнгийн зөвлөх. 
@@ -601,7 +588,6 @@ class DistrictAnalyzer:
             return f"{district_name} дүүргийн хайлтын шинжилгээ боловсруулахад алдаа гарлаа."
 
     def _process_search_results(self, results: List[Dict]) -> str:
-        """Process and clean search results"""
         content_parts = []
         seen_content = set()
 
@@ -631,7 +617,6 @@ class DistrictAnalyzer:
         return "\n\n".join(content_parts)
 
     async def _compare_all_districts(self) -> str:
-        """Compare all districts with validation"""
         if not self.vectorstore:
             return "Дүүргүүдийн харьцуулалт хийхэд мэдээллийн сан байхгүй байна."
 
@@ -685,7 +670,6 @@ class DistrictAnalyzer:
             return "Дүүргүүдийн харьцуулалт хийхэд алдаа гарлаа."
 
     def _parse_district_data_enhanced(self, content: str) -> Optional[Dict]:
-        """Enhanced district data parsing"""
         try:
             district_info = {}
 

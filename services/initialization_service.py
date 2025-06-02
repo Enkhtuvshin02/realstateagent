@@ -1,4 +1,3 @@
-# Improved initialization_service.py
 import os
 import time
 import logging
@@ -22,7 +21,6 @@ class InitializationService:
         self.pdf_generator = None
 
     async def initialize(self) -> bool:
-        """Initialize all services with improved error handling"""
         logger.info("Starting service initialization...")
 
         try:
@@ -49,7 +47,6 @@ class InitializationService:
             return False
 
     def _validate_api_keys(self) -> bool:
-        """Validate required API keys"""
         required_keys = ["TOGETHER_API_KEY", "TAVILY_API_KEY"]
         missing_keys = [key for key in required_keys if not os.getenv(key)]
 
@@ -60,7 +57,6 @@ class InitializationService:
         return True
 
     async def _initialize_llm(self):
-        """Initialize LLM with error handling"""
         try:
             self.llm = ChatTogether(
                 together_api_key=os.getenv("TOGETHER_API_KEY"),
@@ -73,9 +69,7 @@ class InitializationService:
             raise
 
     async def _initialize_search_tool(self):
-        """Initialize search tool with monitoring and fallback"""
         try:
-            # Create base search tool
             self.search_tool = TavilySearchResults(
                 max_results=5,
                 search_depth="advanced",
@@ -83,20 +77,15 @@ class InitializationService:
                 tavily_api_key=os.getenv("TAVILY_API_KEY")
             )
 
-            # Wrap with monitoring
-
-            # Test the search tool
             await self._test_search_tool()
             logger.info("Search tool initialized and tested successfully")
 
         except Exception as e:
             logger.error(f"Search tool initialization failed: {e}")
-            # Create fallback search tool
             self.search_tool = self._create_fallback_search_tool()
             logger.warning("Using fallback search tool")
 
     async def _test_search_tool(self):
-        """Test search tool functionality"""
         try:
             test_results = await self.search_tool.ainvoke("test query")
             if not test_results:
@@ -106,7 +95,6 @@ class InitializationService:
             raise
 
     def _create_fallback_search_tool(self):
-        """Create a fallback search tool that returns error messages"""
 
         class FallbackSearchTool:
             async def ainvoke(self, query, *args, **kwargs):
@@ -119,7 +107,6 @@ class InitializationService:
         return FallbackSearchTool()
 
     async def _initialize_property_retriever(self):
-        """Initialize property retriever"""
         try:
             self.property_retriever_agent = PropertyRetriever(llm=self.llm)
             logger.info("Property retriever initialized successfully")
@@ -128,7 +115,6 @@ class InitializationService:
             raise
 
     async def _initialize_district_analyzer(self):
-        """Initialize district analyzer"""
         try:
             self.district_analyzer_agent = DistrictAnalyzer(
                 llm=self.llm,
@@ -141,7 +127,6 @@ class InitializationService:
             raise
 
     async def _initialize_pdf_generator(self):
-        """Initialize PDF generator"""
         try:
             self.pdf_generator = PDFReportGenerator()
             logger.info("PDF generator initialized successfully")
@@ -150,19 +135,16 @@ class InitializationService:
             raise
 
     async def _initialize_vectorstore(self):
-        """Initialize vectorstore with proper error handling"""
         try:
             logger.info("Initializing district analyzer vectorstore...")
             start_time = time.time()
 
-            # Initialize vectorstore
             success = await self.district_analyzer_agent.initialize_vectorstore()
 
             duration = time.time() - start_time
             if success:
                 logger.info(f"Vectorstore initialized successfully in {duration:.2f}s")
 
-                # Log vectorstore status
                 status = self.district_analyzer_agent.get_vectorstore_status()
                 logger.info(f"Vectorstore status: {status}")
 
@@ -180,7 +162,6 @@ class InitializationService:
             logger.warning("Continuing without vectorstore - search fallback will be used")
 
     async def cleanup(self):
-        """Cleanup resources"""
         try:
             if self.property_retriever_agent:
                 await self.property_retriever_agent.close()
@@ -189,7 +170,6 @@ class InitializationService:
             logger.error(f"Cleanup error: {e}")
 
     def get_initialization_status(self) -> dict:
-        """Get status of all initialized components"""
         return {
             "llm": self.llm is not None,
             "search_tool": self.search_tool is not None,

@@ -1,7 +1,3 @@
-"""
-Enhanced PDF Report Configuration with 5+ Sections
-Refactored to meet project requirements of at least 5 different sections per report type.
-"""
 
 from pathlib import Path
 
@@ -116,42 +112,41 @@ ERROR_MESSAGES = {
     "search_failed": ["хайлт хийгдсэнгүй", "мэдээлэл хайхад алдаа гарлаа", "хайлт тохируулагдаагүй"]
 }
 
-# Enhanced Report Templates with 5+ Sections Each
 REPORT_TEMPLATES = {
     "property": {
         "title": "Үл хөдлөх хөрөнгийн дэлгэрэнгүй шинжилгээ",
         "sections": [
-            "1. Үндсэн мэдээлэл ба техникийн үзүүлэлт",          # Section 1: Basic Info & Technical Specs
-            "2. Үнийн шинжилгээ ба зах зээлийн байршил",         # Section 2: Price Analysis & Market Position
-            "3. Дүүргийн зах зээлийн шинжилгээ",                 # Section 3: District Market Analysis
-            "4. Хөрөнгийн үнэлгээ ба харьцуулалт",              # Section 4: Property Valuation & Comparison
-            "5. Хөрөнгө оруулалтын боломж ба эрсдэл",           # Section 5: Investment Opportunities & Risks
-            "6. Зөвлөмж ба дүгнэлт",                           # Section 6: Recommendations & Conclusions
-            "7. Нэмэлт зах зээлийн мэдээлэл"                   # Section 7: Additional Market Information
+            "1. Үндсэн мэдээлэл ба техникийн үзүүлэлт",
+            "2. Үнийн шинжилгээ ба зах зээлийн байршил",
+            "3. Дүүргийн зах зээлийн шинжилгээ",
+            "4. Хөрөнгийн үнэлгээ ба харьцуулалт",
+            "5. Хөрөнгө оруулалтын боломж ба эрсдэл",
+            "6. Зөвлөмж ба дүгнэлт",
+            "7. Нэмэлт зах зээлийн мэдээлэл"
         ]
     },
     "district": {
         "title": "Дүүргийн үл хөдлөх хөрөнгийн зах зээлийн шинжилгээ",
         "sections": [
-            "1. Дүүргүүдийн үнийн харьцуулалт ба зэрэглэл",      # Section 1: Price Comparison & Rankings
-            "2. Зах зээлийн чиг хандлага ба статистик",          # Section 2: Market Trends & Statistics
-            "3. Хөрөнгө оруулалтын боломжит бүсүүд",            # Section 3: Investment Opportunity Zones
-            "4. Дүүргүүдийн давуу болон сул талууд",            # Section 4: District Advantages & Disadvantages
-            "5. Худалдан авагчдад зориулсан стратеги",          # Section 5: Buyer Strategies
-            "6. Ирээдүйн хөгжлийн төлөв байдал",               # Section 6: Future Development Outlook
-            "7. Интернэт судалгааны нэмэлт мэдээлэл"           # Section 7: Additional Research Information
+            "1. Дүүргүүдийн үнийн харьцуулалт ба зэрэглэл",
+            "2. Зах зээлийн чиг хандлага ба статистик",
+            "3. Хөрөнгө оруулалтын боломжит бүсүүд",
+            "4. Дүүргүүдийн давуу болон сул талууд",
+            "5. Худалдан авагчдад зориулсан стратеги",
+            "6. Ирээдүйн хөгжлийн төлөв байдал",
+            "7. Интернэт судалгааны нэмэлт мэдээлэл"
         ]
     },
     "market": {
         "title": "Үл хөдлөх хөрөнгийн зах зээлийн дэлгэрэнгүй шинжилгээ",
         "sections": [
-            "1. Зах зээлийн ерөнхий байдал ба тойм",            # Section 1: Market Overview & Summary
-            "2. Үнийн өөрчлөлт ба чиг хандлага",               # Section 2: Price Changes & Trends
-            "3. Эрэлт хэрэгцээ ба нийлүүлэлтийн шинжилгээ",     # Section 3: Supply & Demand Analysis
-            "4. Дүүргүүдийн зах зээлийн харьцуулалт",          # Section 4: District Market Comparison
-            "5. Хөрөнгө оруулалтын стратеги ба боломж",        # Section 5: Investment Strategy & Opportunities
-            "6. Эрсдэлийн үнэлгээ ба анхааруулга",             # Section 6: Risk Assessment & Warnings
-            "7. Зах зээлийн таамаглал ба зөвлөмж"              # Section 7: Market Forecast & Recommendations
+            "1. Зах зээлийн ерөнхий байдал ба тойм",
+            "2. Үнийн өөрчлөлт ба чиг хандлага",
+            "3. Эрэлт хэрэгцээ ба нийлүүлэлтийн шинжилгээ",
+            "4. Дүүргүүдийн зах зээлийн харьцуулалт",
+            "5. Хөрөнгө оруулалтын стратеги ба боломж",
+            "6. Эрсдэлийн үнэлгээ ба анхааруулга",
+            "7. Зах зээлийн таамаглал ба зөвлөмж"
         ]
     }
 }

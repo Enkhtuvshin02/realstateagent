@@ -11,46 +11,31 @@ logger = logging.getLogger(__name__)
 
 
 class HTMLFormatter:
-    """Handles HTML formatting and text processing for PDF generation"""
 
     def clean_text_for_html(self, text: Any) -> str:
-        """Clean and escape text for HTML output, and handle newlines."""
         if text is None:
             return ERROR_MESSAGES.get("no_data", "Мэдээлэл байхгүй")
         text_str = str(text)
 
-        # 1. Convert any explicit <br> tags from LLM (or other sources) into newlines first.
-        # This helps standardize newline representation before HTML conversion.
         text_str = re.sub(r'<br\s*/?>', '\n', text_str, flags=re.IGNORECASE)
 
-        # 2. Standard HTML escaping for security to prevent XSS if text comes from unsafe sources.
-        # This will convert characters like <, >, & into their HTML entities.
         text_str = text_str.replace('&', '&amp;')
         text_str = text_str.replace('<', '&lt;')
         text_str = text_str.replace('>', '&gt;')
-        # text_str = text_str.replace('"', '&quot;') # Optional: if quotes in attributes are an issue
-        # text_str = text_str.replace("'", '&#39;')  # Optional: if single quotes are an issue
-
-        # 3. Now, convert newlines (both original and from replaced <br> tags)
-        # into <br> HTML tags for PDF rendering.
-        # This must happen AFTER HTML escaping of < and > to prevent <br> from becoming &lt;br&gt;.
         text_str = text_str.replace('\n\n', '<br><br>')
         text_str = text_str.replace('\n', '<br>')
 
-        # 4. Consolidate multiple spaces and strip leading/trailing whitespace.
         text_str = re.sub(r' +', ' ', text_str).strip()
         return text_str
 
     def format_price_html(self, price: Any) -> str:
-        """Format price for HTML display"""
         if price is None or price == "" or str(price).lower() == ERROR_MESSAGES.get("no_data", "мэдээлэл байхгүй").lower():
             return ERROR_MESSAGES.get("no_data", "Мэдээлэл байхгүй")
         try:
             price_num = float(price)
-            if price_num == 0: # Explicitly handle 0 if it should be "Мэдээлэл байхгүй" or "0 ₮"
-                 return "0 " + PRICE_FORMAT.get('currency', '₮') # Or ERROR_MESSAGES["no_data"] if 0 means no data
+            if price_num == 0:
+                 return "0 " + PRICE_FORMAT.get('currency', '₮')
 
-            # Use .get for dictionary access with fallbacks
             million_threshold = PRICE_FORMAT.get("million_threshold", 1000000)
             decimal_places = PRICE_FORMAT.get("decimal_places", 1)
             million_suffix = PRICE_FORMAT.get("million_suffix", "сая ₮")
@@ -60,20 +45,13 @@ class HTMLFormatter:
                 return f"{price_num / million_threshold:.{decimal_places}f} {million_suffix}"
             return f"{int(price_num):,} {currency_symbol}".replace(',', ' ')
         except (ValueError, TypeError):
-            # If conversion fails, clean the original string representation and return it.
             return self.clean_text_for_html(str(price))
 
 
     def should_include_search_results(self, search_results: str) -> bool:
-        """Check if search results should be included in the report"""
-        # This was set to always False. If you want to include search results based on content:
-        # return bool(search_results and search_results.strip() and \
-        #             "олдсонгүй" not in search_results and \
-        #             "хайлт хийгдсэнгүй" not in search_results)
-        return False # Keeping original logic unless specified otherwise
+        return False
 
     def get_base_css(self) -> str:
-        """Generate CSS with font fallback mechanisms"""
         font_primary = FONT_FAMILY_NAMES.get("primary", "NotoSans")
         font_secondary = FONT_FAMILY_NAMES.get("secondary", "Arial, Helvetica, sans-serif")
         font_fallback = FONT_FAMILY_NAMES.get("fallback", "DejaVuSans, Arial Unicode MS, sans-serif")
@@ -81,10 +59,8 @@ class HTMLFormatter:
         regular_font_path = get_font_path("regular")
         bold_font_path = get_font_path("bold")
 
-        # Ensure paths are correctly formatted for CSS URL, especially if they might contain spaces
-        # or special characters (though pathlib should handle this well for local files)
-        css_regular_font_path = regular_font_path.replace("\\", "/") # Ensure forward slashes for CSS
-        css_bold_font_path = bold_font_path.replace("\\", "/")     # Ensure forward slashes for CSS
+        css_regular_font_path = regular_font_path.replace("\\", "/")
+        css_bold_font_path = bold_font_path.replace("\\", "/")
 
 
         return f"""

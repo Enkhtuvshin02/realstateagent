@@ -19,8 +19,9 @@ DISTRICT_URL_PATHS = {
     "Налайх": "ub-nalajh/?type_view=line"
 }
 
-BASE_LISTING_URL = "https://www.unegui.mn/l-hdlh/l-hdlh-zarna/"
-MAX_PAGES_TO_SCRAPE_PER_DISTRICT = 3
+BASE_LISTING_URL = "https://www.unegui.mn/l-hdlh/l-hdlh-zarna/oron-suuts-zarna/"
+MAX_PAGES_TO_SCRAPE_PER_DISTRICT = 1
+LISTING_LIMIT_PER_PAGE = 5
 
 
 DISTRICT_DESCRIPTIONS = {

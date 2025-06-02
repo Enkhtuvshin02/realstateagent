@@ -17,7 +17,6 @@ logger = logging.getLogger(__name__)
 
 
 class XHTML2PDFGenerator:
-    """Core PDF generation functionality using xhtml2pdf"""
 
     def __init__(self):
         self.reports_dir = Path(FILE_CONFIG["reports_dir"])
@@ -33,7 +32,6 @@ class XHTML2PDFGenerator:
         logger.info(f"XHTML2PDFGenerator initialized. Reports directory: {self.reports_dir}")
 
     def _generate_pdf_from_html(self, html_content: str, output_filepath: str) -> bool:
-        """Generate PDF with enhanced error handling and reporting"""
         try:
             output_path = Path(output_filepath)
             output_path.parent.mkdir(parents=True, exist_ok=True)
@@ -76,7 +74,6 @@ class XHTML2PDFGenerator:
 
     def generate_property_report(self, property_data: Dict[str, Any], district_analysis: str,
                                  comparison_result: str, search_results: str = "") -> str:
-        """Generate property report with enhanced error handling"""
         try:
             timestamp = datetime.now().strftime(DATE_FORMATS["filename"])
             filename = f"{FILE_CONFIG['property_prefix']}{timestamp}{FILE_CONFIG['extension']}"
@@ -118,7 +115,6 @@ class XHTML2PDFGenerator:
 
     def generate_district_summary_report(self, districts_data: List[Dict], market_trends: str = "",
                                          search_results: str = "", future_development_content: str = "") -> str:
-        """Generate district summary report with enhanced error handling"""
         try:
             timestamp = datetime.now().strftime(DATE_FORMATS["filename"])
             filename = f"{FILE_CONFIG['district_prefix']}{timestamp}{FILE_CONFIG['extension']}"
@@ -155,7 +151,6 @@ class XHTML2PDFGenerator:
                                         investment_strategy_content: str = "",
                                         risk_assessment_content: str = ""
                                         ) -> str:
-        """Generate market analysis report with enhanced error handling"""
         try:
             timestamp = datetime.now().strftime(DATE_FORMATS["filename"])
             filename = f"{FILE_CONFIG['market_prefix']}{timestamp}{FILE_CONFIG['extension']}"
@@ -198,7 +193,6 @@ class XHTML2PDFGenerator:
             return ERROR_MESSAGES["pdf_generation_failed"].format("market analysis", str(e))
 
     def _generate_emergency_pdf(self, report_type: str) -> str:
-        """Generate a minimal emergency PDF when all else fails"""
         try:
             timestamp = datetime.now().strftime(DATE_FORMATS["filename"])
             filename = f"emergency_{report_type}_{timestamp}.pdf"
@@ -231,7 +225,6 @@ class XHTML2PDFGenerator:
 
 
 class PDFReportGenerator:
-    """Main PDF generator class with enhanced error recovery"""
 
     def __init__(self):
         try:
@@ -239,14 +232,12 @@ class PDFReportGenerator:
             logger.info("PDFReportGenerator initialized successfully")
         except Exception as e:
             logger.error(f"Failed to initialize PDFReportGenerator: {e}", exc_info=True)
-            self.generator = None # Ensure generator is None if init fails
+            self.generator = None
 
     def generate_property_analysis_report(self, property_data: Dict[str, Any], district_analysis: str,
                                           comparison_result: str, search_results: str = "") -> str:
-        """Generate property report with fallback mechanisms"""
         if not self.generator:
             logger.error("PDF generator (XHTML2PDFGenerator) is not available for property report.")
-            # Attempt to create a very basic emergency text file if generator is None from the start
             emergency_path = Path(FILE_CONFIG["reports_dir"]) / f"emergency_property_{datetime.now().strftime(DATE_FORMATS['filename'])}.txt"
             emergency_path.parent.mkdir(parents=True, exist_ok=True)
             with open(emergency_path, "w", encoding="utf-8") as f:
@@ -270,13 +261,11 @@ class PDFReportGenerator:
 
         except Exception as e:
             logger.exception(f"Critical error in generate_property_analysis_report: {e}")
-            # Ensure _generate_emergency_pdf is called even if self.generator exists but a method failed
             return self.generator._generate_emergency_pdf("property") if self.generator else str(Path(FILE_CONFIG["reports_dir"]) / "EMERGENCY_PROPERTY_REPORT_FAILED.txt")
 
 
     def generate_district_summary_report(self, districts_data: List[Dict], market_trends: str = "",
                                          search_results: str = "", future_development_content: str = "") -> str:
-        """Generate district report with fallback mechanisms"""
         if not self.generator:
             logger.error("PDF generator (XHTML2PDFGenerator) is not available for district report.")
             emergency_path = Path(FILE_CONFIG["reports_dir"]) / f"emergency_district_{datetime.now().strftime(DATE_FORMATS['filename'])}.txt"
@@ -310,7 +299,6 @@ class PDFReportGenerator:
                                         investment_strategy_content: str = "",
                                         risk_assessment_content: str = ""
                                         ) -> str:
-        """Generate market report with fallback mechanisms"""
         if not self.generator:
             logger.error("PDF generator (XHTML2PDFGenerator) is not available for market report.")
             emergency_path = Path(FILE_CONFIG["reports_dir"]) / f"emergency_market_{datetime.now().strftime(DATE_FORMATS['filename'])}.txt"

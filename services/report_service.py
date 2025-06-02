@@ -11,6 +11,7 @@ from langchain_core.output_parsers import StrOutputParser
 
 logger = logging.getLogger(__name__)
 
+
 class ReportService:
     def __init__(self, llm, district_analyzer, pdf_generator, search_tool=None):
         self.llm = llm
@@ -24,13 +25,13 @@ class ReportService:
             return ""
         content = re.sub(r'!\[.*?\]\([^)]+\)', '', content)
         content = re.sub(r'<img[^>]*>', '', content)
-        content = re.sub(r"https?://[^\s<>\"]*\.(jpg|jpeg|png|gif|webp|svg)(\?[^\s<>\"']*)?", '', content, flags=re.IGNORECASE)
+        content = re.sub(r"https?://[^\s<>\"]*\.(jpg|jpeg|png|gif|webp|svg)(\?[^\s<>\"']*)?", '', content,
+                         flags=re.IGNORECASE)
         content = re.sub(r'data:image/[^;]+;base64,[^\s<>"]+', '', content)
         content = re.sub(r'\[image[^\]]*\]', '', content, flags=re.IGNORECASE)
         content = re.sub(r'\[photo[^\]]*\]', '', content, flags=re.IGNORECASE)
         content = re.sub(r'\[picture[^\]]*\]', '', content, flags=re.IGNORECASE)
-        
-        # Remove stray <br> tags that LLM might produce, converting them to newlines
+
         content = re.sub(r'<br\s*/?>', '\n', content, flags=re.IGNORECASE)
 
         content = re.sub(r'\n\s*\n', '\n\n', content)
@@ -74,17 +75,17 @@ class ReportService:
             property_data_dict = analysis_data.get("property_data", {})
             if not property_data_dict:
                 logger.warning("Empty property data received for report generation")
-                property_data_dict = {"title": "Мэдээлэл байхгүй", "price_per_sqm": 0}
+                property_data_dict = {"title": "No Information", "price_per_sqm": 0}
 
-            district_analysis_text = analysis_data.get("district_analysis_string", "Дүүргийн шинжилгээний мэдээлэл олдсонгүй.")
+            district_analysis_text = analysis_data.get("district_analysis_string",
+                                                       "District analysis information not found.")
             search_results_text = await self._search_property_info(property_data_dict)
-            # search_results_text is already filtered by _summarize_search_results if it came from there
 
             try:
                 detailed_llm_analysis = await self._analyze_property(property_data_dict, district_analysis_text)
             except Exception as e:
                 logger.error(f"Error in property analysis: {e}", exc_info=True)
-                detailed_llm_analysis = "Хөрөнгийн дэлгэрэнгүй шинжилгээ хийхэд алдаа гарлаа."
+                detailed_llm_analysis = "An error occurred while performing detailed property analysis."
 
             try:
                 pdf_path = self.pdf_generator.generate_property_analysis_report(
@@ -129,9 +130,9 @@ class ReportService:
     async def generate_district_report(self, analysis_data: dict) -> dict:
         logger.info("Generating district report")
         try:
-            query = analysis_data.get("query", "ерөнхий дүүргүүд")
+            query = analysis_data.get("query", "general districts")
             analysis_type = analysis_data.get("type", "district")
-            base_analysis_content = analysis_data.get("analysis_content", "Дүүргийн мэдээлэл олдсонгүй.")
+            base_analysis_content = analysis_data.get("analysis_content", "District information not found.")
 
             if 'timestamp' in analysis_data:
                 try:
@@ -147,7 +148,8 @@ class ReportService:
             search_results_text = ""
 
             if analysis_type == "district_comparison":
-                search_results_text = await self._search_market_info(query="Улаанбаатар дүүргүүдийн үл хөдлөх хөрөнгийн зах зээлийн тойм")
+                search_results_text = await self._search_market_info(
+                    query="Ulaanbaatar districts real estate market overview")
                 if districts_data_for_pdf:
                     try:
                         market_analysis_for_pdf = await self._analyze_market_for_report(districts_data_for_pdf)
@@ -158,32 +160,36 @@ class ReportService:
                     market_analysis_for_pdf = "Дүүргүүдийн өгөгдөл байхгүй тул зах зээлийн ерөнхий хандлагыг тодорхойлох боломжгүй байна."
             elif analysis_type == "district":
                 single_district_name = query
-                search_results_text = await self._search_market_info(query=f"{single_district_name} дүүргийн үл хөдлөх хөрөнгийн зах зээлийн мэдээлэл")
+                search_results_text = await self._search_market_info(
+                    query=f"{single_district_name} district real estate market information")
                 focused_district_data = [d for d in districts_data_for_pdf if d.get('name') == single_district_name]
                 if focused_district_data:
                     try:
                         market_analysis_for_pdf = await self._analyze_market_for_report(focused_district_data)
                     except Exception as e:
-                        logger.error(f"Error analyzing market for single district '{single_district_name}': {e}", exc_info=True)
+                        logger.error(f"Error analyzing market for single district '{single_district_name}': {e}",
+                                     exc_info=True)
                         market_analysis_for_pdf = f"{single_district_name} дүүргийн зах зээлийн чиг хандлагыг тодорхойлоход алдаа гарлаа."
                 else:
-                     market_analysis_for_pdf = f"{single_district_name} дүүргийн талаарх дэлгэрэнгүй мэдээлэл олдсонгүй. {base_analysis_content}"
+                    market_analysis_for_pdf = f"{single_district_name} дүүргийн талаарх дэлгэрэнгүй мэдээлэл олдсонгүй. {base_analysis_content}"
             else:
                 return {"message": "Тайлангийн төрөл тодорхойгүй байна.", "success": False}
 
             generated_future_outlook_text = ""
-            current_context_for_outlook = f"Одоогийн дүүргүүдийн мэдээлэл: {json.dumps(districts_data_for_pdf, ensure_ascii=False, indent=2)}\n\nЗах зээлийн ерөнхий дүн шинжилгээ: {market_analysis_for_pdf}"
+            current_context_for_outlook = f"Current district information: {json.dumps(districts_data_for_pdf, ensure_ascii=False, indent=2)}\n\nGeneral market analysis: {market_analysis_for_pdf}"
             try:
                 future_outlook_prompt_template = ChatPromptTemplate.from_messages([
-                    ("system", """Та Монголын үл хөдлөх хөрөнгийн зах зээлийн шинжээч.
-                     Өгөгдсөн дүүргүүдийн мэдээлэл болон зах зээлийн ерөнхий чиг хандлагад тулгуурлан PDF тайланд зориулсан "Ирээдүйн Хөгжлийн Төлөв" хэсгийг боловсруулна уу.
-                     Энэ хэсэгт эдгээр дүүрэгт нөлөөлж болзошгүй дэд бүтцийн төслүүд, боловсрол, худалдааны байгууламжуудын хөгжил, үнийн чиг хандлага, эсвэл ирээдүйн хөгжилтэй холбоотой эрсдэлүүдийг хэлэлцэх ёстой.
-                     Хариулт тань **ЗӨВХӨН МОНГОЛ ХЭЛЭЭР**, албан ёсны тайланд тохиромжтой, 3-5 догол мөр бүхий дэлгэрэнгүй байх ёстой. **АНГЛИ ҮГ, HTML TAG ОГТ ХЭРЭГЛЭЖ БОЛОХГҮЙ.** Шинэ мөр үүсгэхдээ \\n тэмдэгт ашиглана уу."""),
-                    ("human", "Контекст:\n{context_for_outlook}\n\nДээрх мэдээлэлд үндэслэн \"Ирээдүйн Хөгжлийн Төлөв\" хэсгийн агуулгыг Монгол хэлээр бичнэ үү.")
+                    ("system", """You are a real estate market analyst in Mongolia.
+                     Based on the given district information and general market trends, develop a "Future Development Outlook" section for the PDF report.
+                     This section should discuss infrastructure projects, development of educational and commercial facilities, price trends, or risks related to future development that might affect these districts.
+                     Your answer MUST BE ONLY IN MONGOLIAN, detailed, suitable for an official report, with 3-5 paragraphs. DO NOT USE ENGLISH WORDS OR HTML TAGS. Use \\n for new lines."""),
+                    ("human",
+                     "Context:\n{context_for_outlook}\n\nBased on the above information, write the content for the 'Future Development Outlook' section in Mongolian.")
                 ])
                 future_outlook_chain = future_outlook_prompt_template | self.llm | StrOutputParser()
-                generated_future_outlook_text = await future_outlook_chain.ainvoke({"context_for_outlook": current_context_for_outlook})
-                generated_future_outlook_text = self._clean_search_content(generated_future_outlook_text.strip()) # Clean LLM output
+                generated_future_outlook_text = await future_outlook_chain.ainvoke(
+                    {"context_for_outlook": current_context_for_outlook})
+                generated_future_outlook_text = self._clean_search_content(generated_future_outlook_text.strip())
                 if not generated_future_outlook_text or len(generated_future_outlook_text) < 50:
                     logger.warning("LLM generated future outlook text was too short or empty. Using fallback.")
                     generated_future_outlook_text = "Ирээдүйн хөгжлийн төлөвийн талаарх дэлгэрэнгүй мэдээллийг одоогоор боловсруулах боломжгүй байна. Ерөнхийдөө хотын төлөвлөлт, дэд бүтцийн сайжруулалт нь үл хөдлөх хөрөнгийн үнэд нөлөөлөх болно. Тухайн дүүргийн хөгжлийн мастер төлөвлөгөөг судлахыг зөвлөж байна."
@@ -232,7 +238,7 @@ class ReportService:
     async def generate_market_report(self, analysis_data: dict) -> dict:
         logger.info("Generating market report")
         try:
-            user_query = analysis_data.get("query", "ерөнхий зах зээл")
+            user_query = analysis_data.get("query", "general market")
             search_content_from_chat = analysis_data.get("search_content", "")
 
             if 'timestamp' in analysis_data:
@@ -247,7 +253,7 @@ class ReportService:
             try:
                 report_focused_search_summary = await self._summarize_search_results(
                     search_content_from_chat,
-                    prompt_guideline="Улаанбаатарын үл хөдлөх хөрөнгийн зах зээлийн талаар дэлгэрэнгүй чиг хандлага, статистик, ирээдүйн төлөвийг гарга. Гол тоо баримт, өөрчлөлтүүдийг онцолж, тойм, үнийн хандлага, зах зээлийн таамаглалыг багтаасан иж бүрэн тайланд зориулсан хураангуйг гарга.",
+                    prompt_guideline="Provide detailed trends, statistics, and future outlook for the Ulaanbaatar real estate market. Highlight key figures and changes, and generate a comprehensive summary for a report including an overview, price trends, and market predictions.",
                     max_summary_length=1500
                 )
             except Exception as e:
@@ -263,17 +269,19 @@ class ReportService:
                     logger.error(f"Error analyzing districts for market report: {e}", exc_info=True)
                     llm_analysis_of_districts = "Дүүргүүдийн мэдээллийг харьцуулан дүгнэхэд алдаа гарлаа."
 
-            market_context_for_llm = f"Зах зээлийн ерөнхий хураангуй (Тойм, Үнийн Хандлага, Таамаглалд ашиглана): {report_focused_search_summary}\n\nДүүргүүдийн Харьцуулсан Шинжилгээ: {llm_analysis_of_districts}\n\nАнхдагч хайлтын дэлгэрэнгүй мэдээлэл (хэрэв шаардлагатай бол ашиглана): {search_content_from_chat[:1000]}"
+            market_context_for_llm = f"General market summary (to be used for Overview, Price Trends, and Forecasts): {report_focused_search_summary}\n\nComparative District Analysis: {llm_analysis_of_districts}\n\nDetailed initial search information (use if needed): {search_content_from_chat[:1000]}"
 
             generated_supply_demand_text = ""
             try:
                 supply_demand_prompt = ChatPromptTemplate.from_messages([
-                    ("system", """Та Монголын үл хөдлөх хөрөнгийн шинжээч. Өгөгдсөн зах зээлийн мэдээлэлд үндэслэн "Эрэлт Нийлүүлэлтийн Шинжилгээ" хэсгийг **ЗӨВХӨН МОНГОЛ ХЭЛЭЭР**, албан тайланд тохирохуйц, дэлгэрэнгүй байдлаар бичнэ үү.
-                    Эрэлтийн гол хөдөлгөгч хүчин зүйлс (жишээ нь, хүн ам зүй, зээлийн боломж), нийлүүлэлтийн одоогийн байдал (шинэ барилга, хуучин байрны нөөц), зах зээлийн тэнцвэрт байдалд хэрхэн нөлөөлж буйг тодорхойл. Боломжтой бол тоон үзүүлэлт, чиг хандлагыг дурдаж, 3-5 догол мөр бүхий, гүнзгий анализ бүхий агуулга гаргана уу. **АНГЛИ ҮГ, HTML TAG ОГТ ХЭРЭГЛЭЖ БОЛОХГҮЙ.** Шинэ мөр үүсгэхдээ \\n тэмдэгт ашиглана уу."""),
-                    ("human", "Зах зээлийн контекст:\n{market_context}\n\nДээрх мэдээлэлд тулгуурлан \"Эрэлт Нийлүүлэлтийн Шинжилгээ\" хэсгийг бичнэ үү.")
+                    ("system", """You are a Mongolian real estate analyst. Based on the given market information, write a "Supply-Demand Analysis" section ONLY IN MONGOLIAN, suitable for an official report, in detail.
+                    Identify key demand drivers (e.g., demographics, credit availability) and current supply conditions (new construction, existing housing stock), and how they affect market balance. If possible, mention quantitative indicators and trends, providing in-depth analysis with 3-5 paragraphs. DO NOT USE ENGLISH WORDS OR HTML TAGS. Use \\n for new lines."""),
+                    ("human",
+                     "Market context:\n{market_context}\n\nBased on the above information, write the 'Supply-Demand Analysis' section.")
                 ])
                 supply_demand_chain = supply_demand_prompt | self.llm | StrOutputParser()
-                generated_supply_demand_text = await supply_demand_chain.ainvoke({"market_context": market_context_for_llm})
+                generated_supply_demand_text = await supply_demand_chain.ainvoke(
+                    {"market_context": market_context_for_llm})
                 generated_supply_demand_text = self._clean_search_content(generated_supply_demand_text.strip())
                 if not generated_supply_demand_text or len(generated_supply_demand_text) < 50:
                     generated_supply_demand_text = "Зах зээлийн эрэлт нийлүүлэлтийн талаарх дэлгэрэнгүй мэдээллийг боловсруулах боломжгүй. Ерөнхийдөө барилгын салбарын идэвхжил, зээлийн хүртээмж, хүн амын өсөлт зэрэг нь эрэлт нийлүүлэлтэд голлон нөлөөлдөг."
@@ -284,13 +292,16 @@ class ReportService:
             generated_investment_strategy_text = ""
             try:
                 investment_strategy_prompt = ChatPromptTemplate.from_messages([
-                    ("system", """Та Монголын үл хөдлөх хөрөнгийн хөрөнгө оруулалтын зөвлөх. Өгөгдсөн зах зээлийн мэдээлэлд үндэслэн "Хөрөнгө Оруулалтын Стратеги ба Боломжууд" хэсгийг **ЗӨВХӨН МОНГОЛ ХЭЛЭЭР**, албан тайланд тохирохуйц, дэлгэрэнгүй байдлаар бичнэ үү.
-                    Богино болон урт хугацааны стратеги, эрсдэлийг бууруулах арга замууд, онцлох боломжуудыг (жишээ нь, тодорхой дүүргүүд, үл хөдлөх хөрөнгийн төрөл) дурдаж, 3-5 догол мөр бүхий, гүнзгий анализ бүхий агуулга гаргана уу. **АНГЛИ ҮГ, HTML TAG ОГТ ХЭРЭГЛЭЖ БОЛОХГҮЙ.** Шинэ мөр үүсгэхдээ \\n тэмдэгт ашиглана уу."""),
-                    ("human", "Зах зээлийн контекст:\n{market_context}\n\nДээрх мэдээлэлд тулгуурлан \"Хөрөнгө Оруулалтын Стратеги ба Боломжууд\" хэсгийг бичнэ үү.")
+                    ("system", """You are a real estate investment advisor in Mongolia. Based on the given market information, write an "Investment Strategy and Opportunities" section ONLY IN MONGOLIAN, suitable for an official report, in detail.
+                    Mention short-term and long-term strategies, risk mitigation methods, and highlighted opportunities (e.g., specific districts, property types), providing in-depth analysis with 3-5 paragraphs. DO NOT USE ENGLISH WORDS OR HTML TAGS. Use \\n for new lines."""),
+                    ("human",
+                     "Market context:\n{market_context}\n\nBased on the above information, write the 'Investment Strategy and Opportunities' section.")
                 ])
                 investment_strategy_chain = investment_strategy_prompt | self.llm | StrOutputParser()
-                generated_investment_strategy_text = await investment_strategy_chain.ainvoke({"market_context": market_context_for_llm})
-                generated_investment_strategy_text = self._clean_search_content(generated_investment_strategy_text.strip())
+                generated_investment_strategy_text = await investment_strategy_chain.ainvoke(
+                    {"market_context": market_context_for_llm})
+                generated_investment_strategy_text = self._clean_search_content(
+                    generated_investment_strategy_text.strip())
                 if not generated_investment_strategy_text or len(generated_investment_strategy_text) < 50:
                     generated_investment_strategy_text = "Хөрөнгө оруулалтын стратегийн талаарх дэлгэрэнгүй зөвлөмжийг боловсруулах боломжгүй. Ерөнхийдөө байршил, ирээдүйн хөгжлийн төлөв, түрээсийн өгөөж, хувийн санхүүгийн зорилго зэргийг харгалзан үзэх нь чухал."
             except Exception as e:
@@ -300,12 +311,14 @@ class ReportService:
             generated_risk_assessment_text = ""
             try:
                 risk_assessment_prompt = ChatPromptTemplate.from_messages([
-                    ("system", """Та Монголын үл хөдлөх хөрөнгийн эрсдэлийн шинжээч. Өгөгдсөн зах зээлийн мэдээлэлд үндэслэн "Эрсдэлийн Үнэлгээ ба Анхааруулга" хэсгийн АГУУЛГЫГ **ЗӨВХӨН МОНГОЛ ХЭЛЭЭР**, албан тайланд тохирохуйц, дэлгэрэнгүй байдлаар бичнэ үү. **ХЭСГИЙН ГАРЧГИЙГ ДАХИН БИЧИХ ХЭРЭГГҮЙ.**
-                    Болзошгүй макро эдийн засгийн, зах зээлийн өвөрмөц, бодлогын болон бусад эрсдэлүүд, тэдгээрээс хэрхэн сэргийлэх, эрсдэлийг бууруулах арга замуудын талаар дурдаж, 3-5 догол мөр бүхий, гүнзгий анализ бүхий агуулга гаргана уу. **АНГЛИ ҮГ, HTML TAG ОГТ ХЭРЭГЛЭЖ БОЛОХГҮЙ.** Шинэ мөр үүсгэхдээ \\n тэмдэгт ашиглана уу."""),
-                    ("human", "Зах зээлийн контекст:\n{market_context}\n\nДээрх мэдээлэлд тулгуурлан \"Эрсдэлийн Үнэлгээ ба Анхааруулга\" хэсгийн АГУУЛГЫГ бичнэ үү.")
+                    ("system", """You are a real estate risk analyst in Mongolia. Based on the given market information, write the CONTENT for the "Risk Assessment and Warnings" section ONLY IN MONGOLIAN, suitable for an official report, in detail. DO NOT REPEAT THE SECTION TITLE.
+                    Mention potential macroeconomic, market-specific, policy, and other risks, and methods to prevent them or mitigate risks, providing in-depth analysis with 3-5 paragraphs. DO NOT USE ENGLISH WORDS OR HTML TAGS. Use \\n for new lines."""),
+                    ("human",
+                     "Market context:\n{market_context}\n\nBased on the above information, write the CONTENT for the 'Risk Assessment and Warnings' section.")
                 ])
                 risk_assessment_chain = risk_assessment_prompt | self.llm | StrOutputParser()
-                generated_risk_assessment_text = await risk_assessment_chain.ainvoke({"market_context": market_context_for_llm})
+                generated_risk_assessment_text = await risk_assessment_chain.ainvoke(
+                    {"market_context": market_context_for_llm})
                 generated_risk_assessment_text = self._clean_search_content(generated_risk_assessment_text.strip())
                 if not generated_risk_assessment_text or len(generated_risk_assessment_text) < 50:
                     generated_risk_assessment_text = "Зах зээлийн эрсдэлийн үнэлгээг дэлгэрэнгүй боловсруулах боломжгүй. Ерөнхийдөө зээлийн хүүгийн өөрчлөлт, эдийн засгийн тогтворгүй байдал, барилгын салбарын зохицуулалт, байгалийн гамшиг зэрэг нь анхаарах эрсдэлүүд юм."
@@ -356,18 +369,20 @@ class ReportService:
 
     def _extract_districts_data(self) -> list:
         logger.info("Extracting districts data for report generation")
-        if not self.district_analyzer or not hasattr(self.district_analyzer, 'vectorstore') or not self.district_analyzer.vectorstore:
+        if not self.district_analyzer or not hasattr(self.district_analyzer,
+                                                     'vectorstore') or not self.district_analyzer.vectorstore:
             logger.warning("DistrictAnalyzer or its vectorstore not available. Using fallback data.")
             return self._get_fallback_data()
 
         all_docs = []
         try:
             if hasattr(self.district_analyzer.vectorstore, 'docstore') and \
-               hasattr(self.district_analyzer.vectorstore.docstore, '_dict'):
+                    hasattr(self.district_analyzer.vectorstore.docstore, '_dict'):
                 all_docs = list(self.district_analyzer.vectorstore.docstore._dict.values())
                 logger.info(f"Retrieved {len(all_docs)} documents directly from docstore.")
             else:
-                logger.warning("Cannot directly access vectorstore's full document list. Fallback needed or vectorstore inspection.")
+                logger.warning(
+                    "Cannot directly access vectorstore's full document list. Fallback needed or vectorstore inspection.")
                 return self._get_fallback_data()
 
         except Exception as e:
@@ -392,11 +407,16 @@ class ReportService:
                     continue
 
                 price_patterns = [
-                    (r"(?:Нийт байрны|Нийт ерөнхий|Ерөнхий дундаж)\s*1м2?\s*дундаж үнэ:\s*([\d\s,.]+)\s*(?:₮|төгрөг|MNT)", 'overall_avg'),
-                    (r"2 өрөө(?:ний)?\s*(?:байрны)?\s*1м2?\s*дундаж үнэ:\s*([\d\s,.]+)\s*(?:₮|төгрөг|MNT)", 'two_room_avg'),
-                    (r"3 өрөө(?:ний)?\s*(?:байрны)?\s*1м2?\s*дундаж үнэ:\s*([\d\s,.]+)\s*(?:₮|төгрөг|MNT)", 'three_room_avg'),
-                    (r"1 өрөө(?:ний)?\s*(?:байрны)?\s*1м2?\s*дундаж үнэ:\s*([\d\s,.]+)\s*(?:₮|төгрөг|MNT)", 'one_room_avg'),
-                    (r"4 өрөө(?:ний)?\s*(?:байрны)?\s*1м2?\s*дундаж үнэ:\s*([\d\s,.]+)\s*(?:₮|төгрөг|MNT)", 'four_room_avg'),
+                    (r"(?:Нийт байрны|Нийт ерөнхий|Ерөнхий дундаж)\s*1м2?\s*дундаж үнэ:\s*([\d\s,.]+)\s*(?:₮|төгрөг|MNT)",
+                     'overall_avg'),
+                    (r"2 өрөө(?:ний)?\s*(?:байрны)?\s*1м2?\s*дундаж үнэ:\s*([\d\s,.]+)\s*(?:₮|төгрөг|MNT)",
+                     'two_room_avg'),
+                    (r"3 өрөө(?:ний)?\s*(?:байрны)?\s*1м2?\s*дундаж үнэ:\s*([\d\s,.]+)\s*(?:₮|төгрөг|MNT)",
+                     'three_room_avg'),
+                    (r"1 өрөө(?:ний)?\s*(?:байрны)?\s*1м2?\s*дундаж үнэ:\s*([\d\s,.]+)\s*(?:₮|төгрөг|MNT)",
+                     'one_room_avg'),
+                    (r"4 өрөө(?:ний)?\s*(?:байрны)?\s*1м2?\s*дундаж үнэ:\s*([\d\s,.]+)\s*(?:₮|төгрөг|MNT)",
+                     'four_room_avg'),
                 ]
                 for pattern, key in price_patterns:
                     match = re.search(pattern, content, re.IGNORECASE)
@@ -405,7 +425,7 @@ class ReportService:
                         if price_val > 0:
                             district_info[key] = price_val
 
-                if district_info.get('name') and district_info.get('overall_avg', 0) > 0 :
+                if district_info.get('name') and district_info.get('overall_avg', 0) > 0:
                     districts_data.append(district_info)
             except Exception as e:
                 logger.error(f"Error parsing district data from doc: {content[:100]}... Error: {e}", exc_info=True)
@@ -430,12 +450,12 @@ class ReportService:
     def _get_fallback_data(self) -> list:
         logger.info("Using fallback static district data for report context.")
         return [
-            {'name': 'Сүхбаатар', 'overall_avg': 4500000, 'two_room_avg': 4600000, 'three_room_avg': 4400000},
-            {'name': 'Хан-Уул', 'overall_avg': 4000000, 'two_room_avg': 4100000, 'three_room_avg': 3900000},
-            {'name': 'Чингэлтэй', 'overall_avg': 3800000, 'two_room_avg': 3900000, 'three_room_avg': 3700000},
-            {'name': 'Баянгол', 'overall_avg': 3500000, 'two_room_avg': 3600000, 'three_room_avg': 3400000},
-            {'name': 'Баянзүрх', 'overall_avg': 3200000, 'two_room_avg': 3300000, 'three_room_avg': 3100000},
-            {'name': 'Сонгинохайрхан', 'overall_avg': 2800000, 'two_room_avg': 2900000, 'three_room_avg': 2700000},
+            {'name': 'Sukhbaatar', 'overall_avg': 4500000, 'two_room_avg': 4600000, 'three_room_avg': 4400000},
+            {'name': 'Khan-Uul', 'overall_avg': 4000000, 'two_room_avg': 4100000, 'three_room_avg': 3900000},
+            {'name': 'Chingeltei', 'overall_avg': 3800000, 'two_room_avg': 3900000, 'three_room_avg': 3700000},
+            {'name': 'Bayangol', 'overall_avg': 3500000, 'two_room_avg': 3600000, 'three_room_avg': 3400000},
+            {'name': 'Bayanzurkh', 'overall_avg': 3200000, 'two_room_avg': 3300000, 'three_room_avg': 3100000},
+            {'name': 'Songinokhairkhan', 'overall_avg': 2800000, 'two_room_avg': 2900000, 'three_room_avg': 2700000},
         ]
 
     async def _search_property_info(self, property_data_dict: dict) -> str:
@@ -449,7 +469,8 @@ class ReportService:
             if district and district != "Тодорхойгүй":
                 query_parts.append(district + " дүүрэг")
             if title and title != "Мэдээлэл байхгүй":
-                clean_title = re.sub(r'\d+\s*өрөө|\bбайр\b|\bорон сууц\b|\bзарна\b', '', title, flags=re.IGNORECASE).strip()
+                clean_title = re.sub(r'\d+\s*өрөө|\bбайр\b|\bорон сууц\b|\bзарна\b', '', title,
+                                     flags=re.IGNORECASE).strip()
                 specific_location_parts = clean_title.split()[:3]
                 if specific_location_parts:
                     query_parts.append(" ".join(specific_location_parts))
@@ -458,7 +479,6 @@ class ReportService:
             logger.info(f"Searching for property context with query: {query}")
             search_response = await self.search_tool.ainvoke({"query": query})
 
-            # _summarize_search_results will handle empty or problematic search_response
             return await self._summarize_search_results(
                 search_response,
                 prompt_guideline="Тухайн үл хөдлөх хөрөнгийн байршил, орчин тойрны мэдээлэл, ойролцоох үнэ ханш, зах зээлийн идэвхжилийн талаарх гол мэдээллийг гарга. Тайлангийн хэсэгт тохиромжтой, товч байдлаар нэгтгэ.",
@@ -468,7 +488,8 @@ class ReportService:
             logger.exception(f"Error during property information search: {e}")
             return "Үл хөдлөх хөрөнгийн талаарх нэмэлт мэдээлэл хайхад алдаа гарлаа."
 
-    async def _search_market_info(self, query: str = "Улаанбаатар орон сууцны зах зээлийн ерөнхий мэдээлэл 2024 2025") -> str:
+    async def _search_market_info(self,
+                                  query: str = "Улаанбаатар орон сууцны зах зээлийн ерөнхий мэдээлэл 2024 2025") -> str:
         if not self.search_tool:
             logger.info("Search tool not available for market info.")
             return "Зах зээлийн нэмэлт мэдээллийн хайлт хийгдсэнгүй (хайлт тохируулагдаагүй)."
@@ -485,10 +506,11 @@ class ReportService:
             logger.exception(f"Error during market information search: {e}")
             return "Зах зээлийн талаарх нэмэлт мэдээлэл хайхад алдаа гарлаа."
 
-    async def _summarize_search_results(self, search_response_data: any, prompt_guideline: str = "Extract key market trends, pricing information, and actionable insights.", max_summary_length: int = 1000) -> str:
+    async def _summarize_search_results(self, search_response_data: any,
+                                        prompt_guideline: str = "Extract key market trends, pricing information, and actionable insights.",
+                                        max_summary_length: int = 1000) -> str:
         try:
             search_text = ""
-            # ... (logic to extract text from search_response_data as before) ...
             if isinstance(search_response_data, str):
                 search_text = search_response_data
             elif isinstance(search_response_data, list):
@@ -497,16 +519,19 @@ class ReportService:
                     if isinstance(item, dict):
                         content = item.get('content', '') or item.get('snippet', '')
                         if content: texts.append(str(content))
-                    elif hasattr(item, 'page_content'): # For Document objects
-                         texts.append(str(item.page_content))
+                    elif hasattr(item, 'page_content'):
+                        texts.append(str(item.page_content))
                     elif isinstance(item, str):
                         texts.append(item)
                 search_text = "\n\n".join(texts)
             elif isinstance(search_response_data, dict):
-                if 'answer' in search_response_data: search_text = str(search_response_data['answer'])
-                elif 'content' in search_response_data: search_text = str(search_response_data['content'])
+                if 'answer' in search_response_data:
+                    search_text = str(search_response_data['answer'])
+                elif 'content' in search_response_data:
+                    search_text = str(search_response_data['content'])
                 elif 'results' in search_response_data and isinstance(search_response_data['results'], list):
-                    texts = [str(r.get('snippet', r.get('content', ''))) for r in search_response_data['results'] if isinstance(r, dict) and (r.get('snippet') or r.get('content'))]
+                    texts = [str(r.get('snippet', r.get('content', ''))) for r in search_response_data['results'] if
+                             isinstance(r, dict) and (r.get('snippet') or r.get('content'))]
                     search_text = "\n\n".join(texts)
                 else:
                     search_text = str(search_response_data)
@@ -514,17 +539,15 @@ class ReportService:
                 logger.warning(f"Unexpected search_response_data format: {type(search_response_data)}")
                 search_text = str(search_response_data)
 
-
-            cleaned_search_text = self._clean_search_content(search_text) # Initial clean (remove images, basic <br>)
-            filtered_cleaned_text = self._filter_search_text(cleaned_search_text) # Filter out "no service" type messages
+            cleaned_search_text = self._clean_search_content(search_text)
+            filtered_cleaned_text = self._filter_search_text(cleaned_search_text)
 
             if not filtered_cleaned_text.strip():
-                logger.warning("Search text is empty or fully filtered out after cleaning. Cannot summarize meaningfully.")
-                # Return a message indicating search issues, which is more informative than generic "no data"
-                if not cleaned_search_text.strip() and search_text.strip(): # Original had content, but cleaning removed it all
-                     return "Хайлтын илэрц боловсруулахад тохиромжгүй тэмдэгтүүд агуулж байсан тул мэдээлэл гаргасангүй."
+                logger.warning(
+                    "Search text is empty or fully filtered out after cleaning. Cannot summarize meaningfully.")
+                if not cleaned_search_text.strip() and search_text.strip():
+                    return "Хайлтын илэрц боловсруулахад тохиромжгүй тэмдэгтүүд агуулж байсан тул мэдээлэл гаргасангүй."
                 return "Хайлтын системээс одоогоор мэдээлэл авах боломжгүй эсвэл олдсон мэдээлэл нь ашиглах боломжгүй байна."
-
 
             llm_max_input_chars = 3500
             if len(filtered_cleaned_text) > llm_max_input_chars:
@@ -534,22 +557,23 @@ class ReportService:
                 final_text_for_llm = filtered_cleaned_text
 
             prompt = ChatPromptTemplate.from_messages([
-                ("system", f"""Та бол Монголын үл хөдлөх хөрөнгийн зах зээлийн мэргэжлийн шинжээч. Өгөгдсөн хайлтын үр дүнг шинжлэн товч бөгөөд ойлгомжтой хураангуйг гаргана уу.
+                ("system", f"""You are a professional real estate market analyst in Mongolia. Analyze the given search results and provide a concise and understandable summary.
                 {prompt_guideline}
-                **ЧУХАЛ ЗААВАР:**
-                - ХАРИУЛТ **ЗӨВХӨН МОНГОЛ ХЭЛЭЭР** БАЙХ ЁСТОЙ.
-                - **АНГЛИ ҮГ, HTML TAG (<br> гэх мэт) ОГТ ХЭРЭГЛЭЖ БОЛОХГҮЙ.** Шинэ мөр үүсгэх шаардлагатай бол зөвхөн \\n тэмдэгтийг ашиглана уу.
-                - Хэрэв өгөгдсөн {{{{content}}}} текстэнд "ажиллахгүй байна", "мэдээлэл олж чадахгүй байна" гэх мэт хайлтын системийн доголдлыг илтгэх үг хэллэг байвал, эцсийн хураангуйдаа "Хайлтын системээс одоогоор мэдээлэл авах боломжгүй байна" гэсэн утгатай товч, эелдэг мэдэгдэл оруулна уу. Хүснэгтийн үг хэллэгийг үгчлэн бүү давтаарай.
-                - Гол анхаарах зүйлс: Зах зээлийн гол чиг хандлага, үнийн мэдээлэл; Зах зээлд нөлөөлж буй чухал хүчин зүйлс; Хэрэв дурдсан бол тодорхой хөгжүүлэлт, өөрчлөлтүүд; Худалдан авагчид болон хөрөнгө оруулагчдад өгөх бодит зөвлөмж (хэрэв контекстэд байвал); Боломжтой бол тодорхой тоо, баримтыг ашигла.
-                - Хураангуй нь тайланд оруулахад тохиромжтой, сайн бүтэцтэй, мэдээлэл сайтай байх ёстой. Хураангуйг шууд Монгол хэлээр эхлүүлнэ үү."""),
-                ("human", "Хайлтын үр дүнгийн текст: {content}\n\nДээрх текстэд үндэслэн тодорхой бөгөөд товч хураангуйг Монгол хэлээр, HTML tag оролцуулалгүйгээр гаргана уу.")
+                **IMPORTANT INSTRUCTIONS:**
+                - THE ANSWER MUST BE **ONLY IN MONGOLIAN**.
+                - **DO NOT USE ENGLISH WORDS OR HTML TAGS (like <br>).** If new lines are needed, use only the \\n character.
+                - If the provided {{{{content}}}} text contains phrases indicating search system failures like "not working" or "cannot find information", include a brief, polite statement in your final summary such as "Хайлтын системээс одоогоор мэдээлэл авах боломжгүй байна." Do not verbatim repeat table phrases.
+                - Key focus areas: Major market trends, pricing information; Important factors affecting the market; Specific developments and changes if mentioned; Practical advice for buyers and investors (if in context); Use specific numbers and facts if possible.
+                - The summary should be suitable for inclusion in a report, well-structured, and informative. Start the summary directly in Mongolian."""),
+                ("human",
+                 "Search result text: {content}\n\nBased on the above text, generate a clear and concise summary in Mongolian, without including HTML tags.")
             ])
             chain = prompt | self.llm | StrOutputParser()
             try:
                 summary = await chain.ainvoke({"content": final_text_for_llm})
-                summary = self._clean_search_content(summary.strip()) # Clean LLM output as well
+                summary = self._clean_search_content(summary.strip())
 
-                if not self._filter_search_text(summary): # Check if LLM itself produced a filtered phrase
+                if not self._filter_search_text(summary):
                     logger.warning("LLM summary contained a filtered phrase. Returning a generic message.")
                     return "Хайлтын системээс одоогоор мэдээлэл авах боломжгүй байна."
 
@@ -559,7 +583,9 @@ class ReportService:
                 return summary if summary else "Хайлтын илэрцийг хураангуйлахад мэдээлэл гарсангүй."
             except Exception as e:
                 logger.error(f"Error invoking LLM for search summary: {e}", exc_info=True)
-                fallback_summary = final_text_for_llm[:max_summary_length] + ("... (LLM хураангуй үүсгэхэд алдаа гарлаа)" if len(final_text_for_llm) > max_summary_length else " (LLM хураангуй үүсгэхэд алдаа гарлаа)")
+                fallback_summary = final_text_for_llm[:max_summary_length] + (
+                    "... (LLM хураангуй үүсгэхэд алдаа гарлаа)" if len(
+                        final_text_for_llm) > max_summary_length else " (LLM хураангуй үүсгэхэд алдаа гарлаа)")
                 return fallback_summary
         except Exception as e:
             logger.exception(f"General error in _summarize_search_results: {e}")
@@ -567,26 +593,28 @@ class ReportService:
 
     async def _analyze_property(self, property_data_dict: dict, district_analysis_text: str) -> str:
         try:
-            prompt_template = """Та бол үл хөдлөх хөрөнгийн мэргэжлийн шинжээч. Доорх үл хөдлөх хөрөнгийн мэдээлэл болон дүүргийн шинжилгээнд үндэслэн PDF тайланд зориулсан дэлгэрэнгүй үнэлгээ, харьцуулалт, зөвлөмжийг бичнэ үү.
+            prompt_template = """You are a professional real estate analyst. Based on the property information and district analysis below, write a detailed assessment, comparison, and recommendations for a PDF report.
 
-            Гол анхаарах зүйлс:
-            1.  **Үнийн Үнэлгээ:** Тухайн хөрөнгийн үнэ (нийт болон м.кв-ийн) зах зээлийн дундажтай харьцуулахад ямар байна вэ? Үнийн давуу болон сул тал. Энэ үнэ нь боломжийн эсэх.
-            2.  **Байршлын Шинжилгээ:** Хөрөнгийн байршил, дүүргийн онцлог, дэд бүтэц (зам, сургууль, цэцэрлэг, үйлчилгээ), орчны давуу болон сул талууд.
-            3.  **Хөрөнгө Оруулалтын Боломж:** Энэхүү хөрөнгө нь хөрөнгө оруулалтын хувьд ямар боломжтой вэ? Үнэ цэнийн өсөлт, түрээсийн орлогын боломж, эрсдэл.
-            4.  **Дүгнэлт ба Зөвлөмж:** Дээрх шинжилгээнд үндэслэн худалдан авагч/хөрөнгө оруулагчдад өгөх тодорхой, бодит зөвлөмж. Ямар төрлийн хүнд илүү тохиромжтой байж болох вэ?
+            Key focus areas:
+            1.  **Price Valuation:** How does the property's price (total and per sqm) compare to the market average? Price advantages and disadvantages. Is this price reasonable?
+            2.  **Location Analysis:** Property location, district specifics, infrastructure (roads, schools, kindergartens, services), advantages and disadvantages of the surroundings.
+            3.  **Investment Potential:** What investment opportunities does this property offer? Potential for value appreciation, rental income opportunities, and risks.
+            4.  **Conclusion and Recommendation:** Based on the above analysis, provide specific, practical recommendations for buyers/investors. What type of person might this property be more suitable for?
 
-            ХАРИУЛТ **ЗӨВХӨН МОНГОЛ ХЭЛЭЭР**, 3-5 догол мөр бүхий дэлгэрэнгүй, бүтэцтэй, тайланд оруулахад тохиромжтой байдлаар бичигдсэн байх ёстой. **АНГЛИ ҮГ, HTML TAG ОГТ ХЭРЭГЛЭЖ БОЛОХГҮЙ.** Шинэ мөр үүсгэхдээ \\n тэмдэгт ашиглана уу. Жишээ нь: "1. Үнийн Үнэлгээ: Энэхүү орон сууцны м.кв үнэ нь..." гэж эхэлнэ үү.
+            THE ANSWER MUST BE **ONLY IN MONGOLIAN**, detailed with 3-5 paragraphs, structured, and suitable for inclusion in a report. **DO NOT USE ENGLISH WORDS OR HTML TAGS.** Use \\n for new lines. Example: "1. Үнийн Үнэлгээ: Энэхүү орон сууцны м.кв үнэ нь..."
             """
             prompt = ChatPromptTemplate.from_messages([
                 ("system", prompt_template),
-                ("human", "Үл хөдлөх хөрөнгийн дэлгэрэнгүй мэдээлэл: {property_json_str}\n\nДүүргийн шинжилгээний текст (контекст болгон ашиглана уу): {district_text}\n\nДээрх мэдээлэлд үндэслэн үнэлгээ, харьцуулалт, зөвлөмж бүхий шинжилгээг Монгол хэлээр бичнэ үү.")
+                ("human",
+                 "Detailed property information: {property_json_str}\n\nDistrict analysis text (use as context): {district_text}\n\nBased on the above information, write an analysis including assessment, comparison, and recommendations in Mongolian.")
             ])
 
             if not property_data_dict:
-                property_data_dict = {"title": "Мэдээлэл байхгүй", "price_per_sqm": 0, "error": "No property data provided"}
+                property_data_dict = {"title": "No Information", "price_per_sqm": 0,
+                                      "error": "No property data provided"}
 
             if len(district_analysis_text) > 800:
-                district_analysis_text = district_analysis_text[:800] + "... (текст таслагдав)"
+                district_analysis_text = district_analysis_text[:800] + "... (text truncated)"
 
             chain = prompt | self.llm | StrOutputParser()
             try:
@@ -596,7 +624,8 @@ class ReportService:
                 })
                 analysis = self._clean_search_content(analysis.strip())
                 if not analysis or len(analysis) < 100:
-                    logger.warning(f"LLM analysis for property returned too short or empty. Property: {property_data_dict.get('title', 'N/A')}")
+                    logger.warning(
+                        f"LLM analysis for property returned too short or empty. Property: {property_data_dict.get('title', 'N/A')}")
                     return "Үл хөдлөх хөрөнгийн дэлгэрэнгүй үнэлгээ, харьцуулалт хийхэд хангалттай мэдээлэл гарсангүй. Зах зээлийн дундаж үнэ, байршлын онцлогийг судалж үзнэ үү. Мэргэжилтнээс зөвлөгөө авахыг зөвлөж байна."
                 return analysis
             except Exception as e:
@@ -608,25 +637,26 @@ class ReportService:
 
     async def _analyze_market_for_report(self, districts_data_list: list) -> str:
         try:
-            prompt_template = """Та бол үл хөдлөх хөрөнгийн зах зээлийн шинжээч. Доорх дүүргүүдийн структурчилсан мэдээлэлд ('List of district data') үндэслэн PDF тайланд зориулсан зах зээлийн цогц шинжилгээний хураангуйг гаргана уу.
-            Таны хариулт дараах бүтэцтэй байх ёстой бөгөөд хэсгийн гарчгийг яг доорх байдлаар ашиглана уу:
+            prompt_template = """You are a real estate market analyst. Based on the structured district information ('List of district data') below, generate a comprehensive market analysis summary for a PDF report.
+            Your answer must follow the structure below, using the exact section titles:
 
-            1.  **Зах Зээлийн Ерөнхий Тойм (Market Overview)**: 'List of district data'-д үндэслэн Улаанбаатар хотын дүүргүүдийн орон сууцны зах зээлийн одоогийн байдлыг нэгтгэн дүгнэ. Ерөнхий үнийн түвшин, гол чиг хандлагыг дурд.
-            2.  **Үнийн Харьцуулалт ба Ялгаа (Price Comparison and Differentials)**: Хамгийн өндөр болон хамгийн бага дундаж үнэтэй дүүргүүдийг тодорхойлж, 'List of district data'-г ашиглан үнийн ялгааг тайлбарла. Боломжтой бол эдгээр үнийн ялгаанд нөлөөлж буй хүчин зүйлсийн талаар таамаглал дэвшүүл.
-            3.  **Хөрөнгө Оруулалтын Боломжит Бүсүүд (Potential Investment Zones)**: 'List of district data'-д үндэслэн өөр өөр төсөвтэй (дээд зэрэглэлийн, дунд түвшний, боломжийн үнэтэй) хөрөнгө оруулагчдад илүү сонирхолтой байж болох дүүргүүдийг ангил.
-            4.  **Худалдан Авагчдад Өгөх Стратеги (Buyer Strategies)**: Төрөл бүрийн худалдан авагчдад (анх удаа байр авч буй хүмүүс, байраа томсгохыг хүсч буй гэр бүлүүд, хөрөнгө оруулагчид) хэрэгцээнд нь нийцүүлэн аль дүүрэг давуу талтай байж болох талаар зөвлө.
-            5.  **Зах Зээлийн Ирээдүйн Төлөв (Market Outlook - if inferable)**: Одоогийн мэдээлэлд үндэслэн зах зээлийн ойрын ирээдүйн талаар болгоомжтой таамаглал дэвшүүл (хэрэв боломжтой бол).
+            1.  **Market Overview**: Based on the 'List of district data', summarize the current state of the Ulaanbaatar real estate market across its districts. Mention general price levels and key trends.
+            2.  **Price Comparison and Differentials**: Identify the districts with the highest and lowest average prices, and explain the price differentials using the 'List of district data'. If possible, hypothesize factors influencing these price differences.
+            3.  **Potential Investment Zones**: Based on the 'List of district data', categorize districts that might be more attractive to investors with different budgets (premium, mid-range, affordable).
+            4.  **Buyer Strategies**: Advise various types of buyers (first-time homebuyers, families looking to upgrade, investors) on which districts might offer advantages suited to their needs.
+            5.  **Market Outlook (if inferable)**: Based on the current information, make a cautious prediction about the near future of the market (if possible).
 
-            Зааварчилгаа:
-            -   'List of district data'-аас тодорхой тоо баримт, дундаж үнийг ашигла.
-            -   Дүгнэлт, зөвлөмж нь бодитой, өгөгдөлд суурилсан байх ёстой.
-            -   Тайланд тохиромжтой, албан ёсны өнгө аясыг баримтал. ХАРИУЛТ ЗААВАЛ 300-500 үгтэй байх.
+            Instructions:
+            -   Use specific facts and average prices from the 'List of district data'.
+            -   Conclusions and recommendations must be realistic and data-driven.
+            -   Maintain a formal tone suitable for a report. The ANSWER MUST BE 300-500 words.
 
-            ЧУХАЛ: Таны эцсийн хариулт БҮХЭЛДЭЭ **ЗӨВХӨН МОНГОЛ ХЭЛЭЭР** бичигдсэн байх ёстой. **АНГЛИ ҮГ, HTML TAG ОГТ ХЭРЭГЛЭЖ БОЛОХГҮЙ.** Шинэ мөр үүсгэхдээ \\n тэмдэгт ашиглана уу. Жишээ нь: "1. Зах Зээлийн Ерөнхий Тойм: ..." гэж эхэлнэ үү.
+            IMPORTANT: Your final answer must be ENTIRELY **ONLY IN MONGOLIAN**. **DO NOT USE ENGLISH WORDS OR HTML TAGS.** Use \\n for new lines. Example: "1. Зах Зээлийн Ерөнхий Тойм: ..."
             """
             prompt = ChatPromptTemplate.from_messages([
                 ("system", prompt_template),
-                ("human", "Дүүргүүдийн мэдээллийн жагсаалт: {districts_json_str}\n\nДээрх дүүргийн мэдээлэлд үндэслэн PDF тайланд зориулсан зах зээлийн дэлгэрэнгүй шинжилгээг Монгол хэлээр бичнэ үү.")
+                ("human",
+                 "List of district information: {districts_json_str}\n\nBased on the above district information, write a detailed market analysis for a PDF report in Mongolian.")
             ])
 
             if not districts_data_list or len(districts_data_list) == 0:
@@ -653,8 +683,8 @@ class ReportService:
     async def _generate_property_summary_with_validation(self, query: str, property_data: Dict,
                                                          district_analysis: str) -> str:
         prompt = ChatPromptTemplate.from_messages([
-            ("system", "Та үл хөдлөх хөрөнгийн мэргэжилтэн. Зөвхөн монгол хэлээр, 150 үгэнд багтаан товч дүгнэлт өгнө үү."),
-            ("human", "Орон сууц: {property}\nДүүрэг: {district}\n\nТовч дүгнэлт:")
+            ("system", "You are a real estate expert. Provide a concise summary ONLY IN MONGOLIAN, within 150 words."),
+            ("human", "Apartment: {property}\nDistrict: {district}\n\nConcise summary:")
         ])
         chain = prompt | self.llm | StrOutputParser()
         response = await chain.ainvoke({
@@ -663,8 +693,9 @@ class ReportService:
 
     async def _generate_market_analysis_with_validation(self, query: str, search_content: str) -> str:
         prompt = ChatPromptTemplate.from_messages([
-            ("system", "Та үл хөдлөх хөрөнгийн зах зээлийн судлаач. Зөвхөн монгол хэлээр, 120 үгэнд багтаан шинжилгээ өгнө үү."),
-            ("human", "Асуулт: {query}\nМэдээлэл: {content}\n\nЗах зээлийн шинжилгээ:")
+            ("system",
+             "You are a real estate market researcher. Provide an analysis ONLY IN MONGOLIAN, within 120 words."),
+            ("human", "Question: {query}\nInformation: {content}\n\nMarket analysis:")
         ])
         chain = prompt | self.llm | StrOutputParser()
         response = await chain.ainvoke({"query": query, "content": search_content[:2000]})
@@ -672,8 +703,8 @@ class ReportService:
 
     async def _generate_general_response_with_validation(self, query: str, search_content: str) -> str:
         prompt = ChatPromptTemplate.from_messages([
-            ("system", "Та туслах робот. Зөвхөн монгол хэлээр, 100 үгэнд багтаан хариулт өгнө үү."),
-            ("human", "Асуулт: {query}\nМэдээлэл: {content}\n\nХариулт:")
+            ("system", "You are an assistant robot. Provide an answer ONLY IN MONGOLIAN, within 100 words."),
+            ("human", "Question: {query}\nInformation: {content}\n\nAnswer:")
         ])
         chain = prompt | self.llm | StrOutputParser()
         response = await chain.ainvoke({"query": query, "content": search_content[:1500]})
